@@ -7,34 +7,24 @@
 <body>
   <h1>Análisis y Reportes de Obra 360</h1>
 
-  <button onclick="subirInforme()">Subir Informe</button>
-  <button onclick="verArchivos()">Ver Archivos</button>
-  <button onclick="verReporte()">Ver Reporte</button>
-  <button onclick="verModelo()">Ver Modelo BIM</button>
-
-  <pre id="resultado"></pre>
+  <form id="formSubir">
+    <input type="file" name="file" />
+    <button type="button" onclick="subirInforme()">Subir Informe</button>
+  </form>
 
   <script>
     async function subirInforme() {
-      alert("Aquí irá la función para subir archivo a la API");
-    }
-
-    async function verArchivos() {
-      const res = await fetch("https://analisis-reportes-obra-360.onrender.com/archivos");
-      const data = await res.json();
-      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
-    }
-
-    async function verReporte() {
-      const res = await fetch("https://analisis-reportes-obra-360.onrender.com/reporte");
-      const data = await res.json();
-      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
-    }
-
-    async function verModelo() {
-      const res = await fetch("https://analisis-reportes-obra-360.onrender.com/modelo");
-      const data = await res.json();
-      document.getElementById("resultado").textContent = JSON.stringify(data, null, 2);
+      const formData = new FormData(document.getElementById("formSubir"));
+      try {
+        const response = await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        alert("Informe subido correctamente");
+      } catch (error) {
+        alert("Error al subir el informe");
+      }
     }
   </script>
 </body>
