@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Análisis y Reportes de Obra 360</title>
+
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -12,7 +13,7 @@
   <nav class="navbar navbar-dark bg-primary">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">
-        <img src="logo-caasa.png" alt="CAASA" width="40" height="40" class="d-inline-block align-text-top">
+        <img src="Captura de pantalla 2026-05-26 114834.jpg" alt="CAASA" width="40" height="40" class="d-inline-block align-text-top">
         Análisis y Reportes de Obra 360
       </a>
     </div>
@@ -34,9 +35,11 @@
         <img src="652234-building-1210677_1920.jpg" class="d-block w-100" alt="Edificio">
       </div>
     </div>
+
     <button class="carousel-control-prev" type="button" data-bs-target="#carouselObra360" data-bs-slide="prev">
       <span class="carousel-control-prev-icon"></span>
     </button>
+
     <button class="carousel-control-next" type="button" data-bs-target="#carouselObra360" data-bs-slide="next">
       <span class="carousel-control-next-icon"></span>
     </button>
@@ -45,42 +48,66 @@
   <!-- Formulario Subir Informe -->
   <div class="container mt-4">
     <h2>Subir Informe</h2>
+
     <form id="formSubir">
       <input type="file" name="file" class="form-control mb-2" />
-      <button type="button" class="btn btn-success" onclick="subirInforme()">Subir Informe</button>
+      <button type="button" class="btn btn-success" onclick="subirInforme()">
+        Subir Informe
+      </button>
     </form>
   </div>
 
   <!-- Footer -->
   <footer class="bg-dark text-white text-center p-3 mt-4">
-    <p>Síguenos en:
+    <p>
+      Síguenos en:
       <a href="https://instagram.com/caasa" class="text-white">Instagram</a> |
       <a href="https://facebook.com/caasa" class="text-white">Facebook</a> |
       <a href="https://wa.me/5214491234567" class="text-white">WhatsApp</a>
     </p>
-    <p>Tel: 449-123-4567 | Email: contacto@caasa.com.mx</p>
-    <p>CAASA – Análisis y Reportes de Obra 360</p>
+
+    <p>
+      Tel: 449-123-4567 | Email: contacto@caasa.com.mx
+    </p>
+
+    <p>
+      CAASA – Análisis y Reportes de Obra 360
+    </p>
   </footer>
 
   <!-- Script subir informe -->
   <script>
+
     async function subirInforme() {
+
       const formData = new FormData(document.getElementById("formSubir"));
+
       try {
-        const response = await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
-          method: "POST",
-          body: formData
-        });
+
+        const response = await fetch(
+          "https://analisis-reportes-obra-360.onrender.com/subir",
+          {
+            method: "POST",
+            body: formData
+          }
+        );
+
         const data = await response.json();
+
         alert("Informe subido correctamente");
+
       } catch (error) {
+
         alert("Error al subir el informe");
+
       }
+
     }
+
   </script>
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
-
