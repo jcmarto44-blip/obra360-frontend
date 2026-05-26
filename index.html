@@ -89,20 +89,6 @@
     </div>
   </div>
 
-  <!-- FORMULARIO -->
-  <div class="container mt-5">
-    <div class="card shadow-lg border-0 rounded-4">
-      <div class="card-body p-5">
-        <h2 class="mb-4 text-primary fw-bold" style="font-size: 2rem;">Subir Informe</h2>
-        <p class="text-muted mb-4" style="font-size: 1rem;">Carga reportes y documentos para análisis y seguimiento de obra.</p>
-        <form id="formSubir">
-          <input type="file" name="file" id="archivo" class="form-control form-control-lg mb-4" disabled />
-          <button type="button" id="btnSubir" class="btn btn-success btn-lg px-5 py-2 fw-bold" onclick="subirInforme()" disabled>Subir Informe</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
   <!-- FOOTER -->
   <footer class="bg-dark text-white text-center p-4 mt-5 shadow-lg">
     <p style="font-size: 1.1rem;">
@@ -127,29 +113,9 @@
 
       if (usuario === "admin" && password === "1234") {
         alert("Acceso correcto");
-
-        document.getElementById("archivo").disabled = false;
-        document.getElementById("btnSubir").disabled = false;
-
-        const modal = bootstrap.Modal.getInstance(document.getElementById("loginModal"));
-        modal.hide();
+        window.location.href = "cliente.html";
       } else {
         alert("Usuario o contraseña incorrectos");
-      }
-    }
-
-    // SUBIR INFORME
-    async function subirInforme() {
-      const formData = new FormData(document.getElementById("formSubir"));
-      try {
-        const response = await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
-          method: "POST",
-          body: formData
-        });
-        const data = await response.json();
-        alert("Informe subido correctamente");
-      } catch (error) {
-        alert("Error al subir el informe");
       }
     }
   </script>
