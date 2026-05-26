@@ -17,30 +17,35 @@
 <body style="background-color: #f5f5f5;">
 
   <!-- ENCABEZADO -->
-  <nav class="navbar navbar-dark bg-primary py-3 shadow">
+  <nav class="navbar navbar-dark bg-primary py-3 shadow-lg">
 
-    <div class="container-fluid d-flex align-items-center">
+    <div class="container-fluid d-flex align-items-center justify-content-start px-4">
 
       <!-- LOGO -->
       <img src="Captura de pantalla 2026-05-26 114834.jpg"
            alt="CAASA"
-           style="height: 90px;
+           style="height: 110px;
                   width: auto;
-                  margin-right: 25px;
-                  border-radius: 10px;">
+                  margin-right: 30px;
+                  border-radius: 15px;
+                  background-color: white;
+                  padding: 5px;
+                  box-shadow: 0px 4px 12px rgba(0,0,0,0.3);">
 
       <!-- TITULO -->
       <div>
 
         <h1 class="text-white fw-bold m-0"
-            style="font-size: 3rem;">
+            style="font-size: 3.5rem;
+                   letter-spacing: 1px;">
 
           Análisis y Reportes de Obra 360
 
         </h1>
 
-        <p class="text-white m-0"
-           style="font-size: 1rem;">
+        <p class="text-white mt-2 mb-0"
+           style="font-size: 1.2rem;
+                  opacity: 0.95;">
 
           Plataforma Integral de Control y Seguimiento de Obra
 
@@ -53,10 +58,10 @@
   </nav>
 
   <!-- CARRUSEL -->
-  <div class="container mt-4">
+  <div class="container-fluid mt-4 px-4">
 
     <div id="carouselObra360"
-         class="carousel slide shadow rounded overflow-hidden"
+         class="carousel slide shadow-lg rounded overflow-hidden border border-3 border-white"
          data-bs-ride="carousel">
 
       <div class="carousel-inner">
@@ -65,7 +70,8 @@
 
           <img src="nikguy-construction-site-2733678_1920.jpg"
                class="d-block w-100"
-               style="height: 380px; object-fit: cover;"
+               style="height: 420px;
+                      object-fit: cover;"
                alt="CEDIS">
 
         </div>
@@ -74,7 +80,8 @@
 
           <img src="elasticcomputefarm-supermarket-949913_1920.jpg"
                class="d-block w-100"
-               style="height: 380px; object-fit: cover;"
+               style="height: 420px;
+                      object-fit: cover;"
                alt="Supermercado">
 
         </div>
@@ -83,7 +90,8 @@
 
           <img src="marcinjozwiak-production-4408573_1920.jpg"
                class="d-block w-100"
-               style="height: 380px; object-fit: cover;"
+               style="height: 420px;
+                      object-fit: cover;"
                alt="Producción">
 
         </div>
@@ -92,7 +100,8 @@
 
           <img src="652234-building-1210677_1920.jpg"
                class="d-block w-100"
-               style="height: 380px; object-fit: cover;"
+               style="height: 420px;
+                      object-fit: cover;"
                alt="Edificio">
 
         </div>
@@ -125,22 +134,32 @@
   <!-- FORMULARIO -->
   <div class="container mt-5">
 
-    <div class="card shadow border-0">
+    <div class="card shadow-lg border-0 rounded-4">
 
-      <div class="card-body p-4">
+      <div class="card-body p-5">
 
-        <h2 class="mb-4 text-primary fw-bold">
+        <h2 class="mb-4 text-primary fw-bold"
+            style="font-size: 2rem;">
+
           Subir Informe
+
         </h2>
+
+        <p class="text-muted mb-4"
+           style="font-size: 1rem;">
+
+          Carga reportes y documentos para análisis y seguimiento de obra.
+
+        </p>
 
         <form id="formSubir">
 
           <input type="file"
                  name="file"
-                 class="form-control mb-3" />
+                 class="form-control form-control-lg mb-4" />
 
           <button type="button"
-                  class="btn btn-success btn-lg"
+                  class="btn btn-success btn-lg px-5 py-2 fw-bold"
                   onclick="subirInforme()">
 
             Subir Informe
@@ -156,14 +175,14 @@
   </div>
 
   <!-- FOOTER -->
-  <footer class="bg-dark text-white text-center p-4 mt-5">
+  <footer class="bg-dark text-white text-center p-4 mt-5 shadow-lg">
 
-    <p>
+    <p style="font-size: 1.1rem;">
 
       Síguenos en:
 
       <a href="https://instagram.com/caasa"
-         class="text-white">
+         class="text-white fw-bold">
 
          Instagram
 
@@ -172,7 +191,7 @@
       |
 
       <a href="https://facebook.com/caasa"
-         class="text-white">
+         class="text-white fw-bold">
 
          Facebook
 
@@ -181,7 +200,7 @@
       |
 
       <a href="https://wa.me/5214491234567"
-         class="text-white">
+         class="text-white fw-bold">
 
          WhatsApp
 
@@ -189,14 +208,15 @@
 
     </p>
 
-    <p>
+    <p style="font-size: 1rem;">
 
       Tel: 449-123-4567 |
       Email: contacto@caasa.com.mx
 
     </p>
 
-    <p class="m-0">
+    <p class="m-0 fw-bold"
+       style="font-size: 1rem;">
 
       CAASA – Análisis y Reportes de Obra 360
 
