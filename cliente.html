@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Portal Privado Cliente</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
@@ -85,16 +86,11 @@
 
             <h4 class="text-primary fw-bold mb-4">Modelo 3D</h4>
 
-            <p>Escribe el nombre exacto del proyecto</p>
-
-            <input type="text"
-                   id="projectName"
-                   class="form-control mb-3"
-                   placeholder="Ej: SADI CARNOT A">
+            <p>Visualización BIM del modelo en Revit.</p>
 
             <button class="btn btn-primary fw-bold w-100"
-                    onclick="sendToRevit()">
-              Abrir en Revit
+                    onclick="openModal()">
+              Seleccionar Proyecto
             </button>
 
           </div>
@@ -109,16 +105,68 @@
     <p class="m-0">CAASA — Plataforma Obra 360</p>
   </footer>
 
+  <!-- MODAL AZUL TRANSLÚCIDO -->
+  <div id="projectModal"
+       style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+       background:rgba(20,80,160,0.45);
+       backdrop-filter: blur(6px);
+       justify-content:center; align-items:center;">
+
+    <div style="background:#ffffff; padding:26px; border-radius:14px; width:360px; text-align:center;">
+
+      <h5 style="color:#0d6efd; font-weight:600; margin-bottom:15px;">
+        Abrir Modelo 3D
+      </h5>
+
+      <input type="text"
+             id="projectName"
+             class="form-control mb-3"
+             placeholder="Escribe el nombre del proyecto">
+
+      <p id="confirmText" style="font-weight:600; color:#333;"></p>
+
+      <!-- ACEPTAR -->
+      <button class="btn btn-success w-100 mb-2 fw-bold" onclick="confirmOpen()">
+        Aceptar
+      </button>
+
+      <!-- SALIR -->
+      <button class="btn btn-outline-primary w-100" onclick="closeModal()">
+        Salir
+      </button>
+
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
   <script>
-    function sendToRevit() {
-        const project = document.getElementById("projectName").value;
+    function openModal() {
+      document.getElementById("projectModal").style.display = "flex";
+      document.getElementById("projectName").value = "";
+      document.getElementById("confirmText").innerText = "";
+    }
 
-        if (!project) {
-            alert("Escribe el nombre del proyecto");
-            return;
-        }
+    function closeModal() {
+      document.getElementById("projectModal").style.display = "none";
+    }
 
-        window.location.href = `revitopen://${project}`;
+    document.addEventListener("input", function(e) {
+      if (e.target.id === "projectName") {
+        const value = e.target.value;
+        document.getElementById("confirmText").innerText =
+          value ? `¿Abrir proyecto: ${value}?` : "";
+      }
+    });
+
+    function confirmOpen() {
+      const project = document.getElementById("projectName").value;
+
+      if (!project) {
+        alert("Escribe el nombre del proyecto");
+        return;
+      }
+
+      window.location.href = `revitopen://${project}`;
     }
   </script>
 
