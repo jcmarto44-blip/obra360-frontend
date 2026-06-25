@@ -4,11 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Portal Privado Cliente</title>
-
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<body style="background-color:#f3f4f6;">
+<body style="background-color: #f3f4f6;">
 
   <!-- HEADER -->
   <nav class="navbar navbar-dark bg-primary shadow-lg py-3">
@@ -16,19 +15,23 @@
 
       <div class="d-flex align-items-center">
         <img src="Captura de pantalla 2026-05-26 114834.jpg"
-             style="height:80px;background:white;padding:5px;border-radius:10px;margin-right:20px;">
+             alt="CAASA"
+             style="height: 80px; background-color: white; padding: 5px; border-radius: 10px; margin-right: 20px;">
         <div>
           <h2 class="text-white fw-bold m-0">Portal Privado del Cliente</h2>
           <p class="text-white m-0">Gestión Integral de Obra</p>
         </div>
       </div>
 
-      <button class="btn btn-danger fw-bold px-4" onclick="window.location.href='index.html'">
-        Salir
-      </button>
+      <div class="d-flex align-items-center">
+        <button class="btn btn-danger fw-bold px-4" onclick="window.location.href='index.html'">
+          Salir
+        </button>
+      </div>
 
       <img src="elasticcomputefarm-supermarket-949913_1920.jpg"
-           style="height:70px;width:140px;object-fit:cover;border-radius:10px;border:3px solid white;">
+           alt="Cliente"
+           style="height: 70px; width: 140px; object-fit: cover; border-radius: 10px; border: 3px solid white; margin-left: 20px;">
     </div>
   </nav>
 
@@ -36,7 +39,7 @@
   <div class="container mt-4">
     <div class="alert alert-success shadow">
       <h4 class="fw-bold">Bienvenido al Panel del Proyecto</h4>
-      <p class="m-0">Accede a reportes, Power BI y modelo 3D.</p>
+      <p class="m-0">Desde este portal podrás administrar reportes, visualizar Power BI y consultar el modelo 3D.</p>
     </div>
   </div>
 
@@ -44,14 +47,56 @@
   <div class="container mt-4">
     <div class="row g-4">
 
-      <!-- MODELO 3D -->
+      <!-- SUBIR INFORME -->
+      <div class="col-md-3">
+        <div class="card shadow-lg border-0 rounded-4 h-100">
+          <div class="card-body text-center p-4">
+            <h4 class="text-primary fw-bold mb-4">Subir Informe</h4>
+            <form id="formSubir">
+              <input type="file" name="file" class="form-control mb-4">
+              <button type="button" class="btn btn-success w-100 fw-bold" onclick="subirInforme()">
+                Subir Archivo
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARCHIVOS -->
+      <div class="col-md-3">
+        <div class="card shadow-lg border-0 rounded-4 h-100">
+          <div class="card-body text-center p-4">
+            <h4 class="text-primary fw-bold mb-4">Archivos Subidos</h4>
+            <div class="border rounded p-3 bg-light">
+              <p class="fw-bold m-0">Informe_Obra.csv</p>
+              <small class="text-muted">Última actualización</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- POWER BI -->
+      <div class="col-md-3">
+        <div class="card shadow-lg border-0 rounded-4 h-100">
+          <div class="card-body text-center p-4">
+            <h4 class="text-primary fw-bold mb-4">Reporte Power BI</h4>
+            <p>Visualización interactiva del proyecto.</p>
+            <a href="https://app.powerbi.com/view?r=eyJrIjoiOGY3NGUxM2ItZWEyMi00ZGNkLThlMTItNmU2ZWYzMWE0OWMyIiwidCI6IjE1ZGEzZGM4LWRkODUtNDZiYi05NGU3LWI1YTNjMzE3ZTBhOSJ9"
+               target="_blank"
+               class="btn btn-warning fw-bold px-4">
+              Ver Reporte
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODELO 3D (SOLO AQUÍ SE CAMBIA) -->
       <div class="col-md-3">
         <div class="card shadow-lg border-0 rounded-4 h-100">
           <div class="card-body text-center p-4">
 
             <h4 class="text-primary fw-bold mb-3">Modelo 3D</h4>
-
-            <p class="mb-4">Visualización BIM del modelo</p>
+            <p>Visualización BIM del modelo en Revit.</p>
 
             <button class="btn btn-primary fw-bold w-100"
                     onclick="openModal()">
@@ -67,10 +112,10 @@
 
   <!-- FOOTER -->
   <footer class="bg-dark text-white text-center p-4 mt-5">
-    <p class="m-0">CAASA — Plataforma Obra 360</p>
+    <p class="m-0">CAASA — Plataforma Integral de Obra 360</p>
   </footer>
 
-  <!-- MODAL (EXACTO COMO PEDISTE) -->
+  <!-- MODAL (INTEGRADO SIN ROMPER NADA) -->
   <div id="projectModal"
        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
        background:rgba(20,80,160,0.45);
@@ -88,13 +133,11 @@
              class="form-control mb-3"
              placeholder="Escribe el nombre del proyecto">
 
-      <!-- ACEPTAR -->
       <button class="btn btn-success w-100 mb-2 fw-bold"
               onclick="confirmOpen()">
         Aceptar
       </button>
 
-      <!-- SALIR -->
       <button class="btn btn-outline-secondary w-100"
               onclick="closeModal()">
         Salir
@@ -103,8 +146,22 @@
     </div>
   </div>
 
-  <!-- JS EXACTO -->
+  <!-- SCRIPTS -->
   <script>
+    async function subirInforme() {
+      const formData = new FormData(document.getElementById("formSubir"));
+      try {
+        const response = await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
+          method: "POST",
+          body: formData
+        });
+        const data = await response.json();
+        alert("Informe subido correctamente");
+      } catch (error) {
+        alert("Error al subir el informe");
+      }
+    }
+
     function openModal() {
       document.getElementById("projectModal").style.display = "flex";
       document.getElementById("projectName").value = "";
@@ -126,5 +183,6 @@
     }
   </script>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
