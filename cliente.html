@@ -80,7 +80,6 @@
         <div class="card shadow-lg border-0 rounded-4 h-100">
           <div class="card-body text-center p-4">
             <h4 class="text-primary fw-bold mb-4">Reporte Power BI</h4>
-            <p>Visualización interactiva del proyecto.</p>
             <a href="https://app.powerbi.com/view?r=eyJrIjoiOGY3NGUxM2ItZWEyMi00ZGNkLThlMTItNmU2ZWYzMWE0OWMyIiwidCI6IjE1ZGEzZGM4LWRkODUtNDZiYi05NGU3LWI1YTNjMzE3ZTBhOSJ9"
                target="_blank"
                class="btn btn-warning fw-bold px-4">
@@ -98,8 +97,7 @@
             <h4 class="text-primary fw-bold mb-3">Modelo 3D</h4>
             <p>Visualización BIM del modelo en Revit.</p>
 
-            <button class="btn btn-primary fw-bold w-100"
-                    onclick="openModal()">
+            <button class="btn btn-primary fw-bold w-100" onclick="openModal()">
               Ver Modelo
             </button>
 
@@ -110,11 +108,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
-  <footer class="bg-dark text-white text-center p-4 mt-5">
-    <p class="m-0">CAASA — Plataforma Integral de Obra 360</p>
-  </footer>
-
   <!-- MODAL -->
   <div id="projectModal"
        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
@@ -122,49 +115,25 @@
        backdrop-filter: blur(6px);
        justify-content:center; align-items:center;">
 
-    <div style="background:#ffffff; padding:28px; border-radius:14px; width:360px; text-align:center;">
+    <div style="background:#fff; padding:28px; border-radius:14px; width:360px; text-align:center;">
 
-      <h5 style="color:#0d6efd; font-weight:600;">PROYECTO</h5>
+      <h5 style="color:#0d6efd;">PROYECTO</h5>
 
-      <input type="text"
-             id="projectName"
-             class="form-control mb-3"
-             placeholder="Escribe el nombre del proyecto">
+      <input type="text" id="projectName" class="form-control mb-3" placeholder="Escribe el nombre del proyecto">
 
-      <button class="btn btn-success w-100 mb-2 fw-bold"
-              onclick="confirmOpen()">
+      <button class="btn btn-success w-100 mb-2 fw-bold" onclick="confirmOpen()">
         Aceptar
       </button>
 
-      <button class="btn btn-outline-secondary w-100"
-              onclick="closeModal()">
+      <button class="btn btn-outline-secondary w-100" onclick="closeModal()">
         Salir
       </button>
 
     </div>
   </div>
 
-  <!-- SCRIPTS -->
+  <!-- SCRIPT FINAL (FORZADO BRIDGE) -->
   <script>
-    async function subirInforme() {
-      const formData = new FormData(document.getElementById("formSubir"));
-      await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
-        method: "POST",
-        body: formData
-      });
-      alert("Informe subido correctamente");
-    }
-
-    function openModal() {
-      document.getElementById("projectModal").style.display = "flex";
-      document.getElementById("projectName").value = "";
-    }
-
-    function closeModal() {
-      document.getElementById("projectModal").style.display = "none";
-    }
-
-    // 🔥 CONEXIÓN REAL CON BRIDGE
     async function confirmOpen() {
 
       const project = document.getElementById("projectName").value.trim();
@@ -176,24 +145,42 @@
 
       try {
 
-        const response = await fetch(`http://localhost:4040/open?project=${encodeURIComponent(project)}`);
+        const res = await fetch(`http://localhost:4040/open?project=${encodeURIComponent(project)}`);
+        const data = await res.json();
 
-        const data = await response.json();
+        console.log("Bridge response:", data);
 
-        console.log("Bridge:", data);
-
-        closeModal();
+        if (data.status === "ok") {
+          closeModal();
+        } else {
+          alert("El Bridge no respondió correctamente");
+        }
 
       } catch (error) {
-
-        alert("No se pudo conectar con el Bridge local");
-
         console.error(error);
-
+        alert("No se pudo conectar con el Bridge. Verifica que esté activo en tu PC.");
       }
-
     }
 
+    function openModal() {
+      document.getElementById("projectModal").style.display = "flex";
+      document.getElementById("projectName").value = "";
+    }
+
+    function closeModal() {
+      document.getElementById("projectModal").style.display = "none";
+    }
+
+    async function subirInforme() {
+      const formData = new FormData(document.getElementById("formSubir"));
+
+      await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
+        method: "POST",
+        body: formData
+      });
+
+      alert("Informe subido correctamente");
+    }
   </script>
 
 </body>
