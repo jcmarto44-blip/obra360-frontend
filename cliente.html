@@ -132,7 +132,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT FINAL (CORREGIDO) -->
+  <!-- SCRIPT FINAL -->
   <script>
     async function confirmOpen() {
 
@@ -145,7 +145,6 @@
 
       try {
 
-        // 🔥 ÚNICO CAMBIO REAL (CRÍTICO)
         const BRIDGE_URL = "http://192.168.1.70:4040";
 
         const res = await fetch(`${BRIDGE_URL}/open?project=${encodeURIComponent(project)}`);
@@ -154,14 +153,26 @@
         console.log("Bridge response:", data);
 
         if (data.status === "ok") {
+
           closeModal();
+          alert(`✔ Bridge conectado\nProyecto: ${data.project}\nEjecutando Revit...`);
+
         } else {
-          alert("El Bridge no respondió correctamente");
+
+          alert("❌ El Bridge respondió pero no ejecutó Revit");
         }
 
       } catch (error) {
+
         console.error(error);
-        alert("No se pudo conectar con el Bridge.");
+
+        alert(
+          "❌ ERROR DE CONEXIÓN CON BRIDGE\n\n" +
+          "Revisa:\n" +
+          "- NSSM activo\n" +
+          "- IP correcta\n" +
+          "- Puerto 4040 abierto"
+        );
       }
     }
 
