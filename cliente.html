@@ -132,7 +132,7 @@
     </div>
   </div>
 
-  <!-- SCRIPT FINAL (FORZADO BRIDGE) -->
+  <!-- SCRIPT FINAL (CORREGIDO) -->
   <script>
     async function confirmOpen() {
 
@@ -145,7 +145,10 @@
 
       try {
 
-        const res = await fetch(`http://localhost:4040/open?project=${encodeURIComponent(project)}`);
+        // 🔥 ÚNICO CAMBIO REAL (CRÍTICO)
+        const BRIDGE_URL = "http://192.168.1.70:4040";
+
+        const res = await fetch(`${BRIDGE_URL}/open?project=${encodeURIComponent(project)}`);
         const data = await res.json();
 
         console.log("Bridge response:", data);
@@ -158,7 +161,7 @@
 
       } catch (error) {
         console.error(error);
-        alert("No se pudo conectar con el Bridge. Verifica que esté activo en tu PC.");
+        alert("No se pudo conectar con el Bridge.");
       }
     }
 
