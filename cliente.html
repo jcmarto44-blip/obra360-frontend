@@ -147,41 +147,34 @@
 
       try {
 
-        const BRIDGE_URL = "http://192.168.1.70:4040";
+        const API_URL = "https://obra360-launcher-api.onrender.com/task";
 
-        const res = await fetch(
-          `${BRIDGE_URL}/open?project=${encodeURIComponent(project)}&view=${encodeURIComponent(view)}`
-        );
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            pcId: "PC-001",
+            project: project,
+            view: view
+          })
+        });
 
         const data = await res.json();
 
-        console.log("Bridge response:", data);
+        console.log("Launcher API:", data);
 
         if (data.status === "ok") {
-
           closeModal();
-
-          alert(
-            `✔ Conectado con Bridge\n` +
-            `Proyecto: ${data.project}\n` +
-            `Vista: ${data.view}`
-          );
-
+          alert("✔ Enviado correctamente al Launcher");
         } else {
-          alert("❌ Bridge respondió pero no ejecutó acción");
+          alert("❌ Error en respuesta del servidor");
         }
 
       } catch (error) {
-
         console.error(error);
-
-        alert(
-          "❌ ERROR DE CONEXIÓN CON BRIDGE\n\n" +
-          "Revisa:\n" +
-          "- NSSM activo\n" +
-          "- IP correcta\n" +
-          "- Puerto 4040"
-        );
+        alert("❌ ERROR DE CONEXIÓN CON LAUNCHER API");
       }
     }
 
