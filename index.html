@@ -6,18 +6,30 @@
   <title>Análisis y Reportes de Obra 360</title>
   <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <!-- Google Verification -->
   <meta name="google-site-verification" content="google65ecd7f272e644f4" />
+
+  <style>
+    .menu-btn {background:transparent;border:none;color:white;font-size:32px;cursor:pointer;line-height:1;padding:0 5px;}
+    #menuDesplegable {display:none;position:absolute;top:70px;right:20px;z-index:20;background:white;width:250px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,.35);overflow:hidden;}
+    #menuDesplegable button {width:100%;padding:15px;border:none;background:white;color:#0d6efd;font-weight:bold;text-align:left;}
+    #menuDesplegable button:hover {background:#0d6efd;color:white;}
+    .seccionNueva {display:none;padding:30px;}
+    #nosotros img {width:100%;height:400px;object-fit:cover;border-radius:15px;}
+    .textoNosotros {background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,.2);font-size:1.05rem;line-height:1.7;}
+    .blog-img {width:100%;height:180px;object-fit:cover;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.25);}
+    .logoCliente {height:130px;border:3px dashed #0d6efd;border-radius:15px;display:flex;align-items:center;justify-content:center;background:white;color:#0d6efd;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.15);}
+    #modalCita {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(20,80,160,.45);backdrop-filter:blur(6px);z-index:999;justify-content:center;align-items:center;}
+    .cajaCita {background:white;padding:30px;width:380px;border-radius:15px;box-shadow:0 5px 25px rgba(0,0,0,.4);}
+  </style>
 </head>
 
 <body style="background-color: #f5f5f5;">
 
-  <!-- ENCABEZADO -->
-  <nav class="navbar navbar-dark bg-primary py-3 shadow-lg">
+  <!-- ENCABEZADO (con menú hamburguesa) -->
+  <nav class="navbar navbar-dark bg-primary py-3 shadow-lg position-relative">
     <div class="container-fluid d-flex align-items-center justify-content-start px-4">
       <!-- LOGO -->
-      <img src="Captura de pantalla 2026-05-26 114834.jpg"
+      <img src="images/Captura de pantalla 2026-05-26 114834.jpg"
            alt="CAASA"
            style="height: 110px; width: auto; margin-right: 30px; border-radius: 15px; background-color: white; padding: 5px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);">
       <!-- TITULO -->
@@ -29,43 +41,103 @@
           Plataforma Integral de Control y Seguimiento de Obra
         </p>
       </div>
+      <!-- BOTÓN HAMBURGUESA -->
+      <button class="menu-btn ms-auto" onclick="abrirMenu()">☰</button>
+    </div>
+
+    <!-- MENÚ DESPLEGABLE -->
+    <div id="menuDesplegable">
+      <button onclick="mostrarSeccion('nosotros')">Nosotros</button>
+      <button onclick="mostrarSeccion('blog')">Blog</button>
+      <button onclick="mostrarSeccion('clientes')">Clientes</button>
+      <button onclick="abrirCita()">Agendar cita</button>
     </div>
   </nav>
 
-  <!-- CARRUSEL -->
-  <div class="container-fluid mt-4 px-4">
-    <div id="carouselObra360" class="carousel slide shadow-lg rounded overflow-hidden border border-3 border-white" data-bs-ride="carousel">
-      <div class="carousel-inner">
-        <div class="carousel-item active">
-          <img src="nikguy-construction-site-2733678_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="CEDIS">
-        </div>
-        <div class="carousel-item">
-          <img src="elasticcomputefarm-supermarket-949913_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Supermercado">
-        </div>
-        <div class="carousel-item">
-          <img src="marcinjozwiak-production-4408573_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Producción">
-        </div>
-        <div class="carousel-item">
-          <img src="652234-building-1210677_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Edificio">
-        </div>
-      </div>
-      <!-- BOTONES -->
-      <button class="carousel-control-prev" type="button" data-bs-target="#carouselObra360" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon"></span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#carouselObra360" data-bs-slide="next">
-        <span class="carousel-control-next-icon"></span>
-      </button>
-    </div>
-  </div>
+  <!-- ============================= -->
+  <!-- VISTA PRINCIPAL: carrusel + login -->
+  <!-- ============================= -->
+  <div id="vistaPrincipal">
 
-  <!-- LOGIN -->
-  <div class="container mt-4">
-    <div class="card shadow border-0 rounded-4">
-      <div class="card-body p-4 text-center">
-        <h3 class="text-primary fw-bold mb-3" style="font-size: 1.5rem;">Acceso de Usuarios</h3>
-        <button class="btn btn-primary px-4 py-2" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</button>
+    <!-- IMAGEN ESTÁTICA (mismo espacio y dimensiones que tenía el carrusel) -->
+    <div class="container-fluid mt-4 px-4">
+      <div class="shadow-lg rounded overflow-hidden border border-3 border-white">
+        <img src="images/portada.png" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Obra 360">
       </div>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="container mt-4">
+      <div class="card shadow border-0 rounded-4">
+        <div class="card-body p-4 text-center">
+          <h3 class="text-primary fw-bold mb-3" style="font-size: 1.5rem;">Acceso de Usuarios</h3>
+          <button class="btn btn-primary px-4 py-2" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- fin vistaPrincipal -->
+
+  <!-- ============================= -->
+  <!-- SECCIONES DEL MENÚ (ocultas al inicio) -->
+  <!-- ============================= -->
+
+  <!-- Sección Nosotros -->
+  <section id="nosotros" class="seccionNueva container mt-4">
+    <h2 class="text-primary fw-bold mb-4">Nosotros</h2>
+    <div class="row g-4">
+      <div class="col-md-6"><img src="images/Img somos.png"></div>
+      <div class="col-md-6">
+        <div class="textoNosotros">
+          Somos una empresa que recientemente ha comenzado a crear esta plataforma integral llamada Obra 360. Nuestro objetivo es ofrecer un sistema que concentre la información de todas las áreas clave de la organización: finanzas, legal, recursos humanos, operaciones, construcción, mantenimiento y más. Con esta herramienta buscamos que cada área tenga acceso rápido y confiable a los datos que necesita, facilitando el control, el seguimiento y la toma de decisiones en tiempo real.
+          <br><br>
+          Aunque estamos en una etapa inicial, nuestra visión es clara: construir una plataforma sólida que ayude a las empresas a gestionar sus proyectos de manera más eficiente, transparente y conectada.
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-4" onclick="volverInicio()">← Regresar</button>
+  </section>
+
+  <!-- Sección Blog -->
+  <section id="blog" class="seccionNueva container mt-4">
+    <h2 class="text-primary fw-bold mb-4">Blog</h2>
+    <div class="row g-4">
+      <div class="col-md-4"><img class="blog-img" src="images/01.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/02.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/03.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/04.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/05.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/06.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/07.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/08.png"></div>
+      <div class="col-md-4"><img class="blog-img" src="images/09.png"></div>
+    </div>
+    <button class="btn btn-primary mt-4" onclick="volverInicio()">← Regresar</button>
+  </section>
+
+  <!-- Sección Clientes -->
+  <section id="clientes" class="seccionNueva container mt-4">
+    <h2 class="text-primary fw-bold mb-4">Clientes</h2>
+    <div class="row g-4">
+      <div class="col-md-4"><div class="logoCliente">LOGO EMPRESA</div></div>
+      <div class="col-md-4"><div class="logoCliente">LOGO EMPRESA</div></div>
+      <div class="col-md-4"><div class="logoCliente">LOGO EMPRESA</div></div>
+      <div class="col-md-4"><div class="logoCliente">LOGO EMPRESA</div></div>
+      <div class="col-md-4"><div class="logoCliente">LOGO EMPRESA</div></div>
+      <div class="col-md-4"><div class="logoCliente">LOGO EMPRESA</div></div>
+    </div>
+    <button class="btn btn-primary mt-4" onclick="volverInicio()">← Regresar</button>
+  </section>
+
+  <!-- Modal Agendar Cita -->
+  <div id="modalCita">
+    <div class="cajaCita">
+      <h4 class="text-primary fw-bold text-center mb-4">Agendar cita</h4>
+      <input type="text" id="nombreCita" class="form-control mb-3" placeholder="Nombre">
+      <input type="email" id="correoCita" class="form-control mb-3" placeholder="E-mail">
+      <input type="tel" id="celularCita" class="form-control mb-3" placeholder="Celular">
+      <button class="btn btn-success w-100 fw-bold mb-2" onclick="enviarCita()">Enviar cita</button>
+      <button class="btn btn-outline-secondary w-100" onclick="cerrarCita()">Salir</button>
     </div>
   </div>
 
@@ -92,12 +164,13 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
+  <!-- FOOTER (siempre visible, sin importar la sección) -->
   <footer class="bg-dark text-white text-center p-4 mt-5 shadow-lg">
     <p style="font-size: 1.1rem;">
       Síguenos en:
       <a href="https://instagram.com/caasa" class="text-white fw-bold">Instagram</a> |
       <a href="https://facebook.com/caasa" class="text-white fw-bold">Facebook</a> |
+      <a href="https://www.tiktok.com/@caasa" class="text-white fw-bold">TikTok</a> |
       <a href="https://wa.me/527298202910" class="text-white fw-bold">WhatsApp</a>
     </p>
     <p style="font-size: 1rem;">
@@ -107,9 +180,67 @@
     <p class="m-0 fw-bold" style="font-size: 1rem;">CAASA – Análisis y Reportes de Obra 360</p>
   </footer>
 
-  <!-- SCRIPT -->
+  <!-- ============================= -->
+  <!-- SCRIPTS -->
+  <!-- ============================= -->
   <script>
-    // LOGIN
+    // Muestra/oculta el menú desplegable
+    function abrirMenu() {
+      const menu = document.getElementById('menuDesplegable');
+      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // Oculta todas las secciones del menú (nosotros, blog, clientes)
+    function ocultarSeccionesNuevas() {
+      document.querySelectorAll('.seccionNueva').forEach(sec => sec.style.display = 'none');
+    }
+
+    // Muestra una sección específica del menú
+    function mostrarSeccion(id) {
+      document.getElementById('vistaPrincipal').style.display = 'none';
+      document.getElementById('menuDesplegable').style.display = 'none';
+      ocultarSeccionesNuevas();
+      document.getElementById(id).style.display = 'block';
+    }
+
+    // Regresa a la vista principal (carrusel + login)
+    function volverInicio() {
+      ocultarSeccionesNuevas();
+      document.getElementById('menuDesplegable').style.display = 'none';
+      document.getElementById('vistaPrincipal').style.display = 'block';
+    }
+
+    // Abre el modal de agendar cita
+    function abrirCita() {
+      document.getElementById('menuDesplegable').style.display = 'none';
+      document.getElementById('modalCita').style.display = 'flex';
+    }
+
+    // Cierra el modal de agendar cita
+    function cerrarCita() {
+      document.getElementById('modalCita').style.display = 'none';
+    }
+
+    // Envía (por ahora simulado) la cita agendada
+    function enviarCita() {
+      const nombre = document.getElementById('nombreCita').value.trim();
+      const correo = document.getElementById('correoCita').value.trim();
+      const celular = document.getElementById('celularCita').value.trim();
+
+      if (!nombre || !correo || !celular) {
+        alert('Por favor llena todos los campos.');
+        return;
+      }
+
+      alert('¡Gracias ' + nombre + '! Tu cita fue agendada. Te contactaremos pronto.');
+
+      document.getElementById('nombreCita').value = '';
+      document.getElementById('correoCita').value = '';
+      document.getElementById('celularCita').value = '';
+      cerrarCita();
+    }
+
+    // LOGIN de la plataforma (igual que en tu código original)
     function login() {
       const usuario = document.getElementById("usuario").value;
       const password = document.getElementById("password").value;
@@ -123,7 +254,7 @@
     }
   </script>
 
-  <!-- BOOTSTRAP -->
+  <!-- BOOTSTRAP JS (necesario para el modal de login y el carrusel) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
