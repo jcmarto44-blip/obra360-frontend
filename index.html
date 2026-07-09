@@ -277,7 +277,7 @@
       document.getElementById('modalCita').style.display = 'none';
     }
 
-    // Envía (por ahora simulado) la cita agendada
+    // Envía la cita agendada a tu correo mediante Formspree
     function enviarCita() {
       const nombre = document.getElementById('nombreCita').value.trim();
       const correo = document.getElementById('correoCita').value.trim();
@@ -288,12 +288,25 @@
         return;
       }
 
-      alert('¡Gracias ' + nombre + '! Tu cita fue agendada. Te contactaremos pronto.');
-
-      document.getElementById('nombreCita').value = '';
-      document.getElementById('correoCita').value = '';
-      document.getElementById('celularCita').value = '';
-      cerrarCita();
+      fetch('https://formspree.io/f/xjgqqnjz', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: nombre, correo: correo, celular: celular })
+      })
+      .then(response => {
+        if (response.ok) {
+          alert('¡Gracias ' + nombre + '! Tu cita fue agendada. Te contactaremos pronto.');
+          document.getElementById('nombreCita').value = '';
+          document.getElementById('correoCita').value = '';
+          document.getElementById('celularCita').value = '';
+          cerrarCita();
+        } else {
+          alert('Hubo un problema al enviar tu cita. Por favor intenta de nuevo.');
+        }
+      })
+      .catch(() => {
+        alert('Hubo un problema al enviar tu cita. Revisa tu conexión e intenta de nuevo.');
+      });
     }
 
     // LOGIN de la plataforma (igual que en tu código original)
