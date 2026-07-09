@@ -55,14 +55,50 @@
   </nav>
 
   <!-- ============================= -->
-  <!-- VISTA PRINCIPAL: carrusel + login -->
+  <!-- VISTA 1: IMAGEN DE PORTADA + BOTÓN DE ACCESO -->
   <!-- ============================= -->
   <div id="vistaPrincipal">
 
-    <!-- IMAGEN ESTÁTICA (mismo espacio y dimensiones que tenía el carrusel) -->
+    <!-- IMAGEN COMPLETA (proporcional, sin recortes) -->
+    <div class="container-fluid mt-4 px-4 text-center">
+      <img src="images/portada.png" class="img-fluid rounded shadow-lg border border-3 border-white" style="max-height: 600px;" alt="Obra 360">
+    </div>
+
+    <!-- BOTÓN ACCESO DE USUARIOS -->
+    <div class="container mt-4 mb-4 text-center">
+      <button class="btn btn-primary btn-lg px-5 py-3 fw-bold" onclick="mostrarAcceso()">Acceso de Usuarios</button>
+    </div>
+
+  </div><!-- fin vistaPrincipal -->
+
+  <!-- ============================= -->
+  <!-- VISTA 2: CARRUSEL + LOGIN (se muestra al dar clic en Acceso de Usuarios) -->
+  <!-- ============================= -->
+  <div id="vistaAcceso" style="display:none;">
+
+    <!-- CARRUSEL -->
     <div class="container-fluid mt-4 px-4">
-      <div class="shadow-lg rounded overflow-hidden border border-3 border-white">
-        <img src="images/portada.png" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Obra 360">
+      <div id="carouselObra360" class="carousel slide shadow-lg rounded overflow-hidden border border-3 border-white" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <img src="images/nikguy-construction-site-2733678_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="CEDIS">
+          </div>
+          <div class="carousel-item">
+            <img src="images/elasticcomputefarm-supermarket-949913_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Supermercado">
+          </div>
+          <div class="carousel-item">
+            <img src="images/marcinjozwiak-production-4408573_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Producción">
+          </div>
+          <div class="carousel-item">
+            <img src="images/652234-building-1210677_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Edificio">
+          </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselObra360" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselObra360" data-bs-slide="next">
+          <span class="carousel-control-next-icon"></span>
+        </button>
       </div>
     </div>
 
@@ -76,7 +112,12 @@
       </div>
     </div>
 
-  </div><!-- fin vistaPrincipal -->
+    <!-- REGRESAR -->
+    <div class="container mt-4 mb-4 text-center">
+      <button class="btn btn-outline-primary" onclick="volverImagen()">← Regresar a Portada</button>
+    </div>
+
+  </div><!-- fin vistaAcceso -->
 
   <!-- ============================= -->
   <!-- SECCIONES DEL MENÚ (ocultas al inicio) -->
@@ -198,15 +239,30 @@
     // Muestra una sección específica del menú
     function mostrarSeccion(id) {
       document.getElementById('vistaPrincipal').style.display = 'none';
+      document.getElementById('vistaAcceso').style.display = 'none';
       document.getElementById('menuDesplegable').style.display = 'none';
       ocultarSeccionesNuevas();
       document.getElementById(id).style.display = 'block';
     }
 
-    // Regresa a la vista principal (carrusel + login)
+    // Regresa a la vista principal (imagen de portada)
     function volverInicio() {
       ocultarSeccionesNuevas();
+      document.getElementById('vistaAcceso').style.display = 'none';
       document.getElementById('menuDesplegable').style.display = 'none';
+      document.getElementById('vistaPrincipal').style.display = 'block';
+    }
+
+    // Muestra el carrusel + login al dar clic en "Acceso de Usuarios"
+    function mostrarAcceso() {
+      document.getElementById('vistaPrincipal').style.display = 'none';
+      ocultarSeccionesNuevas();
+      document.getElementById('vistaAcceso').style.display = 'block';
+    }
+
+    // Regresa de la vista de carrusel/login a la imagen de portada
+    function volverImagen() {
+      document.getElementById('vistaAcceso').style.display = 'none';
       document.getElementById('vistaPrincipal').style.display = 'block';
     }
 
