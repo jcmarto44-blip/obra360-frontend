@@ -47,18 +47,15 @@
   <div class="container mt-4">
     <div class="row g-4">
 
-      <!-- CAPTURA DE OBRA -->
+      <!-- DOCUMENTACIÓN DE OBRA -->
       <div class="col-md-3">
         <div class="card shadow-lg border-0 rounded-4 h-100">
           <div class="card-body text-center p-4 d-flex flex-column justify-content-between">
             <div>
-              <h4 class="text-primary fw-bold mb-3">Captura de Obra</h4>
-              <p class="text-muted" style="font-size:13px;">
-                Control Presupuestal, Costos, Calidad, Compras, Requisiciones y Estimaciones — captura directa tipo ERP con Fondo de Garantía.
-              </p>
+              <h4 class="text-primary fw-bold mb-3">Documentación de Obra</h4>
             </div>
             <button type="button" class="btn btn-primary w-100 fw-bold" onclick="abrirCaptura()">
-              Abrir Captura de Obra
+              Acceso a Proyecto
             </button>
           </div>
         </div>
@@ -175,7 +172,7 @@
     }
 
     function abrirCaptura() {
-      window.open("captura.html", "_blank");
+      window.location.href = "captura.html";
     }
   </script>
 
