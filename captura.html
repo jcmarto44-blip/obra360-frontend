@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Captura de Obra — CAASA</title>
+<style>
+:root{
+  --marca-color-primario:#1b4b8f;
+  --marca-color-primario-dark:#123a70;
+  --marca-color-acento:#2e9e5b;
+  --azul-header:var(--marca-color-primario);
+  --azul-header-dark:var(--marca-color-primario-dark);
+  --gris-bg:#eef1f4;
+  --gris-toolbar:#f7f8fa;
+  --gris-borde:#d3d8de;
+  --gris-fila-alt:#f4f6f8;
+  --texto-oscuro:#1e2733;
+  --texto-secundario:#5b6773;
+  --azul-seleccion:#2e6fd9;
+  --verde-ok:#1e7d4b;
+  --font-ui:"Segoe UI","Inter",Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{height:100%;margin:0;}
+body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscuro);font-size:13px;}
+
+/* ============== PANTALLA DE ENTRADA ============== */
+#gate{
+  position:fixed;inset:0;
+  background:linear-gradient(160deg,#123a70,#1b4b8f 60%,#2e6fd9);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;
+}
+#gate .box{
+  background:#fff;border-radius:8px;padding:34px 38px;width:420px;
+  box-shadow:0 20px 50px rgba(0,0,0,.3);
+}
+#gate h2{margin:0 0 4px;font-size:18px;color:var(--texto-oscuro);}
+#gate p{margin:0 0 20px;font-size:12.5px;color:var(--texto-secundario);}
+#gate label{display:block;font-size:12px;font-weight:600;margin:14px 0 5px;color:var(--texto-oscuro);}
+#gate input, #gate select{
+  width:100%;padding:9px 10px;border:1px solid var(--gris-borde);border-radius:4px;font-size:13px;
+}
+#gate button{
+  margin-top:22px;width:100%;padding:11px;border:none;border-radius:4px;
+  background:var(--marca-color-acento);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;
+}
+#gate button:hover{opacity:.92;}
+#gate .nota{font-size:10.5px;color:var(--texto-secundario);margin-top:10px;}
+
+/* ============== HEADER ============== */
+.app-header{
+  background:linear-gradient(180deg,var(--azul-header),var(--azul-header-dark));
+  color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+.app-header h1{font-size:17px;margin:0;font-weight:600;}
+.app-header .sub{font-size:11px;opacity:.85;margin-top:2px;}
+.header-actions{display:flex;gap:8px;align-items:center;}
+.header-actions button{
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;
+  padding:6px 12px;border-radius:3px;font-size:12px;cursor:pointer;
+}
+.header-actions button:hover{background:rgba(255,255,255,.22);}
+.header-actions .proyecto-tag{
+  font-size:11px;background:rgba(255,255,255,.15);padding:5px 10px;border-radius:12px;
+}
+
+/* ============== SHELL ============== */
+.app-shell{display:flex;height:calc(100vh - 58px);}
+.sidebar{width:260px;background:#f2f4f7;border-right:1px solid var(--gris-borde);overflow-y:auto;flex-shrink:0;}
+.sidebar .company{padding:10px 14px;font-size:11px;color:var(--texto-secundario);border-bottom:1px solid var(--gris-borde);}
+.sidebar .company b{display:block;font-size:12.5px;color:var(--texto-oscuro);}
+
+.area{padding:10px 14px 4px;font-size:10.5px;font-weight:700;letter-spacing:.4px;color:#8a96a3;text-transform:uppercase;}
+.area.bloqueada{color:#b7bfc7;cursor:default;user-select:none;}
+
+.menu-item{
+  display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:12.5px;color:var(--texto-oscuro);
+  cursor:pointer;border-left:3px solid transparent;user-select:none;
+}
+.menu-item:hover{background:#e4eaf3;}
+.menu-item.active{background:#d6e3f5;border-left:3px solid var(--azul-header);font-weight:600;color:var(--azul-header);}
+.menu-item .ico{width:18px;text-align:center;font-size:13px;flex-shrink:0;}
+.menu-item.disabled{color:#b7bfc7;cursor:default;}
+.menu-item.disabled:hover{background:transparent;}
+
+.submenu{padding-left:14px;}
+.submenu .menu-item{padding-left:24px;font-size:12px;}
+
+.grupo-toggle{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12.5px;font-weight:600;
+  color:var(--texto-oscuro);cursor:pointer;}
+.grupo-toggle:hover{background:#e4eaf3;}
+.grupo-body{display:none;}
+.grupo-body.open{display:block;}
+.chev{margin-left:auto;font-size:10px;color:var(--texto-secundario);}
+
+.content-area{flex:1;overflow-y:auto;background:var(--gris-bg);padding:0;}
+.welcome{padding:30px 35px;color:var(--texto-secundario);}
+.welcome h2{color:var(--texto-oscuro);font-size:17px;margin-bottom:6px;}
+.welcome.hidden{display:none;}
+
+/* ============== PANTALLA PRINCIPAL ============== */
+#mod-inicio .panel-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:10px;
+}
+#mod-inicio .card-datos{
+  background:#fff;border-radius:6px;border:1px solid var(--gris-borde);padding:16px 20px;
+}
+#mod-inicio .card-datos h5{
+  font-size:13px;font-weight:700;color:var(--azul-header);border-bottom:1px solid var(--gris-borde);
+  padding-bottom:6px;margin-bottom:12px;
+}
+#mod-inicio .campo-row{
+  display:flex;margin-bottom:6px;font-size:12.5px;align-items:center;
+}
+#mod-inicio .campo-row .label{width:180px;font-weight:600;color:var(--texto-secundario);flex-shrink:0;}
+#mod-inicio .campo-row input.valor{
+  border:1px solid var(--gris-borde);border-radius:3px;padding:4px 8px;font-size:12px;
+  flex:1;background:#fafbfc;color:var(--texto-oscuro);
+}
+#mod-inicio .campo-row input.valor:focus{
+  border-color:var(--azul-seleccion);outline:none;background:#fff;
+}
+#mod-inicio .modulos-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px;
+}
+#mod-inicio .modulo-card{
+  background:#fff;border:1px solid var(--gris-borde);border-radius:6px;padding:14px 16px;text-align:center;
+  cursor:pointer;transition:all .2s;
+}
+#mod-inicio .modulo-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:var(--azul-seleccion);}
+#mod-inicio .modulo-card .ico{font-size:24px;display:block;margin-bottom:4px;}
+#mod-inicio .modulo-card .nombre{font-weight:600;font-size:12.5px;}
+#mod-inicio .modulo-card .estado{font-size:10px;color:var(--texto-secundario);}
+#mod-inicio .modulo-card.bloqueado{opacity:.5;cursor:default;}
+#mod-inicio .modulo-card.bloqueado:hover{box-shadow:none;border-color:var(--gris-borde);}
+#mod-inicio .btn-guardar-inicio{
+  margin-top:12px;padding:6px 18px;background:var(--marca-color-acento);
+  border:none;border-radius:4px;color:#fff;font-weight:600;font-size:12px;cursor:pointer;
+}
+#mod-inicio .btn-guardar-inicio:hover{opacity:.9;}
+
+/* ============== MODULO / TOOLBAR / TABLA ============== */
+.module{display:none;padding:14px 18px;}
+.module.active{display:block;}
+.module-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;}
+.module-title{font-size:15px;font-weight:700;}
+.module-title .count{font-weight:400;font-size:11.5px;color:var(--texto-secundario);margin-left:8px;}
+
+.subtabs{display:flex;gap:2px;margin-bottom:10px;border-bottom:1px solid var(--gris-borde);}
+.subtab{padding:7px 14px;font-size:12px;font-weight:600;color:var(--texto-secundario);cursor:pointer;
+  border-bottom:2px solid transparent;}
+.subtab.active{color:var(--azul-header);border-bottom:2px solid var(--azul-header);}
+
+.toolbar{
+  display:flex;align-items:center;gap:6px;background:var(--gris-toolbar);border:1px solid var(--gris-borde);
+  border-radius:4px;padding:6px 8px;margin-bottom:10px;flex-wrap:wrap;
+}
+.toolbar button{
+  background:#fff;border:1px solid var(--gris-borde);border-radius:3px;padding:5px 10px;font-size:12px;
+  color:var(--texto-oscuro);cursor:pointer;
+}
+.toolbar button:hover{background:#eef3fb;border-color:var(--azul-seleccion);}
+.toolbar .sep{width:1px;background:var(--gris-borde);align-self:stretch;margin:0 4px;}
+.toolbar input[type="text"]{border:1px solid var(--gris-borde);border-radius:3px;padding:5px 8px;font-size:12px;width:190px;}
+.toolbar .status{margin-left:auto;font-size:11.5px;color:var(--verde-ok);display:flex;align-items:center;gap:5px;}
+.toolbar .status .dot{width:7px;height:7px;border-radius:50%;background:var(--verde-ok);}
+
+.grid-wrap{border:1px solid var(--gris-borde);border-radius:4px;overflow:auto;max-height:55vh;background:#fff;}
+table.grid{border-collapse:collapse;width:100%;font-size:12.3px;}
+table.grid thead th{
+  position:sticky;top:0;background:#e7ebf0;border-bottom:2px solid var(--gris-borde);
+  border-right:1px solid var(--gris-borde);padding:7px 9px;text-align:left;font-weight:600;color:#3a4652;
+  white-space:nowrap;z-index:2;
+}
+table.grid tbody td{border-right:1px solid #e8ebee;border-bottom:1px solid #eef0f2;padding:0;white-space:nowrap;}
+table.grid tbody tr:nth-child(even){background:var(--gris-fila-alt);}
+table.grid tbody tr:hover{background:#eaf1fb;}
+td.cell{padding:6px 9px;outline:none;min-width:85px;}
+td.cell.num{text-align:right;font-variant-numeric:tabular-nums;}
+td.cell.readonly{background:#f1f3f5;color:var(--texto-secundario);}
+td.cell[contenteditable="true"]:focus{box-shadow:inset 0 0 0 2px var(--azul-seleccion);background:#fff;}
+td.cell select{width:100%;border:none;background:transparent;font-size:12.3px;}
+
+.grid-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;font-size:11.5px;color:var(--texto-secundario);}
+.hint{font-size:11px;color:var(--texto-secundario);margin-top:8px;}
+kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;border-radius:3px;padding:1px 5px;font-size:10.5px;}
+
+.info-banner{
+  background:#eaf1fb;border:1px solid #b9d3f2;border-radius:4px;padding:9px 12px;margin-bottom:10px;
+  font-size:11.5px;color:#1c3f6e;
+}
+.info-banner b{color:var(--azul-header);}
+
+/* ============== MODAL DE MAPEO ============== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,28,38,.45);z-index:50;align-items:center;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#fff;width:640px;max-height:80vh;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.25);
+  display:flex;flex-direction:column;overflow:hidden;}
+.modal-head{background:var(--azul-header);color:#fff;padding:14px 18px;}
+.modal-head h3{margin:0;font-size:14.5px;}
+.modal-head p{margin:4px 0 0;font-size:11.5px;opacity:.85;}
+.modal-body{padding:14px 18px;overflow-y:auto;flex:1;}
+.map-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #eef0f2;font-size:12.5px;}
+.map-row .col-origen{flex:1;font-weight:600;}
+.map-row .col-origen small{display:block;font-weight:400;color:var(--texto-secundario);}
+.map-row select{flex:1;padding:5px 7px;border:1px solid var(--gris-borde);border-radius:3px;font-size:12px;}
+.modal-foot{padding:12px 18px;border-top:1px solid var(--gris-borde);display:flex;justify-content:flex-end;gap:8px;}
+.modal-foot button{padding:7px 14px;border-radius:3px;font-size:12.5px;cursor:pointer;}
+.btn-cancelar{background:#fff;border:1px solid var(--gris-borde);}
+.btn-confirmar{background:var(--marca-color-acento);border:1px solid var(--marca-color-acento);color:#fff;font-weight:600;}
+
+/* ============== RESPONSIVE ============== */
+@media(max-width:900px){
+  #mod-inicio .modulos-grid{grid-template-columns:repeat(2,1fr);}
+  #mod-inicio .panel-grid{grid-template-columns:1fr;}
+  .sidebar{width:200px;}
+}
+@media(max-width:600px){
+  .sidebar{width:0;overflow:hidden;padding:0;}
+  .app-header h1{font-size:14px;}
+  #mod-inicio .modulos-grid{grid-template-columns:1fr;}
+  .toolbar input[type="text"]{width:120px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= GATE ================= -->
+<div id="gate">
+  <div class="box">
+    <h2>Captura de Obra</h2>
+    <p>Indica el proyecto y la vista 3D para sincronizar tu avance con Revit y Speckle.</p>
+    <label>Nombre de Proyecto</label>
+    <input type="text" id="gate-proyecto" placeholder="Ej. Torre Alameda">
+    <label>Vista 3D</label>
+    <input type="text" id="gate-vista" placeholder="Ej. Avance Semanal">
+    <button onclick="entrarApp()">Entrar a Captura</button>
+    <div class="nota">Estos datos identifican el proyecto en todos los archivos que subas desde aquí.</div>
+  </div>
+</div>
+
+<!-- ================= HEADER ================= -->
+<div class="app-header">
+  <div>
+    <h1>Captura de Obra</h1>
+    <div class="sub">CAASA — Análisis y Reportes de Obra 360</div>
+  </div>
+  <div class="header-actions">
+    <span class="proyecto-tag" id="tag-proyecto">Proyecto: —</span>
+    <button id="btn-importar">Importar</button>
+    <button onclick="exportarCSV()">Exportar</button>
+    <button style="background:var(--marca-color-acento);border-color:var(--marca-color-acento)" onclick="guardarModuloActivo()">Guardar</button>
+  </div>
+</div>
+<input type="file" id="file-importar" accept=".xlsx,.xls,.csv" style="display:none">
+
+<div class="app-shell">
+  <!-- ================= SIDEBAR ================= -->
+  <div class="sidebar" id="sidebar">
+    <div class="company"><b>CAASA · Obra 360</b><span id="cfg-proyecto-sidebar" style="display:block;font-size:11px;">Proyecto: —</span></div>
+
+    <div class="menu-item active" data-tab="inicio"><span class="ico">🏠</span> Inicio</div>
+
+    <div class="area">Construcción</div>
+
+    <div class="grupo-toggle open" data-grupo="planeacion">
+      <span class="ico">📁</span> Planeación de Obra <span class="chev">▾</span>
+    </div>
+    <div class="grupo-body open submenu" id="grupo-planeacion">
+      <div class="menu-item" data-tab="costo_plan">Costo Plan</div>
+      <div class="menu-item" data-tab="presupuestal">Control Presupuestal</div>
+      <div class="menu-item" data-tab="materiales">Materiales</div>
+      <div class="menu-item" data-tab="mano_obra">Mano de Obra</div>
+      <div class="menu-item" data-tab="calidad">Calidad</div>
+      <div class="menu-item" data-tab="compras">Compras</div>
+      <div class="menu-item" data-tab="requisiciones">Requisiciones</div>
+      <div class="menu-item" data-tab="ordenes_compra">Órdenes de Compra</div>
+      <div class="menu-item" data-tab="pago_proveedores">Pago a Proveedores</div>
+      <div class="menu-item" data-tab="estimaciones">Estimaciones</div>
+    </div>
+
+    <div class="area bloqueada">Finanzas 🔒</div>
+    <div class="area bloqueada">Legal 🔒</div>
+    <div class="area bloqueada">Recursos Humanos 🔒</div>
+    <div class="area bloqueada">Inmobiliaria 🔒</div>
+    <div class="area bloqueada">CEDIS 🔒</div>
+    <div class="area bloqueada">Operaciones 🔒</div>
+    <div class="area bloqueada">Mantenimiento 🔒</div>
+  </div>
+
+  <!-- ================= CONTENIDO ================= -->
+  <div class="content-area">
+    <!-- INICIO -->
+    <div class="welcome" id="mod-inicio">
+      <h2>Panel de Control del Proyecto</h2>
+      <p>Resumen general y acceso rápido a todos los módulos de captura.</p>
+
+      <div class="panel-grid">
+        <div class="card-datos">
+          <h5>📋 Datos Generales</h5>
+          <div class="campo-row"><span class="label">Proyecto:</span><input class="valor" id="dato-proyecto" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Ubicación:</span><input class="valor" id="dato-ubicacion" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Gerente de Construcción:</span><input class="valor" id="dato-gerente-construccion" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Responsable de Obra:</span><input class="valor" id="dato-responsable-obra" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Gerente de Arquitectura:</span><input class="valor" id="dato-gerente-arquitectura" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Responsable de Compras:</span><input class="valor" id="dato-responsable-compras" value="—" onchange="guardarDatosInicio()"></div>
+        </div>
+        <div class="card-datos">
+          <h5>⏱ Duración del Proyecto</h5>
+          <div class="campo-row"><span class="label">Inicio:</span><input class="valor" id="dato-inicio" type="date" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Fin:</span><input class="valor" id="dato-fin" type="date" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Días Totales:</span><input class="valor" id="dato-dias" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">% Avance:</span><input class="valor" id="dato-avance" value="—" onchange="guardarDatosInicio()"></div>
+          <h5 style="margin-top:14px;">💰 Orden de Inversión</h5>
+          <div class="campo-row"><span class="label">Monto Total:</span><input class="valor" id="dato-monto" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Ejercido:</span><input class="valor" id="dato-ejercido" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Disponible:</span><input class="valor" id="dato-disponible" value="—" onchange="guardarDatosInicio()"></div>
+          <button class="btn-guardar-inicio" onclick="guardarDatosInicio()">💾 Guardar Datos del Proyecto</button>
+        </div>
+      </div>
+
+      <h5 style="margin:20px 0 10px;font-size:14px;">📌 Módulos del Sistema</h5>
+      <div class="modulos-grid">
+        <div class="modulo-card" onclick="navegarA('costo_plan')"><span class="ico">💰</span><span class="nombre">Costo Plan</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('presupuestal')"><span class="ico">📊</span><span class="nombre">Control Presupuestal</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('materiales')"><span class="ico">🧱</span><span class="nombre">Materiales</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('mano_obra')"><span class="ico">👷</span><span class="nombre">Mano de Obra</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('calidad')"><span class="ico">✅</span><span class="nombre">Calidad</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('compras')"><span class="ico">🛒</span><span class="nombre">Compras</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('requisiciones')"><span class="ico">📋</span><span class="nombre">Requisiciones</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('ordenes_compra')"><span class="ico">📄</span><span class="nombre">Órdenes de Compra</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('pago_proveedores')"><span class="ico">💰</span><span class="nombre">Pago a Proveedores</span><span class="estado">Activo</span></div>
+        <div class="modulo-card" onclick="navegarA('estimaciones')"><span class="ico">📈</span><span class="nombre">Estimaciones</span><span class="estado">Activo</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🏦</span><span class="nombre">Finanzas</span><span class="estado">🔒 Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">⚖️</span><span class="nombre">Legal</span><span class="estado">🔒 Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">👥</span><span class="nombre">Recursos Humanos</span><span class="estado">🔒 Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🏗️</span><span class="nombre">Inmobiliaria</span><span class="estado">🔒 Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">📦</span><span class="nombre">CEDIS</span><span class="estado">🔒 Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🔧</span><span class="nombre">Operaciones</span><span class="estado">🔒 Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🛠️</span><span class="nombre">Mantenimiento</span><span class="estado">🔒 Próximamente</span></div>
+      </div>
+    </div>
+
+    <!-- CONTENEDOR DE MÓDULOS DINÁMICOS -->
+    <div id="modulos-container"></div>
+  </div>
+</div>
+
+<!-- ================= MODAL DE MAPEO ================= -->
+<div class="modal-overlay" id="modal-mapeo">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Mapear columnas del archivo importado</h3>
+      <p>Indica a qué columna del sistema corresponde cada columna encontrada en tu archivo.</p>
+    </div>
+    <div class="modal-body" id="modal-mapeo-body"></div>
+    <div class="modal-foot">
+      <button class="btn-cancelar" onclick="cerrarModalMapeo()">Cancelar</button>
+      <button class="btn-confirmar" onclick="confirmarMapeo()">Importar con este mapeo</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* =====================================================================
+   DATOS DE INICIO (guardados en localStorage)
+   ===================================================================== */
+function cargarDatosInicio(){
+  const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
+                  "inicio","fin","dias","avance","monto","ejercido","disponible"];
+  campos.forEach(c=>{
+    const el = document.getElementById("dato-"+c);
+    if(el){
+      const val = localStorage.getItem("inicio_"+c);
+      if(val) el.value = val;
+    }
+  });
+}
+function guardarDatosInicio(){
+  const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
+                  "inicio","fin","dias","avance","monto","ejercido","disponible"];
+  campos.forEach(c=>{
+    const el = document.getElementById("dato-"+c);
+    if(el) localStorage.setItem("inicio_"+c, el.value);
+  });
+  const proyecto = document.getElementById("dato-proyecto").value;
+  document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
+  document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
+  localStorage.setItem("obra360_proyecto", proyecto);
+  alert("✅ Datos del proyecto guardados correctamente.");
+}
+
+/* =====================================================================
+   CONFIGURACIÓN DE MÓDULOS
+   ===================================================================== */
+const MODULOS = {
+
+  costo_plan: {
+    label:"Costo Plan",
+    endpoint:"costo_plan",
+    subtabs: {
+      partidas: {
+        label:"Partidas",
+        columnas:[
+          {key:"presupuesto", label:"Presupuesto", tipo:"num"},
+          {key:"tramites_permisos", label:"Trámites y Permisos", tipo:"num"},
+          {key:"estudios_disenos", label:"Estudios y Diseños", tipo:"num"},
+          {key:"obras_preliminares", label:"Obras Preliminares y Provisionales", tipo:"num"},
+          {key:"servicios", label:"Servicios", tipo:"num"},
+          {key:"control_obra", label:"Control de Obra", tipo:"num"},
+          {key:"mejoras_terreno", label:"Mejoras al Terreno", tipo:"num"},
+          {key:"obra_negra_cimentacion", label:"Obra Negra Cimentación", tipo:"num"},
+          {key:"obra_negra_edificio", label:"Obra Negra Edificio", tipo:"num"},
+          {key:"complementos_obra_negra", label:"Complementos de Obra Negra", tipo:"num"},
+          {key:"instalaciones_hidrosanitarias", label:"Instalaciones Hidrosanitarias vs Incendios y Gas", tipo:"num"},
+          {key:"instalaciones_electricas", label:"Instalaciones Eléctricas", tipo:"num"},
+          {key:"instalaciones_voz_datos", label:"Instalaciones Ocultas de Red de Voz y Datos", tipo:"num"},
+          {key:"instalaciones_aa", label:"Instalaciones de Acondicionamiento Ambiental", tipo:"num"},
+          {key:"acabados", label:"Acabados", tipo:"num"},
+          {key:"areas_exteriores", label:"Áreas Exteriores", tipo:"num"},
+          {key:"equipo_edificio", label:"Equipo Edificio", tipo:"num"},
+        ],
+        datos:[
+          {presupuesto:10000000, tramites_permisos:250000, estudios_disenos:300000, obras_preliminares:150000, servicios:120000, control_obra:80000, mejoras_terreno:200000, obra_negra_cimentacion:1200000, obra_negra_edificio:2500000, complementos_obra_negra:400000, instalaciones_hidrosanitarias:350000, instalaciones_electricas:280000, instalaciones_voz_datos:95000, instalaciones_aa:420000, acabados:1800000, areas_exteriores:600000, equipo_edificio:750000}
+        ]
+      },
+      indicadores: {
+        label:"Indicadores",
+        columnas:[
+          {key:"area_construccion", label:"Área de Construcción M2", tipo:"num"},
+          {key:"area_terreno", label:"Área de Terreno M2", tipo:"num"},
+          {key:"costo_m2", label:"Costo por M2", tipo:"num"},
+          {key:"cimentacion_m2", label:"Cimentación M2", tipo:"num"},
+          {key:"estructura_metalica_kg", label:"Estructura Metálica KG", tipo:"num"},
+          {key:"estructura_concreto_m2", label:"Estructura Concreto Armado M2", tipo:"num"},
+          {key:"muros_block_m2", label:"Muros de Block y Albanilerías M2", tipo:"num"},
+          {key:"firmes_m2", label:"Firmes de Concreto M2", tipo:"num"},
+          {key:"cubierta_lamina_m2", label:"Cubierta de Lámina M2", tipo:"num"},
+          {key:"costo_construccion_m2", label:"Costo Construcción M2", tipo:"num"},
+          {key:"costo_urbanizacion_m2", label:"Costo Urbanización M2", tipo:"num"},
+        ],
+        datos:[
+          {area_construccion:8500, area_terreno:12000, costo_m2:8500, cimentacion_m2:3200, estructura_metalica_kg:45000, estructura_concreto_m2:2800, muros_block_m2:4200, firmes_m2:3800, cubierta_lamina_m2:2500, costo_construccion_m2:7200, costo_urbanizacion_m2:1800}
+        ]
+      }
+    }
+  },
+
+  presupuestal: {
+    label:"Control Presupuestal",
+    endpoint:"control_presupuestal",
+    columnas:[
+      {key:"id", label:"ID", hidden:true},
+      {key:"nombre", label:"Nombre / Familia / Elemento"},
+      {key:"inicio", label:"Inicio", tipo:"fecha"},
+      {key:"fin", label:"Fin", tipo:"fecha"},
+      {key:"pct_programado", label:"% Programado", tipo:"num"},
+      {key:"pct_real", label:"% Real", tipo:"num"},
+      {key:"pct_por_elemento", label:"% por Elemento", tipo:"num"},
+      {key:"pct_acumulado", label:"% Acumulado", tipo:"num"},
+      {key:"costo_por_elemento", label:"Costo por Elemento", tipo:"num"},
+      {key:"costo_etapa", label:"Costo Etapa", tipo:"num"},
+      {key:"costo_real", label:"Costo Real", tipo:"num"},
+      {key:"etapa", label:"Etapa"},
+      {key:"duracion", label:"Duración", tipo:"num"},
+    ],
+    datos:[
+      {id:"543430", nombre:"M_Zapata-Rectangular Z-1-01", inicio:"2026-03-09", fin:"2026-03-12", pct_programado:1, pct_real:0.9, pct_por_elemento:0.0979, pct_acumulado:0.1958, costo_por_elemento:176000, costo_etapa:192400, costo_real:192400, etapa:"Cim - 1.0", duracion:4},
+    ]
+  },
+
+  materiales: {
+    label:"Materiales",
+    endpoint:"materiales",
+    columnas:[
+      {key:"id", label:"ID", hidden:true},
+      {key:"categoria", label:"Categoría", tipo:"select", opciones:["Terracerías","Obra Negra - Cimentación","Obra Negra - Edificación"]},
+      {key:"concepto", label:"Concepto"},
+      {key:"unidad", label:"Unidad", tipo:"select", opciones:["m3","m2","kg","ton","pza","ml"]},
+      {key:"cantidad", label:"Cantidad", tipo:"num"},
+      {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
+      {key:"costo_total", label:"Costo Total", tipo:"num", calculado:(r)=> (Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
+    ],
+    datos:[
+      {id:"MAT-001", categoria:"Terracerías", concepto:"Despalme", unidad:"m3", cantidad:1200, costo_unitario:85, costo_total:null},
+      {id:"MAT-002", categoria:"Obra Negra - Cimentación", concepto:"Acero", unidad:"kg", cantidad:18500, costo_unitario:27.5, costo_total:null},
+      {id:"MAT-003", categoria:"Obra Negra - Cimentación", concepto:"Cimbra", unidad:"m2", cantidad:320, costo_unitario:965, costo_total:null},
+      {id:"MAT-004", categoria:"Obra Negra - Cimentación", concepto:"Concreto", unidad:"m3", cantidad:180, costo_unitario:2800, costo_total:null},
+      {id:"MAT-005", categoria:"Obra Negra - Edificación", concepto:"Acero", unidad:"kg", cantidad:42000, costo_unitario:27.5, costo_total:null},
+      {id:"MAT-006", categoria:"Obra Negra - Edificación", concepto:"Cimbra", unidad:"m2", cantidad:860, costo_unitario:965, costo_total:null},
+      {id:"MAT-007", categoria:"Obra Negra - Edificación", concepto:"Concreto", unidad:"m3", cantidad:420, costo_unitario:2800, costo_total:null},
+    ]
+  },
+
+  mano_obra: {
+    label:"Mano de Obra",
+    endpoint:"mano_obra",
+    columnas:[
+      {key:"id", label:"ID", hidden:true},
+      {key:"concepto", label:"Concepto", tipo:"select", opciones:[
+        "Habilitado Acero de Refuerzo (KG)","Cimbra Zapatas/Pedestales/Dados/CT/Pilas (M2)",
+        "Concreto Vaciado en Elementos (M3)","Muros de Block (M2)","Firmes (M2/M3)",
+        "Losas Entrepiso Maciza/Casetón/Losacero (M2/M3)","Aplanados Exteriores (M2)",
+        "Aplanados Interiores (M2)","Estructura Metálica Fabricación (KG)",
+        "Montaje Estructura Metálica (KG)","Recubrimiento Pintura Estructura Metálica",
+        "Control de Calidad Estructura Metálica"]},
+      {key:"cantidad", label:"Cantidad", tipo:"num"},
+      {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
+      {key:"costo_total", label:"Costo Total", tipo:"num", calculado:(r)=> (Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
+    ],
+    datos:[
+      {id:"MO-001", concepto:"Habilitado Acero de Refuerzo (KG)", cantidad:18500, costo_unitario:28, costo_total:null},
+      {id:"MO-002", concepto:"Concreto Vaciado en Elementos (M3)", cantidad:12, costo_unitario:3200, costo_total:null},
+    ]
+  },
+
+  calidad: {
+    label:"Control de Calidad",
+    endpoint:"calidad",
+    columnas:[
+      {key:"id", label:"ID", hidden:true},
+      {key:"nombre", label:"Nombre"},
+      {key:"clave", label:"Clave"},
+      {key:"nivel", label:"Nivel"},
+      {key:"fase", label:"Fase"},
+      {key:"id_inspeccion", label:"ID_Inspección"},
+      {key:"id_proyecto", label:"ID_Proyecto"},
+      {key:"elemento_inspeccionado", label:"Elemento_Inspeccionado"},
+      {key:"tipo_ensayo", label:"Tipo_Ensayo"},
+      {key:"norma_aplicada", label:"Norma_Aplicada"},
+      {key:"resultado", label:"Resultado", tipo:"select", opciones:["Aprobado","Rechazado"]},
+      {key:"valor_obtenido", label:"Valor_Obtenido"},
+      {key:"valor_especificado", label:"Valor_Especificado"},
+      {key:"unidad", label:"Unidad"},
+      {key:"fecha_prueba", label:"Fecha_Prueba", tipo:"fecha"},
+      {key:"inspector", label:"Inspector"},
+      {key:"observaciones", label:"Observaciones"},
+    ],
+    datos:[
+      {id:"CAL-001", nombre:"Columna", clave:"W10X49", nivel:1, fase:"Montaje Columnas-C-1", id_inspeccion:"INS-000", id_proyecto:"NAVE-3N", elemento_inspeccionado:"W10X49", tipo_ensayo:"Líquidos Penetrantes", norma_aplicada:"ISO 3452-1", resultado:"Rechazado", valor_obtenido:"N/A", valor_especificado:"Sin discontinuidades", unidad:"N/A", fecha_prueba:"2026-04-10", inspector:"M. López", observaciones:"Grietas longitudinales en soldadura"},
+    ]
+  },
+
+  compras: {
+    label:"Compras",
+    endpoint:"compras",
+    columnas:[
+      {key:"id", label:"ID", hidden:true},
+      {key:"proveedor", label:"Proveedor"},
+      {key:"concepto", label:"Concepto"},
+      {key:"categoria", label:"Categoría"},
+      {key:"cantidad", label:"Cantidad", tipo:"num"},
+      {key:"unidad", label:"Unidad", tipo:"select", opciones:["pza","kg","m3","m2","ml","ton"]},
+      {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
+      {key:"importe", label:"Importe", tipo:"num", calculado:(r)=>(Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
+      {key:"fecha_pedido", label:"Fecha Pedido", tipo:"fecha"},
+      {key:"fecha_entrega", label:"Fecha Entrega", tipo:"fecha"},
+      {key:"estatus", label:"Estatus", tipo:"select", opciones:["Pendiente","Enviado","Recibido"]},
+    ],
+    datos:[
+      {id:"COM-001", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", categoria:"Acero", cantidad:5000, unidad:"kg", costo_unitario:27.5, importe:null, fecha_pedido:"2026-06-01", fecha_entrega:"2026-06-15", estatus:"Pendiente"},
+    ]
+  },
+
+  requisiciones: {
+    label:"Requisiciones",
+    endpoint:"requisiciones",
+    columnas:[
+      {key:"no", label:"Nº"},
+      {key:"descripcion", label:"Descripción"},
+      {key:"solicitado", label:"Solicitado"},
+      {key:"fecha_solicitud", label:"Fecha Solicitud", tipo:"fecha"},
+      {key:"elaboro_req", label:"Elaboró Req."},
+      {key:"area_obra", label:"Área de Obra"},
+      {key:"contratista_asignado", label:"Contratista Asignado"},
+      {key:"estado_compras", label:"Estado Compras", tipo:"select", opciones:["Pendiente","En Proceso","Cotizando","Aprobado","Rechazado","Comprado"]},
+    ],
+    datos:[
+      {no:"REQ-001", descripcion:"Varilla 3/8 para cimentación", solicitado:"J. Pérez", fecha_solicitud:"2026-06-01", elaboro_req:"M. Gómez", area_obra:"Cimentación", contratista_asignado:"Aceros del Bajío", estado_compras:"Cotizando"},
+      {no:"REQ-002", descripcion:"Concreto premezclado 250 kg/cm²", solicitado:"L. Ramírez", fecha_solicitud:"2026-06-03", elaboro_req:"M. Gómez", area_obra:"Estructura", contratista_asignado:"Concretos del Centro", estado_compras:"Pendiente"},
+    ]
+  },
+
+  ordenes_compra: {
+    label:"Órdenes de Compra",
+    endpoint:"ordenes_compra",
+    columnas:[
+      {key:"no_oc", label:"No. OC"},
+      {key:"proveedor", label:"Proveedor"},
+      {key:"concepto", label:"Concepto"},
+      {key:"categoria", label:"Categoría"},
+      {key:"cantidad", label:"Cantidad", tipo:"num"},
+      {key:"unidad", label:"Unidad", tipo:"select", opciones:["pza","kg","m3","m2","ml","ton"]},
+      {key:"pu", label:"P.U.", tipo:"num"},
+      {key:"importe", label:"Importe", tipo:"num", calculado:(r)=>(Number(r.cantidad)||0)*(Number(r.pu)||0)},
+      {key:"fecha", label:"Fecha", tipo:"fecha"},
+      {key:"quien_requisito", label:"Quién Requisitó", tipo:"select", opciones:["Ing","Arq","Lic","CP"]},
+      {key:"estatus", label:"Estatus", tipo:"select", opciones:["Pendiente","Recibido"]},
+    ],
+    datos:[
+      {no_oc:"OC-1042", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", categoria:"Acero", cantidad:5000, unidad:"kg", pu:27.5, importe:null, fecha:"2026-06-02", quien_requisito:"Ing", estatus:"Recibido"},
+    ]
+  },
+
+  pago_proveedores: {
+    label:"Pago a Proveedores y Contratistas",
+    endpoint:"pago_proveedores",
+    columnas:[
+      {key:"proveedor", label:"Proveedor / Contratista"},
+      {key:"imss", label:"IMSS"},
+      {key:"regimen_fiscal", label:"Régimen Fiscal", tipo:"select", opciones:["CIROC","RESICO"]},
+      {key:"no_pedido_contrato", label:"No. Pedido/Contrato"},
+      {key:"estatus_pago", label:"Estatus de Pago", tipo:"select", opciones:["Pendiente","Pagado","Retenido"]},
+    ],
+    datos:[
+      {proveedor:"Estructuras del Norte", imss:"Vigente", regimen_fiscal:"RESICO", no_pedido_contrato:"CT-0032", estatus_pago:"Pendiente"},
+    ]
+  },
+
+  estimaciones: {
+    label:"Estimaciones",
+    endpoint:"estimaciones",
+    columnas:[
+      {key:"estimacion_no", label:"Estimación #"},
+      {key:"numero_factura", label:"Número de Factura"},
+      {key:"concepto", label:"Concepto"},
+      {key:"monto_contratado", label:"Monto Contratado", tipo:"num"},
+      {key:"monto_estimado", label:"Monto Estimado antes de IVA", tipo:"num"},
+      {key:"estimado_acumulado", label:"Estimado Acumulado", tipo:"num", calculado: (row, allData) => {
+        const idx = allData.indexOf(row);
+        let sum = 0;
+        for(let i=0; i<=idx; i++){
+          sum += Number(allData[i].monto_estimado) || 0;
+        }
+        return sum;
+      }},
+      {key:"fondo_garantia", label:"Fondo de Garantía (5%)", tipo:"num", calculado: (row) => {
+        return (Number(row.monto_estimado) || 0) * 0.05;
+      }},
+      {key:"f_garantia_acumulado", label:"F. Garantía Acumulado", tipo:"num", calculado: (row, allData) => {
+        const idx = allData.indexOf(row);
+        let sum = 0;
+        for(let i=0; i<=idx; i++){
+          sum += (Number(allData[i].monto_estimado) || 0) * 0.05;
+        }
+        return sum;
+      }},
+      {key:"cobrado_a_la_fecha", label:"Cobrado a la Fecha", tipo:"num"},
+      {key:"fecha_estimacion", label:"Fecha de Estimación", tipo:"fecha"},
+      {key:"por_cobrar", label:"Por Cobrar", tipo:"num", calculado: (row) => {
+        return (Number(row.monto_contratado) || 0) - (Number(row.cobrado_a_la_fecha) || 0);
+      }},
+      {key:"ejercido", label:"Ejercido", tipo:"num"},
+      {key:"disponible", label:"Disponible", tipo:"num", calculado: (row) => {
+        return (Number(row.monto_contratado) || 0) - (Number(row.ejercido) || 0);
+      }},
+    ],
+    datos:[
+      {
+        estimacion_no:"E-001",
+        numero_factura:"FAC-001",
+        concepto:"Cimentación - Zapata Z-1",
+        monto_contratado:1450000,
+        monto_estimado:420000,
+        estimado_acumulado:null,
+        fondo_garantia:null,
+        f_garantia_acumulado:null,
+        cobrado_a_la_fecha:420000,
+        fecha_estimacion:"2026-06-30",
+        por_cobrar:null,
+        ejercido:410000,
+        disponible:null
+      },
+      {
+        estimacion_no:"E-002",
+        numero_factura:"FAC-002",
+        concepto:"Estructura Metálica - Nave 3",
+        monto_contratado:1450000,
+        monto_estimado:580000,
+        estimado_acumulado:null,
+        fondo_garantia:null,
+        f_garantia_acumulado:null,
+        cobrado_a_la_fecha:580000,
+        fecha_estimacion:"2026-07-15",
+        por_cobrar:null,
+        ejercido:560000,
+        disponible:null
+      },
+      {
+        estimacion_no:"E-003",
+        numero_factura:"FAC-003",
+        concepto:"Acabados - Pisos y Muros",
+        monto_contratado:1450000,
+        monto_estimado:320000,
+        estimado_acumulado:null,
+        fondo_garantia:null,
+        f_garantia_acumulado:null,
+        cobrado_a_la_fecha:320000,
+        fecha_estimacion:"2026-08-10",
+        por_cobrar:null,
+        ejercido:300000,
+        disponible:null
+      }
+    ]
+  },
+};
+
+let moduloActivo = "presupuestal";
+let subtabActivo = {};
+
+/* =====================================================================
+   GATE — Proyecto + Vista 3D
+   ===================================================================== */
+function entrarApp(){
+  const proyecto = document.getElementById("gate-proyecto").value.trim();
+  const vista = document.getElementById("gate-vista").value.trim();
+  if(!proyecto || !vista){
+    alert("Indica el Nombre de Proyecto y la Vista 3D antes de continuar.");
+    return;
+  }
+  localStorage.setItem("obra360_proyecto", proyecto);
+  localStorage.setItem("obra360_vista", vista);
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
+  document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
+  document.getElementById("dato-proyecto").value = proyecto;
+  guardarDatosInicio();
+}
+(function(){
+  const p = localStorage.getItem("obra360_proyecto");
+  const v = localStorage.getItem("obra360_vista");
+  if(p && v){
+    document.getElementById("gate-proyecto").value = p;
+    document.getElementById("gate-vista").value = v;
+  }
+  cargarDatosInicio();
+})();
+
+/* =====================================================================
+   RENDER DE TABLAS (con soporte para subtabs y calculados con allData)
+   ===================================================================== */
+function money(n){
+  if(n===null||n===undefined||n===""||isNaN(n)) return "";
+  return Number(n).toLocaleString("es-MX",{maximumFractionDigits:2});
+}
+
+function construirModuloHTML(modKey){
+  const mod = MODULOS[modKey];
+  if(!mod) return "";
+  
+  if(mod.subtabs){
+    let html = `
+      <div class="module" id="mod-${modKey}" data-mod="${modKey}">
+        <div class="module-title-row">
+          <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
+        </div>
+        <div class="info-banner">
+          Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
+        </div>
+        <div class="subtabs">
+    `;
+    Object.keys(mod.subtabs).forEach((stKey, idx)=>{
+      const st = mod.subtabs[stKey];
+      const active = idx===0 ? "active" : "";
+      html += `<div class="subtab ${active}" data-sub="${stKey}" onclick="cambiarSubtab('${modKey}','${stKey}')">${st.label}</div>`;
+    });
+    html += `</div>`;
+    Object.keys(mod.subtabs).forEach((stKey, idx)=>{
+      const st = mod.subtabs[stKey];
+      const active = idx===0 ? "active" : "";
+      const cols = st.columnas.filter(c=>!c.hidden);
+      html += `
+        <div class="subtab-content ${active}" id="sub-${modKey}-${stKey}">
+          <div class="toolbar">
+            <button onclick="agregarFilaSubtab('${modKey}','${stKey}')">➕ Nueva fila</button>
+            <button onclick="eliminarUltimaFilaSubtab('${modKey}','${stKey}')">🗑 Eliminar última fila</button>
+            <div class="sep"></div>
+            <input type="text" placeholder="Buscar..." oninput="filtrarTablaSubtab('${modKey}','${stKey}', this.value)">
+            <div class="status"><span class="dot"></span> Listo</div>
+          </div>
+          <div class="grid-wrap">
+            <table class="grid" id="grid-${modKey}-${stKey}">
+              <thead><tr>${cols.map(c=>`<th${c.tipo==='num'?' class="num"':''}>${c.label}</th>`).join("")}</tr></thead>
+              <tbody id="body-${modKey}-${stKey}"></tbody>
+            </table>
+          </div>
+          <div class="grid-footer">
+            <span>Mostrando <span id="visible-${modKey}-${stKey}">0</span> registros</span>
+          </div>
+        </div>
+      `;
+    });
+    html += `<div class="hint">Doble clic para editar · <kbd>Tab</kbd> siguiente celda · <kbd>Enter</kbd> confirmar</div></div>`;
+    return html;
+  }
+  
+  const cols = mod.columnas.filter(c=>!c.hidden);
+  let html = `
+    <div class="module" id="mod-${modKey}" data-mod="${modKey}">
+      <div class="module-title-row">
+        <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
+      </div>
+      <div class="info-banner">
+        Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
+      </div>
+      <div class="toolbar">
+        <button onclick="agregarFila('${modKey}')">➕ Nueva fila</button>
+        <button onclick="eliminarUltimaFila('${modKey}')">🗑 Eliminar última fila</button>
+        <div class="sep"></div>
+        <input type="text" placeholder="Buscar..." oninput="filtrarTabla('grid-${modKey}', this.value)">
+        <div class="status"><span class="dot"></span> Listo</div>
+      </div>
+      <div class="grid-wrap">
+        <table class="grid" id="grid-${modKey}">
+          <thead><tr>${cols.map(c=>`<th${c.tipo==='num'?' class="num"':''}>${c.label}</th>`).join("")}</tr></thead>
+          <tbody id="body-${modKey}"></tbody>
+        </table>
+      </div>
+      <div class="grid-footer">
+        <span>Mostrando <span id="visible-${modKey}">0</span> registros</span>
+      </div>
+      <div class="hint">Doble clic para editar · <kbd>Tab</kbd> siguiente celda · <kbd>Enter</kbd> confirmar</div>
+    </div>`;
+  return html;
+}
+
+function renderModulo(modKey){
+  const mod = MODULOS[modKey];
+  if(!mod) return;
+  
+  if(mod.subtabs){
+    Object.keys(mod.subtabs).forEach(stKey=>{
+      renderSubtab(modKey, stKey);
+    });
+    return;
+  }
+  
+  const cols = mod.columnas.filter(c=>!c.hidden);
+  const tbody = document.getElementById("body-"+modKey);
+  if(!tbody) return;
+  tbody.innerHTML = "";
+  const allData = mod.datos;
+  allData.forEach((row, ridx)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = cols.map(c=>{
+      let val = row[c.key];
+      if(c.calculado) val = c.calculado(row, allData);
+      const display = c.tipo==="num" ? money(val) : (val ?? "");
+      if(c.tipo==="select"){
+        return `<td class="cell"><select onchange="actualizarCelda('${modKey}',${ridx},'${c.key}',this.value)">
+          ${c.opciones.map(o=>`<option value="${o}" ${o===val?"selected":""}>${o||"—"}</option>`).join("")}
+        </select></td>`;
+      }
+      if(c.calculado){
+        return `<td class="cell num readonly">${display}</td>`;
+      }
+      return `<td class="cell${c.tipo==='num'?' num':''}" contenteditable="true"
+                onblur="actualizarCelda('${modKey}',${ridx},'${c.key}',this.textContent)">${display}</td>`;
+    }).join("");
+    tbody.appendChild(tr);
+  });
+  const countEl = document.getElementById("count-"+modKey);
+  if(countEl) countEl.textContent = mod.datos.length + " registros";
+  const visibleEl = document.getElementById("visible-"+modKey);
+  if(visibleEl) visibleEl.textContent = mod.datos.length;
+}
+
+function renderSubtab(modKey, stKey){
+  const mod = MODULOS[modKey];
+  if(!mod || !mod.subtabs || !mod.subtabs[stKey]) return;
+  const st = mod.subtabs[stKey];
+  const cols = st.columnas.filter(c=>!c.hidden);
+  const tbody = document.getElementById(`body-${modKey}-${stKey}`);
+  if(!tbody) return;
+  tbody.innerHTML = "";
+  const allData = st.datos;
+  allData.forEach((row, ridx)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = cols.map(c=>{
+      let val = row[c.key];
+      if(c.calculado) val = c.calculado(row, allData);
+      const display = c.tipo==="num" ? money(val) : (val ?? "");
+      if(c.tipo==="select"){
+        return `<td class="cell"><select onchange="actualizarCeldaSubtab('${modKey}','${stKey}',${ridx},'${c.key}',this.value)">
+          ${c.opciones.map(o=>`<option value="${o}" ${o===val?"selected":""}>${o||"—"}</option>`).join("")}
+        </select></td>`;
+      }
+      if(c.calculado){
+        return `<td class="cell num readonly">${display}</td>`;
+      }
+      return `<td class="cell${c.tipo==='num'?' num':''}" contenteditable="true"
+                onblur="actualizarCeldaSubtab('${modKey}','${stKey}',${ridx},'${c.key}',this.textContent)">${display}</td>`;
+    }).join("");
+    tbody.appendChild(tr);
+  });
+  const countEl = document.getElementById(`count-${modKey}`);
+  if(countEl){
+    const total = Object.values(mod.subtabs).reduce((sum, st)=>sum + st.datos.length, 0);
+    countEl.textContent = total + " registros";
+  }
+  const visibleEl = document.getElementById(`visible-${modKey}-${stKey}`);
+  if(visibleEl) visibleEl.textContent = st.datos.length;
+}
+
+function actualizarCelda(modKey, ridx, key, val){
+  MODULOS[modKey].datos[ridx][key] = val;
+  renderModulo(modKey);
+}
+
+function actualizarCeldaSubtab(modKey, stKey, ridx, key, val){
+  MODULOS[modKey].subtabs[stKey].datos[ridx][key] = val;
+  renderSubtab(modKey, stKey);
+}
+
+function agregarFila(modKey){
+  const cols = MODULOS[modKey].columnas;
+  const nueva = {};
+  cols.forEach(c=>{ if(!c.calculado) nueva[c.key] = ""; });
+  MODULOS[modKey].datos.push(nueva);
+  renderModulo(modKey);
+}
+
+function agregarFilaSubtab(modKey, stKey){
+  const cols = MODULOS[modKey].subtabs[stKey].columnas;
+  const nueva = {};
+  cols.forEach(c=>{ if(!c.calculado) nueva[c.key] = ""; });
+  MODULOS[modKey].subtabs[stKey].datos.push(nueva);
+  renderSubtab(modKey, stKey);
+}
+
+function eliminarUltimaFila(modKey){
+  MODULOS[modKey].datos.pop();
+  renderModulo(modKey);
+}
+
+function eliminarUltimaFilaSubtab(modKey, stKey){
+  MODULOS[modKey].subtabs[stKey].datos.pop();
+  renderSubtab(modKey, stKey);
+}
+
+function filtrarTabla(tableId, texto){
+  const rows = document.querySelectorAll("#"+tableId+" tbody tr");
+  const q = texto.toLowerCase();
+  let visible = 0;
+  rows.forEach(r=>{
+    const match = r.textContent.toLowerCase().includes(q);
+    r.style.display = match ? "" : "none";
+    if(match) visible++;
+  });
+  const visibleEl = document.getElementById("visible-"+tableId.replace("grid-",""));
+  if(visibleEl) visibleEl.textContent = visible;
+}
+
+function filtrarTablaSubtab(modKey, stKey, texto){
+  const rows = document.querySelectorAll(`#grid-${modKey}-${stKey} tbody tr`);
+  const q = texto.toLowerCase();
+  let visible = 0;
+  rows.forEach(r=>{
+    const match = r.textContent.toLowerCase().includes(q);
+    r.style.display = match ? "" : "none";
+    if(match) visible++;
+  });
+  const visibleEl = document.getElementById(`visible-${modKey}-${stKey}`);
+  if(visibleEl) visibleEl.textContent = visible;
+}
+
+function cambiarSubtab(modKey, stKey){
+  const mod = MODULOS[modKey];
+  if(!mod || !mod.subtabs) return;
+  Object.keys(mod.subtabs).forEach(key=>{
+    const el = document.getElementById(`sub-${modKey}-${key}`);
+    if(el) el.classList.toggle("active", key===stKey);
+    const tab = document.querySelector(`#mod-${modKey} .subtab[data-sub="${key}"]`);
+    if(tab) tab.classList.toggle("active", key===stKey);
+  });
+  subtabActivo[modKey] = stKey;
+}
+
+/* =====================================================================
+   CONSTRUCCIÓN INICIAL DE TODOS LOS MÓDULOS
+   ===================================================================== */
+const cont = document.getElementById("modulos-container");
+Object.keys(MODULOS).forEach(modKey=>{
+  cont.insertAdjacentHTML("beforeend", construirModuloHTML(modKey));
+  if(MODULOS[modKey].subtabs){
+    Object.keys(MODULOS[modKey].subtabs).forEach(stKey=>{
+      renderSubtab(modKey, stKey);
+    });
+  } else {
+    renderModulo(modKey);
+  }
+});
+
+/* =====================================================================
+   NAVEGACIÓN
+   ===================================================================== */
+function navegarA(tab){
+  document.querySelectorAll(".module").forEach(m=>m.classList.remove("active"));
+  document.getElementById("mod-inicio").classList.add("hidden");
+
+  if(tab === "inicio"){
+    document.getElementById("mod-inicio").classList.remove("hidden");
+    document.querySelectorAll(".menu-item[data-tab]").forEach(i=>i.classList.remove("active"));
+    document.querySelector('.menu-item[data-tab="inicio"]')?.classList.add("active");
+    moduloActivo = "inicio";
+    return;
+  }
+
+  const modEl = document.getElementById("mod-"+tab);
+  if(modEl) modEl.classList.add("active");
+
+  document.querySelectorAll(".menu-item[data-tab]").forEach(i=>i.classList.remove("active"));
+  document.querySelector(`.menu-item[data-tab="${tab}"]`)?.classList.add("active");
+
+  moduloActivo = tab;
+}
+
+document.querySelectorAll(".grupo-toggle").forEach(t=>{
+  t.addEventListener("click", ()=>{
+    const body = document.getElementById("grupo-"+t.dataset.grupo);
+    if(body) body.classList.toggle("open");
+  });
+});
+
+document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
+  item.addEventListener("click", ()=>{
+    navegarA(item.dataset.tab);
+  });
+});
+
+document.getElementById("mod-inicio").classList.remove("hidden");
+
+/* =====================================================================
+   IMPORTAR (Excel/CSV) — con soporte para subtabs
+   ===================================================================== */
+document.getElementById("btn-importar").addEventListener("click", ()=>{
+  document.getElementById("file-importar").click();
+});
+
+let filasArchivo = [], encabezadosArchivo = [];
+
+document.getElementById("file-importar").addEventListener("change", (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (evt)=>{
+    const wb = XLSX.read(evt.target.result, {type:"binary"});
+    const hoja = wb.Sheets[wb.SheetNames[0]];
+    const filas = XLSX.utils.sheet_to_json(hoja, {header:1, defval:""});
+    if(filas.length<1){ alert("El archivo no tiene datos."); return; }
+    encabezadosArchivo = filas[0];
+    filasArchivo = filas.slice(1);
+    abrirModalMapeo();
+  };
+  reader.readAsBinaryString(file);
+  e.target.value = "";
+});
+
+function sugerirColumna(encabezado, cols){
+  const norm=(s)=>s.toString().toLowerCase().trim();
+  const h = norm(encabezado);
+  let m = cols.find(c=>norm(c.label)===h || norm(c.key)===h);
+  if(m) return m.key;
+  m = cols.find(c=> h.includes(norm(c.label).slice(0,4)));
+  return m ? m.key : "(Ignorar columna)";
+}
+
+function abrirModalMapeo(){
+  const mod = MODULOS[moduloActivo];
+  if(!mod){ cerrarModalMapeo(); return; }
+  
+  let cols = [];
+  if(mod.subtabs){
+    const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
+    cols = mod.subtabs[stKey].columnas;
+  } else {
+    cols = mod.columnas;
+  }
+  
+  const cont = document.getElementById("modal-mapeo-body");
+  cont.innerHTML = "";
+  encabezadosArchivo.forEach((h, idx)=>{
+    const sugerida = sugerirColumna(h, cols);
+    cont.insertAdjacentHTML("beforeend", `
+      <div class="map-row">
+        <div class="col-origen">${h||"(columna "+(idx+1)+")"}<small>Columna del archivo</small></div>
+        <span>→</span>
+        <select data-idx="${idx}">
+          ${cols.map(c=>`<option value="${c.key}" ${c.key===sugerida?"selected":""}>${c.label}</option>`).join("")}
+          <option value="(Ignorar columna)">(Ignorar columna)</option>
+        </select>
+      </div>`);
+  });
+  document.getElementById("modal-mapeo").classList.add("open");
+}
+function cerrarModalMapeo(){ document.getElementById("modal-mapeo").classList.remove("open"); }
+
+function confirmarMapeo(){
+  const mod = MODULOS[moduloActivo];
+  if(!mod){ cerrarModalMapeo(); return; }
+  
+  let target;
+  if(mod.subtabs){
+    const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
+    target = mod.subtabs[stKey];
+  } else {
+    target = mod;
+  }
+  
+  const selects = document.querySelectorAll("#modal-mapeo-body select");
+  const mapeo = {};
+  selects.forEach(s=>{ mapeo[s.dataset.idx] = s.value; });
+  const nuevasFilas = filasArchivo.filter(f=>f.some(v=>v!=="")).map(fila=>{
+    const obj = {};
+    Object.keys(mapeo).forEach(idx=>{
+      if(mapeo[idx]!=="(Ignorar columna)") obj[mapeo[idx]] = fila[idx];
+    });
+    return obj;
+  });
+  target.datos.push(...nuevasFilas);
+  
+  if(mod.subtabs){
+    const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
+    renderSubtab(moduloActivo, stKey);
+  } else {
+    renderModulo(moduloActivo);
+  }
+  cerrarModalMapeo();
+  alert(nuevasFilas.length+" filas importadas a "+mod.label+".");
+}
+
+/* =====================================================================
+   GUARDAR — con soporte para subtabs
+   ===================================================================== */
+function datosAcsv(modKey, stKey){
+  const mod = MODULOS[modKey];
+  if(!mod) return "";
+  
+  let cols, datos;
+  if(mod.subtabs){
+    const key = stKey || subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
+    const st = mod.subtabs[key];
+    cols = st.columnas;
+    datos = st.datos;
+  } else {
+    cols = mod.columnas;
+    datos = mod.datos;
+  }
+  
+  const encabezado = cols.map(c=>c.label).join(",");
+  const filas = datos.map(row=>{
+    return cols.map(c=>{
+      let v = c.calculado ? c.calculado(row, datos) : row[c.key];
+      v = (v===undefined||v===null) ? "" : v;
+      v = String(v).replace(/"/g,'""');
+      return /[,"\n]/.test(v) ? `"${v}"` : v;
+    }).join(",");
+  });
+  return [encabezado, ...filas].join("\n");
+}
+
+async function guardarModuloActivo(){
+  const modKey = moduloActivo;
+  if(modKey === "inicio"){ alert("Selecciona un módulo de captura para guardar."); return; }
+  const mod = MODULOS[modKey];
+  if(!mod) return;
+  
+  let stKey = null;
+  if(mod.subtabs){
+    stKey = subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
+  }
+  
+  const csv = datosAcsv(modKey, stKey);
+  const proyecto = document.getElementById("dato-proyecto").value || "sin-proyecto";
+  const blob = new Blob([csv], {type:"text/csv"});
+  const nombreArchivo = (mod.endpoint||modKey) + ".csv";
+
+  const formData = new FormData();
+  formData.append("file", blob, nombreArchivo);
+  formData.append("modulo", mod.endpoint||modKey);
+  formData.append("proyecto", proyecto);
+
+  try{
+    const res = await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
+      method:"POST", body: formData
+    });
+    const data = await res.json();
+    if(data.error){ alert("Error al guardar: "+data.error); return; }
+    alert("✅ Guardado correctamente: "+nombreArchivo);
+  }catch(err){
+    alert("❌ Error de conexión al guardar. Revisa tu conexión o intenta de nuevo.");
+  }
+}
+
+function exportarCSV(){
+  const modKey = moduloActivo;
+  if(modKey === "inicio"){ alert("Selecciona un módulo de captura para exportar."); return; }
+  
+  let stKey = null;
+  const mod = MODULOS[modKey];
+  if(mod && mod.subtabs){
+    stKey = subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
+  }
+  
+  const csv = datosAcsv(modKey, stKey);
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = (MODULOS[modKey].endpoint||modKey)+".csv";
+  a.click();
+}
+
+/* =====================================================================
+   NAVEGACIÓN CON TECLADO EN CELDAS
+   ===================================================================== */
+document.addEventListener("keydown",(e)=>{
+  const active = document.activeElement;
+  if(!active || !active.classList || !active.classList.contains("cell")) return;
+  const row = active.parentElement;
+  const cellIndex = Array.from(row.children).indexOf(active);
+  const editables = Array.from(row.children).filter(td=>td.isContentEditable);
+  if(e.key==="Tab"){
+    e.preventDefault();
+    const idx = editables.indexOf(active);
+    const next = e.shiftKey ? editables[idx-1] : editables[idx+1];
+    if(next) next.focus();
+  }
+  if(e.key==="Enter"){
+    e.preventDefault();
+    const nextRow = row.nextElementSibling;
+    if(nextRow){ const t = nextRow.children[cellIndex]; if(t && t.isContentEditable) t.focus(); }
+    active.blur();
+  }
+  if(e.key==="Escape"){ active.blur(); }
+});
+</script>
+</body>
+</html>
