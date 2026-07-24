@@ -47,22 +47,24 @@
   <div class="container mt-4">
     <div class="row g-4">
 
-      <!-- SUBIR INFORME -->
+      <!-- CAPTURA DE OBRA -->
       <div class="col-md-3">
         <div class="card shadow-lg border-0 rounded-4 h-100">
-          <div class="card-body text-center p-4">
-            <h4 class="text-primary fw-bold mb-4">Subir Informe</h4>
-            <form id="formSubir">
-              <input type="file" name="file" class="form-control mb-4">
-              <button type="button" class="btn btn-success w-100 fw-bold" onclick="subirInforme()">
-                Subir Archivo
-              </button>
-            </form>
+          <div class="card-body text-center p-4 d-flex flex-column justify-content-between">
+            <div>
+              <h4 class="text-primary fw-bold mb-3">Captura de Obra</h4>
+              <p class="text-muted" style="font-size:13px;">
+                Control Presupuestal, Costos, Calidad, Compras, Requisiciones y Estimaciones — captura directa tipo ERP con Fondo de Garantía.
+              </p>
+            </div>
+            <button type="button" class="btn btn-primary w-100 fw-bold" onclick="abrirCaptura()">
+              Abrir Captura de Obra
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- ARCHIVOS -->
+      <!-- ARCHIVOS SUBIDOS -->
       <div class="col-md-3">
         <div class="card shadow-lg border-0 rounded-4 h-100">
           <div class="card-body text-center p-4">
@@ -133,45 +135,29 @@
     </div>
   </div>
 
-  <!-- SCRIPT CORREGIDO -->
+  <!-- SCRIPT -->
   <script>
     async function confirmOpen() {
-
       const project = document.getElementById("projectName").value.trim();
       const view = document.getElementById("viewName").value.trim();
-
       if (!project || !view) {
         alert("Escribe PROYECTO y VISTA");
         return;
       }
-
       try {
-
         const API_URL = "https://obra360-launcher-api.onrender.com/task";
-
         const res = await fetch(API_URL, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            pcId: "PC-001",
-            project: project,
-            view: view
-          })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pcId: "PC-001", project: project, view: view })
         });
-
         const data = await res.json();
-
-        console.log("Launcher API:", data);
-
         if (data.status === "ok") {
           closeModal();
           alert("✔ Enviado correctamente al Launcher");
         } else {
           alert("❌ Error en respuesta del servidor");
         }
-
       } catch (error) {
         console.error(error);
         alert("❌ ERROR DE CONEXIÓN CON LAUNCHER API");
@@ -188,15 +174,8 @@
       document.getElementById("projectModal").style.display = "none";
     }
 
-    async function subirInforme() {
-      const formData = new FormData(document.getElementById("formSubir"));
-
-      await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
-        method: "POST",
-        body: formData
-      });
-
-      alert("Informe subido correctamente");
+    function abrirCaptura() {
+      window.open("captura.html", "_blank");
     }
   </script>
 
