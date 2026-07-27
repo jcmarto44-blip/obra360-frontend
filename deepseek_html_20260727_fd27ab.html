@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración — CAASA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root {
+      --admin-primary: #1b4b8f;
+      --admin-primary-light: #e8edf5;
+      --admin-success: #2e9e5b;
+      --admin-danger: #dc3545;
+      --admin-bg: #f4f6f9;
+    }
+    body {
+      background: var(--admin-bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .admin-header {
+      background: linear-gradient(135deg, var(--admin-primary), #2a6bb0);
+      color: white;
+      padding: 1.2rem 2rem;
+      border-radius: 0 0 1.5rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(27, 75, 143, 0.25);
+    }
+    .admin-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .admin-header small {
+      opacity: 0.8;
+      font-size: 0.9rem;
+      font-weight: 300;
+    }
+    .admin-header .nav-links a {
+      color: rgba(255,255,255,0.85);
+      text-decoration: none;
+      margin: 0 0.75rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .admin-header .nav-links a:hover {
+      color: white;
+      text-decoration: underline;
+    }
+    .btn-salir {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-salir:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+    }
+    .stats-card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #e9edf4;
+      transition: transform 0.2s;
+    }
+    .stats-card:hover {
+      transform: translateY(-3px);
+    }
+    .stats-card .number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--admin-primary);
+    }
+    .stats-card .label {
+      font-size: 0.85rem;
+      color: #6c7a8a;
+      font-weight: 500;
+    }
+    .cliente-card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #e9edf4;
+      overflow: hidden;
+      transition: all 0.25s;
+      height: 100%;
+    }
+    .cliente-card:hover {
+      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+      transform: translateY(-4px);
+    }
+    .cliente-card .card-header-custom {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e9edf4;
+      background: #fafbfc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cliente-card .card-header-custom .cliente-nombre {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: #1a2634;
+    }
+    .badge-estado {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .badge-activo {
+      background: #d4edda;
+      color: #155724;
+    }
+    .badge-inactivo {
+      background: #f8d7da;
+      color: #721c24;
+    }
+    .cliente-card .card-body-custom {
+      padding: 1.25rem;
+    }
+    .cliente-card .card-body-custom .info-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: #3d4a5a;
+      margin-bottom: 0.5rem;
+    }
+    .cliente-card .card-body-custom .info-item i {
+      color: var(--admin-primary);
+      width: 1.2rem;
+      font-size: 1rem;
+    }
+    .badge-proyecto {
+      background: var(--admin-primary-light);
+      color: var(--admin-primary);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: inline-block;
+      margin: 0.2rem 0.2rem;
+    }
+    .badge-usuario {
+      background: #f0f2f5;
+      color: #3d4a5a;
+      padding: 0.2rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 500;
+      display: inline-block;
+      margin: 0.15rem 0.15rem;
+    }
+    .cliente-card .card-footer-custom {
+      padding: 0.75rem 1.25rem;
+      background: #fafbfc;
+      border-top: 1px solid #e9edf4;
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .cliente-card .card-footer-custom .btn-sm-custom {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      background: white;
+      border-radius: 1.5rem;
+      border: 2px dashed #dce2eb;
+    }
+    .empty-state i {
+      font-size: 3.5rem;
+      color: #bcc9d6;
+    }
+    .empty-state h5 {
+      color: #3d4a5a;
+      margin-top: 1rem;
+    }
+    .empty-state p {
+      color: #8a9aa8;
+    }
+    .btn-action {
+      font-weight: 600;
+      padding: 0.5rem 1.2rem;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .btn-action i {
+      margin-right: 0.4rem;
+    }
+    .btn-activar {
+      background: var(--admin-success);
+      color: white;
+      border: none;
+    }
+    .btn-activar:hover {
+      background: #218838;
+      color: white;
+    }
+    .btn-suspender {
+      background: var(--admin-danger);
+      color: white;
+      border: none;
+    }
+    .btn-suspender:hover {
+      background: #c82333;
+      color: white;
+    }
+    @media (max-width: 768px) {
+      .admin-header { padding: 1rem; }
+      .admin-header h1 { font-size: 1.2rem; }
+      .stats-card .number { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="admin-header d-flex flex-wrap justify-content-between align-items-center">
+    <div>
+      <h1><i class="bi bi-gear-fill me-2"></i>Panel de Administración</h1>
+      <small>Gestión de Clientes, Proyectos y Usuarios</small>
+    </div>
+    <div class="nav-links d-flex align-items-center gap-2 mt-2 mt-md-0">
+      <button class="btn-salir" onclick="window.location.href='index.html'">
+        <i class="bi bi-box-arrow-left me-1"></i>Salir
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div class="container-fluid px-4 py-4">
+
+    <!-- ESTADÍSTICAS RÁPIDAS -->
+    <div class="row g-3 mb-4" id="stats-container">
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="number" id="stats-clientes">0</div>
+          <div class="label"><i class="bi bi-building me-1"></i>Total Clientes</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="number" id="stats-activos">0</div>
+          <div class="label"><i class="bi bi-check-circle me-1" style="color:var(--admin-success);"></i>Activos</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="number" id="stats-inactivos">0</div>
+          <div class="label"><i class="bi bi-x-circle me-1" style="color:var(--admin-danger);"></i>Inactivos</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <div class="number" id="stats-proyectos">0</div>
+          <div class="label"><i class="bi bi-folder me-1"></i>Proyectos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTONES DE ACCIÓN -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <button class="btn btn-primary btn-action" onclick="agregarCliente()">
+        <i class="bi bi-person-plus"></i>Agregar Cliente
+      </button>
+      <button class="btn btn-success btn-action" onclick="agregarProyecto()">
+        <i class="bi bi-folder-plus"></i>Agregar Proyecto
+      </button>
+      <button class="btn btn-info btn-action text-white" onclick="agregarUsuario()">
+        <i class="bi bi-person-add"></i>Agregar Usuario Base
+      </button>
+    </div>
+
+    <!-- LISTA DE CLIENTES -->
+    <div id="lista-clientes">
+      <div class="empty-state">
+        <i class="bi bi-building"></i>
+        <h5>No hay clientes registrados</h5>
+        <p>Haz clic en <strong>"Agregar Cliente"</strong> para comenzar a gestionar tus clientes.</p>
+      </div>
+    </div>
+
+    <div class="mt-4 pt-2 text-center text-muted border-top" style="font-size:0.8rem;">
+      <i class="bi bi-database me-1"></i> Los datos se guardan en el <code>localStorage</code> de tu navegador.
+      <span class="mx-2">|</span>
+      <i class="bi bi-info-circle me-1"></i> Esta es una versión de prueba local.
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // ESTRUCTURA DE DATOS
+    // ============================================================
+    const STORAGE_KEY = 'caasa_admin_data_v2';
+
+    function getData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        try { return JSON.parse(raw); } catch(e) {}
+      }
+      // Datos de ejemplo con estado activo
+      return {
+        clientes: [
+          {
+            id: 'cliente_1',
+            nombre: 'Coppel',
+            tipo: 'desarrollador',
+            activo: true,
+            proyectos: ['Torre Alameda', 'Centro Comercial X'],
+            usuarios_base: ['coppel_01', 'coppel_02'],
+            fecha_creacion: '2026-06-15'
+          },
+          {
+            id: 'cliente_2',
+            nombre: 'ALSUPER',
+            tipo: 'desarrollador',
+            activo: true,
+            proyectos: ['Tienda Guadalajara'],
+            usuarios_base: ['alsuper_01'],
+            fecha_creacion: '2026-06-20'
+          },
+          {
+            id: 'cliente_3',
+            nombre: 'CYCOCSA',
+            tipo: 'constructora',
+            activo: false,
+            proyectos: ['Nave Industrial 3'],
+            usuarios_base: ['cycocsa_01'],
+            fecha_creacion: '2026-07-01'
+          }
+        ]
+      };
+    }
+
+    function saveData(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    function generarId() {
+      return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    }
+
+    // ============================================================
+    // RENDERIZAR LISTA Y ESTADÍSTICAS
+    // ============================================================
+    function renderizar() {
+      const data = getData();
+      const clientes = data.clientes || [];
+      const contenedor = document.getElementById('lista-clientes');
+
+      // Estadísticas
+      let totalProyectos = 0;
+      let activos = 0;
+      let inactivos = 0;
+      clientes.forEach(c => {
+        totalProyectos += (c.proyectos || []).length;
+        if (c.activo !== false) activos++;
+        else inactivos++;
+      });
+      document.getElementById('stats-clientes').textContent = clientes.length;
+      document.getElementById('stats-activos').textContent = activos;
+      document.getElementById('stats-inactivos').textContent = inactivos;
+      document.getElementById('stats-proyectos').textContent = totalProyectos;
+
+      if (clientes.length === 0) {
+        contenedor.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-building"></i>
+            <h5>No hay clientes registrados</h5>
+            <p>Haz clic en <strong>"Agregar Cliente"</strong> para comenzar a gestionar tus clientes.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<div class="row g-4">';
+      clientes.forEach(cliente => {
+        const proyectos = (cliente.proyectos || []).length > 0
+          ? (cliente.proyectos || []).map(p => `<span class="badge-proyecto"><i class="bi bi-folder2-open me-1"></i>${p}</span>`).join(' ')
+          : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-folder-x me-1"></i>Sin proyectos</span>';
+
+        const usuarios = (cliente.usuarios_base || []).length > 0
+          ? (cliente.usuarios_base || []).map(u => `<span class="badge-usuario"><i class="bi bi-person-circle me-1"></i>${u}</span>`).join(' ')
+          : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-person-x me-1"></i>Sin usuarios</span>';
+
+        const tipoLabel = cliente.tipo === 'desarrollador' ? 'Desarrollador' : 'Constructora';
+        const tipoBadge = cliente.tipo === 'desarrollador' ? 'bg-info text-white' : 'bg-warning text-dark';
+
+        // Estado Activo/Inactivo
+        const estadoLabel = cliente.activo !== false ? '✅ Activo' : '⛔ Inactivo';
+        const estadoBadge = cliente.activo !== false ? 'badge-activo' : 'badge-inactivo';
+
+        html += `
+          <div class="col-md-6 col-xl-4">
+            <div class="cliente-card">
+              <div class="card-header-custom">
+                <span class="cliente-nombre"><i class="bi bi-building me-2" style="color:var(--admin-primary);"></i>${cliente.nombre}</span>
+                <span class="badge-estado ${estadoBadge}">${estadoLabel}</span>
+              </div>
+              <div class="card-body-custom">
+                <div class="info-item">
+                  <i class="bi bi-tag"></i>
+                  <span><strong>Tipo:</strong> ${tipoLabel}</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-folder"></i>
+                  <span><strong>Proyectos:</strong> ${(cliente.proyectos || []).length}</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-people"></i>
+                  <span><strong>Usuarios Base:</strong> ${(cliente.usuarios_base || []).length}</span>
+                </div>
+                <div class="info-item">
+                  <i class="bi bi-calendar3"></i>
+                  <span><strong>Desde:</strong> ${cliente.fecha_creacion || '—'}</span>
+                </div>
+                <div class="mt-2">
+                  <strong style="font-size:0.8rem;color:#6c7a8a;">Proyectos:</strong><br>
+                  ${proyectos}
+                </div>
+                <div class="mt-2">
+                  <strong style="font-size:0.8rem;color:#6c7a8a;">Usuarios Base:</strong><br>
+                  ${usuarios}
+                </div>
+              </div>
+              <div class="card-footer-custom">
+                <button class="btn btn-outline-primary btn-sm-custom" onclick="verDetalle('${cliente.id}')">
+                  <i class="bi bi-eye"></i> Ver
+                </button>
+                <button class="btn btn-outline-secondary btn-sm-custom" onclick="editarCliente('${cliente.id}')">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
+                ${cliente.activo !== false 
+                  ? `<button class="btn btn-suspender btn-sm-custom" onclick="cambiarEstado('${cliente.id}', false)">
+                      <i class="bi bi-pause-circle"></i> Suspender
+                    </button>`
+                  : `<button class="btn btn-activar btn-sm-custom" onclick="cambiarEstado('${cliente.id}', true)">
+                      <i class="bi bi-play-circle"></i> Activar
+                    </button>`
+                }
+                <button class="btn btn-outline-danger btn-sm-custom" onclick="eliminarCliente('${cliente.id}')">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+      contenedor.innerHTML = html;
+    }
+
+    // ============================================================
+    // ACCIONES
+    // ============================================================
+    function agregarCliente() {
+      const nombre = prompt('Nombre del Cliente (ej. Coppel, ALSUPER, Prologis):');
+      if (!nombre) return;
+      const tipo = confirm('¿Es Desarrollador? (Aceptar = Desarrollador, Cancelar = Constructora)') ? 'desarrollador' : 'constructora';
+      const data = getData();
+      data.clientes.push({
+        id: generarId(),
+        nombre: nombre.trim(),
+        tipo: tipo,
+        activo: true, // Por defecto, activo al crearlo
+        proyectos: [],
+        usuarios_base: [],
+        fecha_creacion: new Date().toISOString().slice(0,10)
+      });
+      saveData(data);
+      renderizar();
+    }
+
+    function agregarProyecto() {
+      const data = getData();
+      if (data.clientes.length === 0) {
+        alert('⚠️ Primero debes agregar un cliente.');
+        return;
+      }
+      const lista = data.clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
+      const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
+      if (!clienteId) return;
+      const cliente = data.clientes.find(c => c.id === clienteId.trim());
+      if (!cliente) {
+        alert('❌ Cliente no encontrado.');
+        return;
+      }
+      const proyecto = prompt('Nombre del Proyecto:');
+      if (!proyecto) return;
+      cliente.proyectos.push(proyecto.trim());
+      saveData(data);
+      renderizar();
+    }
+
+    function agregarUsuario() {
+      const data = getData();
+      if (data.clientes.length === 0) {
+        alert('⚠️ Primero debes agregar un cliente.');
+        return;
+      }
+      const lista = data.clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
+      const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
+      if (!clienteId) return;
+      const cliente = data.clientes.find(c => c.id === clienteId.trim());
+      if (!cliente) {
+        alert('❌ Cliente no encontrado.');
+        return;
+      }
+      const usuario = prompt('Nombre de usuario base (ej. coppel_01):');
+      if (!usuario) return;
+      const password = prompt('Contraseña:');
+      if (!password) return;
+      cliente.usuarios_base.push(usuario.trim());
+      // Guardar contraseña
+      const passDB = JSON.parse(localStorage.getItem('caasa_usuarios_pass_v2') || '{}');
+      passDB[usuario.trim()] = password.trim();
+      localStorage.setItem('caasa_usuarios_pass_v2', JSON.stringify(passDB));
+      saveData(data);
+      renderizar();
+      alert(`✅ Usuario base ${usuario} creado con contraseña: ${password}`);
+    }
+
+    // ============================================================
+    // CAMBIAR ESTADO ACTIVO/INACTIVO
+    // ============================================================
+    function cambiarEstado(id, activo) {
+      const data = getData();
+      const cliente = data.clientes.find(c => c.id === id);
+      if (!cliente) return;
+      cliente.activo = activo;
+      saveData(data);
+      renderizar();
+      const estado = activo ? 'ACTIVADO' : 'SUSPENDIDO';
+      alert(`✅ Cliente ${cliente.nombre} ha sido ${estado}.`);
+    }
+
+    function verDetalle(id) {
+      const data = getData();
+      const cliente = data.clientes.find(c => c.id === id);
+      if (!cliente) return;
+      const estado = cliente.activo !== false ? '✅ Activo' : '⛔ Inactivo';
+      alert(`📋 DETALLE DE CLIENTE\n\nNombre: ${cliente.nombre}\nTipo: ${cliente.tipo === 'desarrollador' ? 'Desarrollador' : 'Constructora'}\nEstado: ${estado}\nProyectos: ${(cliente.proyectos || []).join(', ') || 'Ninguno'}\nUsuarios Base: ${(cliente.usuarios_base || []).join(', ') || 'Ninguno'}\nCreación: ${cliente.fecha_creacion || '—'}`);
+    }
+
+    function editarCliente(id) {
+      const data = getData();
+      const cliente = data.clientes.find(c => c.id === id);
+      if (!cliente) return;
+      const nuevoNombre = prompt('Editar nombre del cliente:', cliente.nombre);
+      if (nuevoNombre && nuevoNombre.trim()) {
+        cliente.nombre = nuevoNombre.trim();
+        saveData(data);
+        renderizar();
+      }
+    }
+
+    function eliminarCliente(id) {
+      if (!confirm('⚠️ ¿Eliminar este cliente y TODOS sus proyectos y usuarios?')) return;
+      const data = getData();
+      data.clientes = data.clientes.filter(c => c.id !== id);
+      saveData(data);
+      renderizar();
+    }
+
+    // ============================================================
+    // INICIALIZAR
+    // ============================================================
+    renderizar();
+  </script>
+
+</body>
+</html>
