@@ -222,6 +222,22 @@
       .admin-header h1 { font-size: 1.2rem; }
       .stats-card .number { font-size: 1.5rem; }
     }
+    .loading {
+      text-align: center;
+      padding: 2rem;
+    }
+    .loading .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #e9edf4;
+      border-top-color: var(--admin-primary);
+      border-radius: 50%;
+      animation: girar 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes girar {
+      to { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -233,7 +249,10 @@
       <small>Gestión de Clientes, Proyectos y Usuarios</small>
     </div>
     <div class="nav-links d-flex align-items-center gap-2 mt-2 mt-md-0">
-      <button class="btn-salir" onclick="window.location.href='index.html'">
+      <span id="adminUser" class="text-white me-2" style="opacity:0.8;font-size:0.9rem;">
+        <i class="bi bi-person-circle me-1"></i>Admin
+      </span>
+      <button class="btn-salir" onclick="cerrarSesion()">
         <i class="bi bi-box-arrow-left me-1"></i>Salir
       </button>
     </div>
@@ -285,298 +304,489 @@
 
     <!-- LISTA DE CLIENTES -->
     <div id="lista-clientes">
-      <div class="empty-state">
-        <i class="bi bi-building"></i>
-        <h5>No hay clientes registrados</h5>
-        <p>Haz clic en <strong>"Agregar Cliente"</strong> para comenzar a gestionar tus clientes.</p>
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Cargando clientes...</p>
       </div>
     </div>
 
     <div class="mt-4 pt-2 text-center text-muted border-top" style="font-size:0.8rem;">
-      <i class="bi bi-database me-1"></i> Los datos se guardan en el <code>localStorage</code> de tu navegador.
-      <span class="mx-2">|</span>
-      <i class="bi bi-info-circle me-1"></i> Esta es una versión de prueba local.
+      <i class="bi bi-database me-1"></i> Los datos se guardan en el servidor.
     </div>
   </div>
 
   <script>
     // ============================================================
-    // ESTRUCTURA DE DATOS
+    // CONFIGURACIÓN
     // ============================================================
-    const STORAGE_KEY = 'caasa_admin_data_v2';
+    const API_URL = window.location.origin;
 
-    function getData() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        try { return JSON.parse(raw); } catch(e) {}
+    // ============================================================
+    // VERIFICAR SESIÓN
+    // ============================================================
+    function verificarSesion() {
+      const token = localStorage.getItem('token');
+      const rol = localStorage.getItem('rol');
+      
+      if (!token || rol !== 'admin') {
+        window.location.href = 'index.html';
       }
-      // Datos de ejemplo con estado activo
-      return {
-        clientes: [
-          {
-            id: 'cliente_1',
-            nombre: 'Coppel',
-            tipo: 'desarrollador',
-            activo: true,
-            proyectos: ['Torre Alameda', 'Centro Comercial X'],
-            usuarios_base: ['coppel_01', 'coppel_02'],
-            fecha_creacion: '2026-06-15'
-          },
-          {
-            id: 'cliente_2',
-            nombre: 'ALSUPER',
-            tipo: 'desarrollador',
-            activo: true,
-            proyectos: ['Tienda Guadalajara'],
-            usuarios_base: ['alsuper_01'],
-            fecha_creacion: '2026-06-20'
-          },
-          {
-            id: 'cliente_3',
-            nombre: 'CYCOCSA',
-            tipo: 'constructora',
-            activo: false,
-            proyectos: ['Nave Industrial 3'],
-            usuarios_base: ['cycocsa_01'],
-            fecha_creacion: '2026-07-01'
-          }
-        ]
-      };
+      
+      document.getElementById('adminUser').innerHTML = '<i class="bi bi-person-circle me-1"></i>' + localStorage.getItem('usuario') || 'Admin';
     }
 
-    function saveData(data) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-
-    function generarId() {
-      return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+    function cerrarSesion() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('rol');
+      localStorage.removeItem('cliente_id');
+      localStorage.removeItem('cliente_nombre');
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
     }
 
     // ============================================================
-    // RENDERIZAR LISTA Y ESTADÍSTICAS
+    // OBTENER TOKEN
     // ============================================================
-    function renderizar() {
-      const data = getData();
-      const clientes = data.clientes || [];
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    // ============================================================
+    // RENDERIZAR LISTA Y ESTADÍSTICAS (DESDE API)
+    // ============================================================
+    async function renderizar() {
       const contenedor = document.getElementById('lista-clientes');
+      const token = getToken();
 
-      // Estadísticas
-      let totalProyectos = 0;
-      let activos = 0;
-      let inactivos = 0;
-      clientes.forEach(c => {
-        totalProyectos += (c.proyectos || []).length;
-        if (c.activo !== false) activos++;
-        else inactivos++;
-      });
-      document.getElementById('stats-clientes').textContent = clientes.length;
-      document.getElementById('stats-activos').textContent = activos;
-      document.getElementById('stats-inactivos').textContent = inactivos;
-      document.getElementById('stats-proyectos').textContent = totalProyectos;
-
-      if (clientes.length === 0) {
-        contenedor.innerHTML = `
-          <div class="empty-state">
-            <i class="bi bi-building"></i>
-            <h5>No hay clientes registrados</h5>
-            <p>Haz clic en <strong>"Agregar Cliente"</strong> para comenzar a gestionar tus clientes.</p>
-          </div>
-        `;
+      if (!token) {
+        window.location.href = 'index.html';
         return;
       }
 
-      let html = '<div class="row g-4">';
-      clientes.forEach(cliente => {
-        const proyectos = (cliente.proyectos || []).length > 0
-          ? (cliente.proyectos || []).map(p => `<span class="badge-proyecto"><i class="bi bi-folder2-open me-1"></i>${p}</span>`).join(' ')
-          : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-folder-x me-1"></i>Sin proyectos</span>';
+      try {
+        const response = await fetch(`${API_URL}/admin/clientes?token=${token}`);
+        
+        if (response.status === 403) {
+          alert('Sesión expirada. Inicia sesión nuevamente.');
+          cerrarSesion();
+          return;
+        }
 
-        const usuarios = (cliente.usuarios_base || []).length > 0
-          ? (cliente.usuarios_base || []).map(u => `<span class="badge-usuario"><i class="bi bi-person-circle me-1"></i>${u}</span>`).join(' ')
-          : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-person-x me-1"></i>Sin usuarios</span>';
+        const clientes = await response.json();
 
-        const tipoLabel = cliente.tipo === 'desarrollador' ? 'Desarrollador' : 'Constructora';
-        const tipoBadge = cliente.tipo === 'desarrollador' ? 'bg-info text-white' : 'bg-warning text-dark';
+        // Estadísticas
+        let totalProyectos = 0;
+        let activos = 0;
+        let inactivos = 0;
+        clientes.forEach(c => {
+          // Los proyectos los obtenemos por separado, pero usamos los que vienen
+          if (c.activo !== false) activos++;
+          else inactivos++;
+        });
 
-        // Estado Activo/Inactivo
-        const estadoLabel = cliente.activo !== false ? '✅ Activo' : '⛔ Inactivo';
-        const estadoBadge = cliente.activo !== false ? 'badge-activo' : 'badge-inactivo';
+        document.getElementById('stats-clientes').textContent = clientes.length;
+        document.getElementById('stats-activos').textContent = activos;
+        document.getElementById('stats-inactivos').textContent = inactivos;
+        
+        // Obtener proyectos de todos los clientes
+        let totalProyectosReal = 0;
+        for (const cliente of clientes) {
+          try {
+            const projResponse = await fetch(`${API_URL}/clientes/${cliente.id}/proyectos?token=${token}`);
+            if (projResponse.ok) {
+              const proyectos = await projResponse.json();
+              totalProyectosReal += proyectos.length;
+              cliente._proyectos = proyectos;
+            }
+          } catch(e) {
+            cliente._proyectos = [];
+          }
+        }
+        document.getElementById('stats-proyectos').textContent = totalProyectosReal;
 
-        html += `
-          <div class="col-md-6 col-xl-4">
-            <div class="cliente-card">
-              <div class="card-header-custom">
-                <span class="cliente-nombre"><i class="bi bi-building me-2" style="color:var(--admin-primary);"></i>${cliente.nombre}</span>
-                <span class="badge-estado ${estadoBadge}">${estadoLabel}</span>
-              </div>
-              <div class="card-body-custom">
-                <div class="info-item">
-                  <i class="bi bi-tag"></i>
-                  <span><strong>Tipo:</strong> ${tipoLabel}</span>
+        if (clientes.length === 0) {
+          contenedor.innerHTML = `
+            <div class="empty-state">
+              <i class="bi bi-building"></i>
+              <h5>No hay clientes registrados</h5>
+              <p>Haz clic en <strong>"Agregar Cliente"</strong> para comenzar a gestionar tus clientes.</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<div class="row g-4">';
+        for (const cliente of clientes) {
+          const proyectos = cliente._proyectos || [];
+          const proyectosHtml = proyectos.length > 0
+            ? proyectos.map(p => `<span class="badge-proyecto"><i class="bi bi-folder2-open me-1"></i>${p.nombre_proyecto}</span>`).join(' ')
+            : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-folder-x me-1"></i>Sin proyectos</span>';
+
+          const estadoLabel = cliente.activo !== false ? '✅ Activo' : '⛔ Inactivo';
+          const estadoBadge = cliente.activo !== false ? 'badge-activo' : 'badge-inactivo';
+
+          html += `
+            <div class="col-md-6 col-xl-4">
+              <div class="cliente-card">
+                <div class="card-header-custom">
+                  <span class="cliente-nombre"><i class="bi bi-building me-2" style="color:var(--admin-primary);"></i>${cliente.nombre}</span>
+                  <span class="badge-estado ${estadoBadge}">${estadoLabel}</span>
                 </div>
-                <div class="info-item">
-                  <i class="bi bi-folder"></i>
-                  <span><strong>Proyectos:</strong> ${(cliente.proyectos || []).length}</span>
+                <div class="card-body-custom">
+                  <div class="info-item">
+                    <i class="bi bi-tag"></i>
+                    <span><strong>Modelo:</strong> ${cliente.modelo_gestion || 'No especificado'}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="bi bi-person"></i>
+                    <span><strong>Usuario:</strong> ${cliente.usuario}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="bi bi-folder"></i>
+                    <span><strong>Proyectos:</strong> ${proyectos.length}</span>
+                  </div>
+                  <div class="info-item">
+                    <i class="bi bi-calendar3"></i>
+                    <span><strong>Desde:</strong> ${cliente.fecha_creacion || '—'}</span>
+                  </div>
+                  <div class="mt-2">
+                    <strong style="font-size:0.8rem;color:#6c7a8a;">Proyectos:</strong><br>
+                    ${proyectosHtml}
+                  </div>
                 </div>
-                <div class="info-item">
-                  <i class="bi bi-people"></i>
-                  <span><strong>Usuarios Base:</strong> ${(cliente.usuarios_base || []).length}</span>
+                <div class="card-footer-custom">
+                  <button class="btn btn-outline-primary btn-sm-custom" onclick="verDetalle(${cliente.id})">
+                    <i class="bi bi-eye"></i> Ver
+                  </button>
+                  <button class="btn btn-outline-secondary btn-sm-custom" onclick="editarCliente(${cliente.id})">
+                    <i class="bi bi-pencil"></i> Editar
+                  </button>
+                  ${cliente.activo !== false 
+                    ? `<button class="btn btn-suspender btn-sm-custom" onclick="cambiarEstado(${cliente.id}, false)">
+                        <i class="bi bi-pause-circle"></i> Suspender
+                      </button>`
+                    : `<button class="btn btn-activar btn-sm-custom" onclick="cambiarEstado(${cliente.id}, true)">
+                        <i class="bi bi-play-circle"></i> Activar
+                      </button>`
+                  }
+                  <button class="btn btn-outline-danger btn-sm-custom" onclick="eliminarCliente(${cliente.id})">
+                    <i class="bi bi-trash3"></i>
+                  </button>
                 </div>
-                <div class="info-item">
-                  <i class="bi bi-calendar3"></i>
-                  <span><strong>Desde:</strong> ${cliente.fecha_creacion || '—'}</span>
-                </div>
-                <div class="mt-2">
-                  <strong style="font-size:0.8rem;color:#6c7a8a;">Proyectos:</strong><br>
-                  ${proyectos}
-                </div>
-                <div class="mt-2">
-                  <strong style="font-size:0.8rem;color:#6c7a8a;">Usuarios Base:</strong><br>
-                  ${usuarios}
-                </div>
-              </div>
-              <div class="card-footer-custom">
-                <button class="btn btn-outline-primary btn-sm-custom" onclick="verDetalle('${cliente.id}')">
-                  <i class="bi bi-eye"></i> Ver
-                </button>
-                <button class="btn btn-outline-secondary btn-sm-custom" onclick="editarCliente('${cliente.id}')">
-                  <i class="bi bi-pencil"></i> Editar
-                </button>
-                ${cliente.activo !== false 
-                  ? `<button class="btn btn-suspender btn-sm-custom" onclick="cambiarEstado('${cliente.id}', false)">
-                      <i class="bi bi-pause-circle"></i> Suspender
-                    </button>`
-                  : `<button class="btn btn-activar btn-sm-custom" onclick="cambiarEstado('${cliente.id}', true)">
-                      <i class="bi bi-play-circle"></i> Activar
-                    </button>`
-                }
-                <button class="btn btn-outline-danger btn-sm-custom" onclick="eliminarCliente('${cliente.id}')">
-                  <i class="bi bi-trash3"></i>
-                </button>
               </div>
             </div>
+          `;
+        }
+        html += '</div>';
+        contenedor.innerHTML = html;
+
+      } catch (error) {
+        console.error('Error al cargar clientes:', error);
+        contenedor.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar clientes</h5>
+            <p>${error.message}</p>
           </div>
         `;
-      });
-      html += '</div>';
-      contenedor.innerHTML = html;
+      }
     }
 
     // ============================================================
-    // ACCIONES
+    // ACCIONES CON API REAL
     // ============================================================
-    function agregarCliente() {
+
+    // Agregar Cliente
+    async function agregarCliente() {
       const nombre = prompt('Nombre del Cliente (ej. Coppel, ALSUPER, Prologis):');
       if (!nombre) return;
-      const tipo = confirm('¿Es Desarrollador? (Aceptar = Desarrollador, Cancelar = Constructora)') ? 'desarrollador' : 'constructora';
-      const data = getData();
-      data.clientes.push({
-        id: generarId(),
-        nombre: nombre.trim(),
-        tipo: tipo,
-        activo: true, // Por defecto, activo al crearlo
-        proyectos: [],
-        usuarios_base: [],
-        fecha_creacion: new Date().toISOString().slice(0,10)
-      });
-      saveData(data);
-      renderizar();
-    }
-
-    function agregarProyecto() {
-      const data = getData();
-      if (data.clientes.length === 0) {
-        alert('⚠️ Primero debes agregar un cliente.');
-        return;
-      }
-      const lista = data.clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
-      const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
-      if (!clienteId) return;
-      const cliente = data.clientes.find(c => c.id === clienteId.trim());
-      if (!cliente) {
-        alert('❌ Cliente no encontrado.');
-        return;
-      }
-      const proyecto = prompt('Nombre del Proyecto:');
-      if (!proyecto) return;
-      cliente.proyectos.push(proyecto.trim());
-      saveData(data);
-      renderizar();
-    }
-
-    function agregarUsuario() {
-      const data = getData();
-      if (data.clientes.length === 0) {
-        alert('⚠️ Primero debes agregar un cliente.');
-        return;
-      }
-      const lista = data.clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
-      const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
-      if (!clienteId) return;
-      const cliente = data.clientes.find(c => c.id === clienteId.trim());
-      if (!cliente) {
-        alert('❌ Cliente no encontrado.');
-        return;
-      }
-      const usuario = prompt('Nombre de usuario base (ej. coppel_01):');
+      
+      const modelo_gestion = prompt('Modelo de Gestión (ej. desarrollador, constructora):');
+      if (!modelo_gestion) return;
+      
+      const usuario = prompt('Usuario para el cliente (ej. coppel_01):');
       if (!usuario) return;
-      const password = prompt('Contraseña:');
+      
+      const password = prompt('Contraseña para el cliente:');
       if (!password) return;
-      cliente.usuarios_base.push(usuario.trim());
-      // Guardar contraseña
-      const passDB = JSON.parse(localStorage.getItem('caasa_usuarios_pass_v2') || '{}');
-      passDB[usuario.trim()] = password.trim();
-      localStorage.setItem('caasa_usuarios_pass_v2', JSON.stringify(passDB));
-      saveData(data);
-      renderizar();
-      alert(`✅ Usuario base ${usuario} creado con contraseña: ${password}`);
-    }
 
-    // ============================================================
-    // CAMBIAR ESTADO ACTIVO/INACTIVO
-    // ============================================================
-    function cambiarEstado(id, activo) {
-      const data = getData();
-      const cliente = data.clientes.find(c => c.id === id);
-      if (!cliente) return;
-      cliente.activo = activo;
-      saveData(data);
-      renderizar();
-      const estado = activo ? 'ACTIVADO' : 'SUSPENDIDO';
-      alert(`✅ Cliente ${cliente.nombre} ha sido ${estado}.`);
-    }
+      const token = getToken();
+      if (!token) {
+        alert('Sesión expirada.');
+        cerrarSesion();
+        return;
+      }
 
-    function verDetalle(id) {
-      const data = getData();
-      const cliente = data.clientes.find(c => c.id === id);
-      if (!cliente) return;
-      const estado = cliente.activo !== false ? '✅ Activo' : '⛔ Inactivo';
-      alert(`📋 DETALLE DE CLIENTE\n\nNombre: ${cliente.nombre}\nTipo: ${cliente.tipo === 'desarrollador' ? 'Desarrollador' : 'Constructora'}\nEstado: ${estado}\nProyectos: ${(cliente.proyectos || []).join(', ') || 'Ninguno'}\nUsuarios Base: ${(cliente.usuarios_base || []).join(', ') || 'Ninguno'}\nCreación: ${cliente.fecha_creacion || '—'}`);
-    }
+      try {
+        const response = await fetch(`${API_URL}/admin/clientes?token=${token}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre, modelo_gestion, usuario, password })
+        });
 
-    function editarCliente(id) {
-      const data = getData();
-      const cliente = data.clientes.find(c => c.id === id);
-      if (!cliente) return;
-      const nuevoNombre = prompt('Editar nombre del cliente:', cliente.nombre);
-      if (nuevoNombre && nuevoNombre.trim()) {
-        cliente.nombre = nuevoNombre.trim();
-        saveData(data);
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert('❌ Error: ' + (data.detail || data.mensaje || 'Error desconocido'));
+          return;
+        }
+
+        alert('✅ Cliente creado correctamente.');
         renderizar();
+
+      } catch (error) {
+        alert('❌ Error de conexión: ' + error.message);
       }
     }
 
-    function eliminarCliente(id) {
+    // Agregar Proyecto
+    async function agregarProyecto() {
+      const token = getToken();
+      if (!token) {
+        alert('Sesión expirada.');
+        cerrarSesion();
+        return;
+      }
+
+      try {
+        // Obtener lista de clientes
+        const response = await fetch(`${API_URL}/admin/clientes?token=${token}`);
+        const clientes = await response.json();
+
+        if (clientes.length === 0) {
+          alert('⚠️ Primero debes agregar un cliente.');
+          return;
+        }
+
+        const lista = clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
+        const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
+        if (!clienteId) return;
+
+        const cliente = clientes.find(c => c.id === parseInt(clienteId));
+        if (!cliente) {
+          alert('❌ Cliente no encontrado.');
+          return;
+        }
+
+        const nombre_proyecto = prompt('Nombre del Proyecto:');
+        if (!nombre_proyecto) return;
+
+        const response2 = await fetch(`${API_URL}/admin/clientes/${cliente.id}/proyectos?token=${token}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nombre_proyecto })
+        });
+
+        const data = await response2.json();
+
+        if (!response2.ok) {
+          alert('❌ Error: ' + (data.detail || data.mensaje || 'Error desconocido'));
+          return;
+        }
+
+        alert('✅ Proyecto creado correctamente.');
+        renderizar();
+
+      } catch (error) {
+        alert('❌ Error de conexión: ' + error.message);
+      }
+    }
+
+    // Agregar Usuario Base (equipo)
+    async function agregarUsuario() {
+      const token = getToken();
+      if (!token) {
+        alert('Sesión expirada.');
+        cerrarSesion();
+        return;
+      }
+
+      try {
+        // Obtener lista de clientes
+        const response = await fetch(`${API_URL}/admin/clientes?token=${token}`);
+        const clientes = await response.json();
+
+        if (clientes.length === 0) {
+          alert('⚠️ Primero debes agregar un cliente.');
+          return;
+        }
+
+        const lista = clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
+        const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
+        if (!clienteId) return;
+
+        const cliente = clientes.find(c => c.id === parseInt(clienteId));
+        if (!cliente) {
+          alert('❌ Cliente no encontrado.');
+          return;
+        }
+
+        // Obtener proyectos del cliente
+        const projResponse = await fetch(`${API_URL}/clientes/${cliente.id}/proyectos?token=${token}`);
+        const proyectos = await projResponse.json();
+
+        if (proyectos.length === 0) {
+          alert('⚠️ El cliente no tiene proyectos. Primero crea un proyecto.');
+          return;
+        }
+
+        const projLista = proyectos.map(p => `${p.nombre_proyecto} (ID: ${p.id})`).join('\n');
+        const proyectoId = prompt(`Selecciona el proyecto escribiendo su ID:\n${projLista}`);
+        if (!proyectoId) return;
+
+        const proyecto = proyectos.find(p => p.id === parseInt(proyectoId));
+        if (!proyecto) {
+          alert('❌ Proyecto no encontrado.');
+          return;
+        }
+
+        const rol = prompt('Rol (Gerente de Construcción, Superintendente, Residente Obra Civil, Residente Instalaciones, Residente Administración):');
+        if (!rol) return;
+
+        const usuario = prompt('Nombre de usuario:');
+        if (!usuario) return;
+
+        const password = prompt('Contraseña:');
+        if (!password) return;
+
+        const response2 = await fetch(`${API_URL}/clientes/${cliente.id}/equipo?token=${token}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proyecto_id: proyecto.id, rol, usuario, password })
+        });
+
+        const data = await response2.json();
+
+        if (!response2.ok) {
+          alert('❌ Error: ' + (data.detail || data.mensaje || 'Error desconocido'));
+          return;
+        }
+
+        alert(`✅ Usuario ${usuario} creado correctamente.`);
+        renderizar();
+
+      } catch (error) {
+        alert('❌ Error de conexión: ' + error.message);
+      }
+    }
+
+    // Cambiar estado
+    async function cambiarEstado(clienteId, activo) {
+      const token = getToken();
+      if (!token) {
+        alert('Sesión expirada.');
+        cerrarSesion();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/admin/clientes/${clienteId}/estado?token=${token}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ activo })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert('❌ Error: ' + (data.detail || data.mensaje || 'Error desconocido'));
+          return;
+        }
+
+        const estado = activo ? 'ACTIVADO' : 'SUSPENDIDO';
+        alert(`✅ Cliente ${estado} correctamente.`);
+        renderizar();
+
+      } catch (error) {
+        alert('❌ Error de conexión: ' + error.message);
+      }
+    }
+
+    // Ver detalle
+    async function verDetalle(clienteId) {
+      const token = getToken();
+      if (!token) {
+        alert('Sesión expirada.');
+        cerrarSesion();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/admin/clientes?token=${token}`);
+        const clientes = await response.json();
+        const cliente = clientes.find(c => c.id === clienteId);
+        
+        if (!cliente) {
+          alert('Cliente no encontrado.');
+          return;
+        }
+
+        const projResponse = await fetch(`${API_URL}/clientes/${cliente.id}/proyectos?token=${token}`);
+        const proyectos = await projResponse.json();
+
+        const projNombres = proyectos.map(p => p.nombre_proyecto).join(', ') || 'Ninguno';
+
+        alert(`📋 DETALLE DE CLIENTE\n\nNombre: ${cliente.nombre}\nModelo: ${cliente.modelo_gestion || 'No especificado'}\nUsuario: ${cliente.usuario}\nEstado: ${cliente.activo ? 'Activo' : 'Inactivo'}\nProyectos: ${projNombres}\nCreación: ${cliente.fecha_creacion || '—'}`);
+
+      } catch (error) {
+        alert('❌ Error: ' + error.message);
+      }
+    }
+
+    // Editar cliente
+    async function editarCliente(clienteId) {
+      const token = getToken();
+      if (!token) {
+        alert('Sesión expirada.');
+        cerrarSesion();
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/admin/clientes?token=${token}`);
+        const clientes = await response.json();
+        const cliente = clientes.find(c => c.id === clienteId);
+        
+        if (!cliente) {
+          alert('Cliente no encontrado.');
+          return;
+        }
+
+        // Solo podemos editar el nombre por ahora (el backend no tiene endpoint de edición)
+        // Usamos el mismo endpoint de creación pero con PUT? No existe.
+        // Por ahora mostramos mensaje
+        alert('📝 Para editar el nombre, contacta al administrador del sistema.\n\nNombre actual: ' + cliente.nombre);
+
+      } catch (error) {
+        alert('❌ Error: ' + error.message);
+      }
+    }
+
+    // Eliminar cliente
+    async function eliminarCliente(clienteId) {
       if (!confirm('⚠️ ¿Eliminar este cliente y TODOS sus proyectos y usuarios?')) return;
-      const data = getData();
-      data.clientes = data.clientes.filter(c => c.id !== id);
-      saveData(data);
-      renderizar();
+
+      const token = getToken();
+      if (!token) {
+        alert('Sesión expirada.');
+        cerrarSesion();
+        return;
+      }
+
+      try {
+        // Nota: El backend no tiene endpoint DELETE para clientes.
+        // Se podría desactivar en lugar de eliminar.
+        alert('⚠️ Para eliminar un cliente, primero debes suspenderlo.\n\nUsa el botón "Suspender" para desactivar la cuenta.');
+
+      } catch (error) {
+        alert('❌ Error: ' + error.message);
+      }
     }
 
     // ============================================================
     // INICIALIZAR
     // ============================================================
+    verificarSesion();
     renderizar();
   </script>
 
