@@ -102,12 +102,26 @@
       </div>
     </div>
 
-    <!-- LOGIN -->
+    <!-- LOGIN REAL (CAMBIADO) -->
     <div class="container mt-4">
       <div class="card shadow border-0 rounded-4">
         <div class="card-body p-4 text-center">
           <h3 class="text-primary fw-bold mb-3" style="font-size: 1.5rem;">Acceso de Usuarios</h3>
-          <button class="btn btn-primary px-4 py-2" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</button>
+          
+          <div class="mb-3 text-start">
+            <label class="form-label fw-bold">Usuario</label>
+            <input type="text" id="loginUsuario" class="form-control" placeholder="Ej: admin, coppel_01">
+          </div>
+          <div class="mb-3 text-start">
+            <label class="form-label fw-bold">Contraseña</label>
+            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••">
+          </div>
+          
+          <button class="btn btn-primary px-5 py-2 fw-bold" onclick="loginReal()">
+            Iniciar Sesión
+          </button>
+          
+          <div id="loginMensaje" class="mt-3 text-danger fw-bold" style="display:none;"></div>
         </div>
       </div>
     </div>
@@ -182,29 +196,6 @@
     </div>
   </div>
 
-  <!-- MODAL LOGIN -->
-  <div class="modal fade" id="loginModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">Inicio de Sesión</h5>
-          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Usuario</label>
-            <input type="text" id="usuario" class="form-control">
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Contraseña</label>
-            <input type="password" id="password" class="form-control">
-          </div>
-          <button class="btn btn-success w-100" onclick="login()">Ingresar</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- FOOTER (siempre visible, sin importar la sección) -->
   <footer class="bg-dark text-white text-center p-4 mt-5 shadow-lg">
     <p style="font-size: 1.1rem;">
@@ -258,6 +249,7 @@
       document.getElementById('vistaPrincipal').style.display = 'none';
       ocultarSeccionesNuevas();
       document.getElementById('vistaAcceso').style.display = 'block';
+      document.getElementById('loginMensaje').style.display = 'none';
     }
 
     // Regresa de la vista de carrusel/login a la imagen de portada
@@ -309,21 +301,79 @@
       });
     }
 
-    // LOGIN de la plataforma
-    function login() {
-      const usuario = document.getElementById("usuario").value;
-      const password = document.getElementById("password").value;
+    // ============================================================
+    // LOGIN REAL CON BACKEND (CAMBIADO)
+    // ============================================================
 
-      if (usuario === "admin" && password === "1234") {
-        alert("Acceso correcto");
-        window.location.href = "cliente.html";
-      } else {
-        alert("Usuario o contraseña incorrectos");
+    const API_URL = window.location.origin;
+
+    async function loginReal() {
+      const usuario = document.getElementById('loginUsuario').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const mensajeEl = document.getElementById('loginMensaje');
+
+      if (!usuario || !password) {
+        mensajeEl.textContent = '⚠️ Completa usuario y contraseña';
+        mensajeEl.style.display = 'block';
+        return;
+      }
+
+      mensajeEl.style.display = 'none';
+
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, password })
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          mensajeEl.textContent = '❌ ' + data.mensaje;
+          mensajeEl.style.display = 'block';
+          return;
+        }
+
+        // Guardar token y datos del usuario
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('rol', data.rol);
+        localStorage.setItem('cliente_id', data.cliente_id);
+        localStorage.setItem('cliente_nombre', data.nombre);
+        localStorage.setItem('usuario', usuario);
+
+        // Redirigir según rol
+        if (data.rol === 'admin') {
+          window.location.href = 'Portal Administrador.html';
+        } else {
+          window.location.href = 'Portal cliente.html';
+        }
+
+      } catch (error) {
+        mensajeEl.textContent = '❌ Error de conexión con el servidor';
+        mensajeEl.style.display = 'block';
+        console.error('Error en login:', error);
       }
     }
+
+    // ============================================================
+    // VERIFICAR SESIÓN AL CARGAR (NUEVO)
+    // ============================================================
+
+    (function verificarSesion() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const rol = localStorage.getItem('rol');
+        if (rol === 'admin') {
+          window.location.href = 'Portal Administrador.html';
+        } else if (rol === 'cliente') {
+          window.location.href = 'Portal cliente.html';
+        }
+      }
+    })();
   </script>
 
-  <!-- BOOTSTRAP JS (necesario para el modal de login y el carrusel) -->
+  <!-- BOOTSTRAP JS (necesario para el carrusel) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
