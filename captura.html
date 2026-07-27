@@ -281,13 +281,13 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
       <div class="menu-item" data-tab="estimaciones">Estimaciones</div>
     </div>
 
-    <div class="area bloqueada">Finanzas 🔒</div>
-    <div class="area bloqueada">Legal 🔒</div>
-    <div class="area bloqueada">Recursos Humanos 🔒</div>
-    <div class="area bloqueada">Inmobiliaria 🔒</div>
-    <div class="area bloqueada">CEDIS 🔒</div>
-    <div class="area bloqueada">Operaciones 🔒</div>
-    <div class="area bloqueada">Mantenimiento 🔒</div>
+    <div class="area">Finanzas</div>
+    <div class="area">Legal</div>
+    <div class="area">Recursos Humanos</div>
+    <div class="area">Inmobiliaria</div>
+    <div class="area">CEDIS</div>
+    <div class="area">Operaciones</div>
+    <div class="area">Mantenimiento</div>
   </div>
 
   <!-- ================= CONTENIDO ================= -->
@@ -302,10 +302,10 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
           <h5>📋 Datos Generales</h5>
           <div class="campo-row"><span class="label">Proyecto:</span><input class="valor" id="dato-proyecto" value="—" onchange="guardarDatosInicio()"></div>
           <div class="campo-row"><span class="label">Ubicación:</span><input class="valor" id="dato-ubicacion" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Gerente de Construcción:</span><input class="valor" id="dato-gerente-construccion" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Responsable de Obra:</span><input class="valor" id="dato-responsable-obra" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Gerente de Arquitectura:</span><input class="valor" id="dato-gerente-arquitectura" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Responsable de Compras:</span><input class="valor" id="dato-responsable-compras" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Gerente de Construcción:</span><input class="valor" id="dato-gerente_construccion" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Responsable de Obra:</span><input class="valor" id="dato-responsable_obra" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Gerente de Arquitectura:</span><input class="valor" id="dato-gerente_arquitectura" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Responsable de Compras:</span><input class="valor" id="dato-responsable_compras" value="—" onchange="guardarDatosInicio()"></div>
         </div>
         <div class="card-datos">
           <h5>⏱ Duración del Proyecto</h5>
@@ -333,13 +333,13 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
         <div class="modulo-card" onclick="navegarA('ordenes_compra')"><span class="ico">📄</span><span class="nombre">Órdenes de Compra</span><span class="estado">Activo</span></div>
         <div class="modulo-card" onclick="navegarA('pago_proveedores')"><span class="ico">💰</span><span class="nombre">Pago a Proveedores</span><span class="estado">Activo</span></div>
         <div class="modulo-card" onclick="navegarA('estimaciones')"><span class="ico">📈</span><span class="nombre">Estimaciones</span><span class="estado">Activo</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🏦</span><span class="nombre">Finanzas</span><span class="estado">🔒 Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">⚖️</span><span class="nombre">Legal</span><span class="estado">🔒 Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">👥</span><span class="nombre">Recursos Humanos</span><span class="estado">🔒 Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🏗️</span><span class="nombre">Inmobiliaria</span><span class="estado">🔒 Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">📦</span><span class="nombre">CEDIS</span><span class="estado">🔒 Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🔧</span><span class="nombre">Operaciones</span><span class="estado">🔒 Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🛠️</span><span class="nombre">Mantenimiento</span><span class="estado">🔒 Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🏦</span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">⚖️</span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">👥</span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🏗️</span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">📦</span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🔧</span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
+        <div class="modulo-card bloqueado"><span class="ico">🛠️</span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
       </div>
     </div>
 
@@ -1183,8 +1183,11 @@ async function guardarModuloActivo(){
   formData.append("modulo", mod.endpoint||modKey);
   formData.append("proyecto", proyecto);
 
+  const API_URL = window.location.origin;
+  const uploadUrl = `${API_URL}/subir`;
+
   try{
-    const res = await fetch("https://analisis-reportes-obra-360.onrender.com/subir", {
+    const res = await fetch(uploadUrl, {
       method:"POST", body: formData
     });
     const data = await res.json();
