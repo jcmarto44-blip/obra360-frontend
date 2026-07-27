@@ -24,7 +24,8 @@
       </div>
 
       <div class="d-flex align-items-center">
-        <button class="btn btn-danger fw-bold px-4" onclick="window.location.href='index.html'">
+        <span id="clienteNombre" class="text-white me-3" style="font-weight:bold;"></span>
+        <button class="btn btn-danger fw-bold px-4" onclick="cerrarSesion()">
           Salir
         </button>
       </div>
@@ -88,7 +89,7 @@
         </div>
       </div>
 
-      <!-- MODELO 3D -->
+      <!-- MODELO 3D (REGISTRO DE PROYECTO) -->
       <div class="col-md-3">
         <div class="card shadow-lg border-0 rounded-4 h-100">
           <div class="card-body text-center p-4">
@@ -107,7 +108,7 @@
     </div>
   </div>
 
-  <!-- MODAL -->
+  <!-- MODAL PARA REGISTRO DE PROYECTO -->
   <div id="projectModal"
        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
        background:rgba(20,80,160,0.45);
@@ -116,13 +117,14 @@
 
     <div style="background:#fff; padding:28px; border-radius:14px; width:360px; text-align:center;">
 
-      <h5 style="color:#0d6efd;">PROYECTO + VISTA</h5>
+      <h5 style="color:#0d6efd;">REGISTRAR PROYECTO + VISTA</h5>
+      <p class="text-muted small">Este proyecto quedará ligado a tu cuenta</p>
 
-      <input type="text" id="projectName" class="form-control mb-3" placeholder="Proyecto">
+      <input type="text" id="projectName" class="form-control mb-3" placeholder="Nombre del Proyecto">
       <input type="text" id="viewName" class="form-control mb-3" placeholder="Vista (ej: Avance Semanal ESTR1)">
 
       <button class="btn btn-success w-100 mb-2 fw-bold" onclick="confirmOpen()">
-        Aceptar
+        Registrar Proyecto
       </button>
 
       <button class="btn btn-outline-secondary w-100" onclick="closeModal()">
@@ -134,33 +136,46 @@
 
   <!-- SCRIPT -->
   <script>
-    async function confirmOpen() {
-      const project = document.getElementById("projectName").value.trim();
-      const view = document.getElementById("viewName").value.trim();
-      if (!project || !view) {
-        alert("Escribe PROYECTO y VISTA");
-        return;
+    // ============================================================
+    // CONFIGURACIÓN
+    // ============================================================
+    const API_URL = window.location.origin;
+
+    // ============================================================
+    // VERIFICAR SESIÓN
+    // ============================================================
+    function verificarSesion() {
+      const token = localStorage.getItem('token');
+      const rol = localStorage.getItem('rol');
+      const nombre = localStorage.getItem('cliente_nombre');
+      
+      if (!token || rol !== 'cliente') {
+        window.location.href = 'index.html';
       }
-      try {
-        const API_URL = "https://obra360-launcher-api.onrender.com/task";
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pcId: "PC-001", project: project, view: view })
-        });
-        const data = await res.json();
-        if (data.status === "ok") {
-          closeModal();
-          alert("✔ Enviado correctamente al Launcher");
-        } else {
-          alert("❌ Error en respuesta del servidor");
-        }
-      } catch (error) {
-        console.error(error);
-        alert("❌ ERROR DE CONEXIÓN CON LAUNCHER API");
-      }
+      
+      document.getElementById('clienteNombre').textContent = '👤 ' + (nombre || 'Cliente');
     }
 
+    function cerrarSesion() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('rol');
+      localStorage.removeItem('cliente_id');
+      localStorage.removeItem('cliente_nombre');
+      localStorage.removeItem('usuario');
+      window.location.href = 'index.html';
+    }
+
+    function getToken() {
+      return localStorage.getItem('token');
+    }
+
+    function getClienteId() {
+      return parseInt(localStorage.getItem('cliente_id'));
+    }
+
+    // ============================================================
+    // MODAL
+    // ============================================================
     function openModal() {
       document.getElementById("projectModal").style.display = "flex";
       document.getElementById("projectName").value = "";
@@ -171,9 +186,82 @@
       document.getElementById("projectModal").style.display = "none";
     }
 
+    // ============================================================
+    // REGISTRAR PROYECTO REAL VÍA API
+    // ============================================================
+    async function confirmOpen() {
+      const project = document.getElementById("projectName").value.trim();
+      const view = document.getElementById("viewName").value.trim();
+      
+      if (!project || !view) {
+        alert("⚠️ Escribe PROYECTO y VISTA");
+        return;
+      }
+
+      const token = getToken();
+      const clienteId = getClienteId();
+
+      if (!token || !clienteId) {
+        alert('⚠️ Sesión expirada. Inicia sesión nuevamente.');
+        cerrarSesion();
+        return;
+      }
+
+      try {
+        // 1. Crear el proyecto en el backend
+        const response = await fetch(`${API_URL}/admin/clientes/${clienteId}/proyectos?token=${token}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            nombre_proyecto: project,
+            vista_3d: view 
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert('❌ Error al registrar proyecto: ' + (data.detail || data.mensaje || 'Error desconocido'));
+          return;
+        }
+
+        closeModal();
+        alert(`✅ Proyecto "${project}" registrado correctamente.`);
+
+        // 2. (OPCIONAL) Enviar al Launcher si aún quieres esa funcionalidad
+        try {
+          const LAUNCHER_URL = "https://obra360-launcher-api.onrender.com/task";
+          const launcherRes = await fetch(LAUNCHER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pcId: "PC-001", project: project, view: view })
+          });
+          const launcherData = await launcherRes.json();
+          if (launcherData.status === "ok") {
+            console.log("✔ Enviado al Launcher correctamente");
+          }
+        } catch (launcherError) {
+          console.warn("⚠️ No se pudo contactar al Launcher:", launcherError);
+          // No mostramos error al usuario porque el proyecto ya quedó registrado
+        }
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error de conexión con el servidor: ' + error.message);
+      }
+    }
+
+    // ============================================================
+    // ABRIR CAPTURA
+    // ============================================================
     function abrirCaptura() {
       window.location.href = "captura.html";
     }
+
+    // ============================================================
+    // INICIALIZAR
+    // ============================================================
+    verificarSesion();
   </script>
 
 </body>
