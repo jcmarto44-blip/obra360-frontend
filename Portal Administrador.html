@@ -110,6 +110,14 @@
       font-size: 1.05rem;
       color: #1a2634;
     }
+    .cliente-id-badge {
+      background: var(--admin-primary-light);
+      color: var(--admin-primary);
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
     .badge-estado {
       font-size: 0.7rem;
       font-weight: 600;
@@ -264,7 +272,6 @@
     </div>
     <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
       <span id="user-info" class="text-white-50" style="font-size:0.85rem;"></span>
-      <!-- ✅ BOTÓN SALIR CORREGIDO -->
       <button class="btn-salir" onclick="cerrarSesion()">
         <i class="bi bi-box-arrow-left me-1"></i>Salir
       </button>
@@ -358,7 +365,7 @@
     }
 
     // ============================================================
-    // FUNCIONES DE AUTENTICACIÓN - ✅ CORREGIDAS
+    // FUNCIONES DE AUTENTICACIÓN
     // ============================================================
     function obtenerToken() {
       return localStorage.getItem(TOKEN_KEY);
@@ -372,7 +379,6 @@
       localStorage.removeItem(TOKEN_KEY);
     }
 
-    // ✅ BOTÓN SALIR CORREGIDO: Limpia TODO y va a index.html
     function cerrarSesion() {
       if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
         localStorage.clear();
@@ -486,7 +492,6 @@
       }
     }
 
-    // ✅ NUEVO: Eliminar cliente
     async function eliminarCliente(clienteId) {
       try {
         return await apiFetch(`/admin/clientes/${clienteId}`, {
@@ -597,7 +602,10 @@
             <div class="col-md-6 col-xl-4">
               <div class="cliente-card">
                 <div class="card-header-custom">
-                  <span class="cliente-nombre"><i class="bi bi-building me-2" style="color:var(--admin-primary);"></i>${cliente.nombre}</span>
+                  <span class="cliente-nombre">
+                    <i class="bi bi-building me-2" style="color:var(--admin-primary);"></i>${cliente.nombre}
+                    <span class="cliente-id-badge ms-2">ID: ${cliente.id}</span>
+                  </span>
                   <span class="badge-estado ${estadoBadge}">${estadoLabel}</span>
                 </div>
                 <div class="card-body-custom">
@@ -634,7 +642,6 @@
                         <i class="bi bi-play-circle"></i> Activar
                       </button>`
                   }
-                  <!-- ✅ NUEVO: Botón Eliminar Cliente -->
                   <button class="btn btn-eliminar-cliente" onclick="eliminarClienteAction('${cliente.id}')">
                     <i class="bi bi-trash3"></i> Eliminar
                   </button>
@@ -672,7 +679,6 @@
       const password = prompt('Contraseña:');
       if (!password) return;
 
-      // ✅ CONFIRMACIÓN ANTES DE GUARDAR
       const confirmar = confirm(
         `⚠️ CONFIRMA LOS DATOS DEL CLIENTE:\n\n` +
         `Nombre: ${nombre}\n` +
@@ -695,7 +701,6 @@
       }
     }
 
-    // ✅ NUEVO: Eliminar cliente con confirmación
     async function eliminarClienteAction(id) {
       if (!confirm('⚠️ ¿Estás seguro de que quieres ELIMINAR este cliente y TODOS sus proyectos y equipo?\n\nEsta acción NO se puede deshacer.')) {
         return;
@@ -718,13 +723,14 @@
           return;
         }
 
-        const lista = clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
-        const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
+        // ✅ MEJORADO: Mostrar lista con ID y nombre
+        const lista = clientes.map(c => `ID: ${c.id} → ${c.nombre}`).join('\n');
+        const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n\n${lista}\n\nEscribe el número de ID:`);
         if (!clienteId) return;
 
         const cliente = clientes.find(c => String(c.id) === String(clienteId.trim()));
         if (!cliente) {
-          mostrarToast('Cliente no encontrado.', 'error');
+          mostrarToast('❌ Cliente no encontrado. Revisa que el ID sea correcto.', 'error');
           return;
         }
 
@@ -766,6 +772,7 @@
 
         const estado = cliente.activo ? '✅ Activo' : '⛔ Inactivo';
         alert(`📋 DETALLE DE CLIENTE\n\n` +
+              `ID: ${cliente.id}\n` +
               `Nombre: ${cliente.nombre}\n` +
               `Usuario: ${cliente.usuario}\n` +
               `Modelo: ${cliente.modelo_gestion || 'Cliente'}\n` +
