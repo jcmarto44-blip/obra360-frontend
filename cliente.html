@@ -139,7 +139,7 @@
     // ============================================================
     // CONFIGURACIÓN
     // ============================================================
-    const API_URL = window.location.origin;
+    const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
 
     // ============================================================
     // VERIFICAR SESIÓN
@@ -228,7 +228,7 @@
         closeModal();
         alert(`✅ Proyecto "${project}" registrado correctamente.`);
 
-        // 2. (OPCIONAL) Enviar al Launcher si aún quieres esa funcionalidad
+        // 2. Enviar al Launcher para abrir Revit
         try {
           const LAUNCHER_URL = "https://obra360-launcher-api.onrender.com/task";
           const launcherRes = await fetch(LAUNCHER_URL, {
@@ -242,7 +242,6 @@
           }
         } catch (launcherError) {
           console.warn("⚠️ No se pudo contactar al Launcher:", launcherError);
-          // No mostramos error al usuario porque el proyecto ya quedó registrado
         }
 
       } catch (error) {
