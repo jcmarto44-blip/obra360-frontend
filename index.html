@@ -345,11 +345,11 @@
         console.log('✅ Token guardado:', localStorage.getItem('caasa_admin_token'));
         console.log('✅ Rol guardado:', localStorage.getItem('rol'));
 
-        // ✅ CORREGIDO: Rutas sin espacios
+        // ✅ CORREGIDO: Redirigir según rol
         if (data.rol === 'admin') {
           window.location.href = 'Portal_Administrador.html';
         } else {
-          window.location.href = 'Portal_Cliente.html';
+          window.location.href = 'Modelo_y_Reportes.html';
         }
 
       } catch (error) {
