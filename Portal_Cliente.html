@@ -94,6 +94,12 @@
       font-weight: 600;
       display: inline-block;
       margin: 0.2rem 0.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .badge-proyecto:hover {
+      background: var(--cliente-primary);
+      color: white;
     }
     .badge-proyecto-seleccionado {
       background: var(--cliente-primary);
@@ -106,17 +112,6 @@
       margin: 0.2rem 0.2rem;
       cursor: pointer;
       border: 2px solid var(--cliente-primary);
-    }
-    .badge-proyecto-seleccionado:hover {
-      background: #2a6bb0;
-    }
-    .badge-proyecto {
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .badge-proyecto:hover {
-      background: var(--cliente-primary);
-      color: white;
     }
     .equipo-row {
       display: flex;
@@ -315,7 +310,6 @@
     const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
     const TOKEN_KEY = 'caasa_admin_token';
 
-    // Variable global para proyecto seleccionado
     let proyectoSeleccionadoId = null;
     let proyectoSeleccionadoNombre = null;
 
@@ -399,7 +393,7 @@
     }
 
     // ============================================================
-    // OBTENER PROYECTOS DESDE API
+    // OBTENER PROYECTOS
     // ============================================================
     async function obtenerProyectos(clienteId) {
       try {
@@ -411,12 +405,11 @@
     }
 
     // ============================================================
-    // OBTENER EQUIPO DESDE API
+    // OBTENER EQUIPO
     // ============================================================
     async function obtenerEquipo(clienteId, proyectoId) {
       try {
         const equipo = await apiFetch(`/clientes/${clienteId}/equipo`);
-        // Filtrar equipo por proyecto
         return equipo.filter(m => m.proyecto_id === proyectoId);
       } catch (error) {
         console.error('Error obteniendo equipo:', error);
@@ -425,7 +418,7 @@
     }
 
     // ============================================================
-    // CREAR MIEMBRO DE EQUIPO EN API
+    // CREAR MIEMBRO DE EQUIPO
     // ============================================================
     async function crearEquipo(clienteId, proyectoId, rol, usuario, password) {
       try {
@@ -445,7 +438,7 @@
     }
 
     // ============================================================
-    // RENDERIZAR PROYECTOS CON SELECCIÓN
+    // RENDERIZAR PROYECTOS
     // ============================================================
     async function renderizarProyectos() {
       const container = document.getElementById('proyectos-container');
@@ -487,7 +480,6 @@
         html += '</div>';
         container.innerHTML = html;
 
-        // Si hay proyectos y no hay seleccionado, seleccionar el primero
         if (proyectos.length > 0 && proyectoSeleccionadoId === null) {
           seleccionarProyecto(proyectos[0].id, proyectos[0].nombre_proyecto);
         }
@@ -512,26 +504,19 @@
       proyectoSeleccionadoId = id;
       proyectoSeleccionadoNombre = nombre;
 
-      // Mostrar info del proyecto seleccionado
       document.getElementById('proyecto-seleccionado-info').style.display = 'block';
       document.getElementById('proyecto-seleccionado-nombre').textContent = nombre;
-
-      // Actualizar label del equipo
       document.getElementById('equipo-proyecto-label').textContent = `(${nombre})`;
 
-      // Guardar en localStorage para captura
       localStorage.setItem('proyecto_id', id);
       localStorage.setItem('proyecto_nombre', nombre);
 
-      // Renderizar equipo del proyecto seleccionado
       renderizarEquipo();
-
-      // Actualizar badges
       renderizarProyectos();
     }
 
     // ============================================================
-    // RENDERIZAR EQUIPO DEL PROYECTO SELECCIONADO
+    // RENDERIZAR EQUIPO
     // ============================================================
     async function renderizarEquipo() {
       const container = document.getElementById('equipo-body');
@@ -550,14 +535,9 @@
 
       try {
         const equipo = await obtenerEquipo(clienteId, proyectoSeleccionadoId);
-
-        // Mapear roles para verificar si ya existen
         const rolesExistentes = {};
-        equipo.forEach(m => {
-          rolesExistentes[m.rol] = m;
-        });
+        equipo.forEach(m => { rolesExistentes[m.rol] = m; });
 
-        // Definir roles fijos
         const roles = [
           { id: 'gerente', label: 'Gerente de Construcción' },
           { id: 'super', label: 'Superintendente de Construcción' },
@@ -576,14 +556,13 @@
         roles.forEach(rol => {
           const existe = rolesExistentes[rol.label];
           const usuarioValue = existe ? existe.usuario : '';
-          const passwordValue = ''; // No mostramos contraseña por seguridad
           const statusDisplay = existe ? 'inline' : 'none';
 
           html += `
             <div class="equipo-row">
               <span class="rol"><i class="bi bi-person-badge me-1"></i>${rol.label}</span>
               <input type="text" id="usr-${rol.id}" placeholder="Usuario" class="form-control form-control-sm" value="${usuarioValue}" ${existe ? 'disabled' : ''}>
-              <input type="text" id="pass-${rol.id}" placeholder="Contraseña" class="form-control form-control-sm" value="${passwordValue}" ${existe ? 'disabled' : ''}>
+              <input type="text" id="pass-${rol.id}" placeholder="Contraseña" class="form-control form-control-sm" ${existe ? 'disabled' : ''}>
               ${existe 
                 ? `<button class="btn btn-sm btn-danger btn-sm-custom" onclick="eliminarMiembroEquipo(${existe.id})">
                     <i class="bi bi-trash3"></i> Eliminar
@@ -643,7 +622,6 @@
     // ============================================================
     async function eliminarMiembroEquipo(equipoId) {
       if (!confirm('¿Eliminar este miembro del equipo?')) return;
-
       const clienteId = getClienteId();
 
       try {
