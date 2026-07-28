@@ -335,19 +335,19 @@
           return;
         }
 
-        // Guardar token y datos del usuario
-        localStorage.setItem('token', data.token);
+        // ✅ CORREGIDO: Guardar token con el nombre correcto
+        localStorage.setItem('caasa_admin_token', data.token);
         localStorage.setItem('rol', data.rol);
         localStorage.setItem('cliente_id', data.cliente_id);
         localStorage.setItem('cliente_nombre', data.nombre);
         localStorage.setItem('usuario', usuario);
 
-        console.log('✅ Token guardado:', localStorage.getItem('token'));
+        console.log('✅ Token guardado:', localStorage.getItem('caasa_admin_token'));
         console.log('✅ Rol guardado:', localStorage.getItem('rol'));
 
-        // Redirigir según rol
+        // ✅ CORREGIDO: Rutas sin espacios
         if (data.rol === 'admin') {
-          window.location.href = 'Portal Administrador.html';
+          window.location.href = 'Portal_Administrador.html';
         } else {
           window.location.href = 'Portal_Cliente.html';
         }
@@ -360,7 +360,7 @@
     }
 
     // ============================================================
-    // VERIFICACIÓN DE SESIÓN DESACTIVADA (eliminado el bucle)
+    // VERIFICACIÓN DE SESIÓN DESACTIVADA
     // ============================================================
     console.log('📄 Página principal cargada - Inicio de sesión manual');
   </script>
