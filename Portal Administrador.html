@@ -312,8 +312,8 @@
       </div>
     </div>
 
-    <!-- BOTONES DE ACCIÓN -->
-    <div class="d-flex flex-wrap gap-2 mb-4">
+    <!-- BOTONES DE ACCIÓN + SELECTORES (TODO EN UNA SOLA LÍNEA) -->
+    <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
       <button class="btn btn-primary btn-action" onclick="agregarCliente()">
         <i class="bi bi-person-plus"></i>Agregar Cliente
       </button>
@@ -322,6 +322,20 @@
       </button>
       <button class="btn btn-secondary btn-action" onclick="cargarClientes()">
         <i class="bi bi-arrow-clockwise"></i>Refrescar
+      </button>
+
+      <span class="text-muted mx-1">|</span>
+
+      <select id="selector-cliente" class="form-select form-select-sm" style="width:auto; min-width:150px;" onchange="cargarProyectosEnSelector()">
+        <option value="">Cliente...</option>
+      </select>
+
+      <select id="selector-proyecto" class="form-select form-select-sm" style="width:auto; min-width:150px;">
+        <option value="">Proyecto...</option>
+      </select>
+
+      <button class="btn btn-warning btn-action" onclick="irACapturaDesdeSelector()" style="background:#ffc107; color:#212529; border:none;">
+        <i class="bi bi-table me-1"></i>Acceder a Captura
       </button>
     </div>
 
@@ -346,6 +360,10 @@
     // ============================================================
     const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
     const TOKEN_KEY = 'caasa_admin_token';
+
+    // Variables globales para el selector
+    let clientesGlobal = [];
+    let proyectosGlobal = {};
 
     // ============================================================
     // TOAST NOTIFICATIONS
@@ -553,6 +571,7 @@
 
       try {
         const clientes = await obtenerClientes();
+        clientesGlobal = clientes;
         
         let totalProyectos = 0;
         let activos = 0;
@@ -566,8 +585,10 @@
             const proyectos = await obtenerProyectos(cliente.id);
             cliente._proyectos = proyectos;
             totalProyectos += proyectos.length;
+            proyectosGlobal[cliente.id] = proyectos;
           } catch (e) {
             cliente._proyectos = [];
+            proyectosGlobal[cliente.id] = [];
           }
         }
 
@@ -575,6 +596,9 @@
         document.getElementById('stats-activos').textContent = activos;
         document.getElementById('stats-inactivos').textContent = inactivos;
         document.getElementById('stats-proyectos').textContent = totalProyectos;
+
+        // Actualizar selectores
+        actualizarSelectorClientes();
 
         if (clientes.length === 0) {
           contenedor.innerHTML = `
@@ -591,7 +615,7 @@
         for (const cliente of clientes) {
           const proyectos = cliente._proyectos || [];
           const proyectosHtml = proyectos.length > 0
-            ? proyectos.map(p => `<span class="badge-proyecto"><i class="bi bi-folder2-open me-1"></i>${p.nombre_proyecto}</span>`).join(' ')
+            ? proyectos.map(p => `<span class="badge-proyecto">${p.nombre_proyecto}</span>`).join(' ')
             : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-folder-x me-1"></i>Sin proyectos</span>';
 
           const estadoLabel = cliente.activo ? '✅ Activo' : '⛔ Inactivo';
@@ -666,6 +690,78 @@
     }
 
     // ============================================================
+    // SELECTOR DE CLIENTES Y PROYECTOS (en la misma línea)
+    // ============================================================
+    function actualizarSelectorClientes() {
+      const select = document.getElementById('selector-cliente');
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">Cliente...</option>';
+      
+      clientesGlobal.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.id;
+        option.textContent = `${c.nombre}`;
+        if (String(c.id) === currentValue) {
+          option.selected = true;
+        }
+        select.appendChild(option);
+      });
+
+      if (currentValue) {
+        cargarProyectosEnSelector();
+      } else {
+        document.getElementById('selector-proyecto').innerHTML = '<option value="">Proyecto...</option>';
+      }
+    }
+
+    function cargarProyectosEnSelector() {
+      const clienteId = document.getElementById('selector-cliente').value;
+      const selectProyecto = document.getElementById('selector-proyecto');
+      selectProyecto.innerHTML = '<option value="">Proyecto...</option>';
+
+      if (!clienteId) return;
+
+      const proyectos = proyectosGlobal[clienteId] || [];
+      proyectos.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.textContent = p.nombre_proyecto;
+        selectProyecto.appendChild(option);
+      });
+    }
+
+    function irACapturaDesdeSelector() {
+      const clienteId = document.getElementById('selector-cliente').value;
+      const proyectoId = document.getElementById('selector-proyecto').value;
+
+      if (!clienteId) {
+        mostrarToast('⚠️ Selecciona un cliente.', 'error');
+        return;
+      }
+
+      if (!proyectoId) {
+        mostrarToast('⚠️ Selecciona un proyecto.', 'error');
+        return;
+      }
+
+      const cliente = clientesGlobal.find(c => String(c.id) === String(clienteId));
+      const proyectos = proyectosGlobal[clienteId] || [];
+      const proyecto = proyectos.find(p => String(p.id) === String(proyectoId));
+
+      if (!cliente || !proyecto) {
+        mostrarToast('❌ Cliente o proyecto no encontrado.', 'error');
+        return;
+      }
+
+      localStorage.setItem('obra360_proyecto_id', proyecto.id);
+      localStorage.setItem('obra360_proyecto_nombre', proyecto.nombre_proyecto);
+      localStorage.setItem('obra360_cliente_id', cliente.id);
+      localStorage.setItem('obra360_token', obtenerToken());
+
+      window.location.href = 'captura.html';
+    }
+
+    // ============================================================
     // ACCIONES
     // ============================================================
     async function agregarCliente() {
@@ -723,7 +819,6 @@
           return;
         }
 
-        // ✅ MEJORADO: Mostrar lista con ID y nombre
         const lista = clientes.map(c => `ID: ${c.id} → ${c.nombre}`).join('\n');
         const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n\n${lista}\n\nEscribe el número de ID:`);
         if (!clienteId) return;
