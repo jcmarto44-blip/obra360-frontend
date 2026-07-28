@@ -1183,7 +1183,7 @@ async function guardarModuloActivo(){
   formData.append("modulo", mod.endpoint||modKey);
   formData.append("proyecto", proyecto);
 
-  const API_URL = window.location.origin;
+  const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
   const uploadUrl = `${API_URL}/subir`;
 
   try{
