@@ -3,34 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel de Administración — CAASA</title>
+  <title>Portal del Cliente — CAASA</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <style>
     :root {
-      --admin-primary: #1b4b8f;
-      --admin-primary-light: #e8edf5;
-      --admin-success: #2e9e5b;
-      --admin-danger: #dc3545;
-      --admin-bg: #f4f6f9;
+      --cliente-primary: #1b4b8f;
+      --cliente-success: #2e9e5b;
+      --cliente-danger: #dc3545;
+      --cliente-bg: #f4f6f9;
     }
     body {
-      background: var(--admin-bg);
+      background: var(--cliente-bg);
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
-    .admin-header {
-      background: linear-gradient(135deg, var(--admin-primary), #2a6bb0);
+    .cliente-header {
+      background: linear-gradient(135deg, var(--cliente-primary), #2a6bb0);
       color: white;
       padding: 1.2rem 2rem;
       border-radius: 0 0 1.5rem 1.5rem;
       box-shadow: 0 4px 20px rgba(27, 75, 143, 0.25);
     }
-    .admin-header h1 {
+    .cliente-header h1 {
       font-size: 1.6rem;
       font-weight: 700;
       margin: 0;
     }
-    .admin-header small {
+    .cliente-header small {
       opacity: 0.8;
       font-size: 0.9rem;
       font-weight: 300;
@@ -49,166 +48,119 @@
       background: rgba(255,255,255,0.25);
       color: white;
     }
-    .stats-card {
-      background: white;
-      border-radius: 1rem;
-      padding: 1.25rem 1.5rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      border: 1px solid #e9edf4;
-      transition: transform 0.2s;
-    }
-    .stats-card:hover {
-      transform: translateY(-3px);
-    }
-    .stats-card .number {
-      font-size: 2rem;
+    .estado-banner {
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
       font-weight: 700;
-      color: var(--admin-primary);
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
     }
-    .stats-card .label {
-      font-size: 0.85rem;
-      color: #6c7a8a;
-      font-weight: 500;
+    .estado-activo {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
     }
-    .cliente-card {
+    .estado-inactivo {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+    .card-cliente {
       background: white;
       border-radius: 1rem;
       box-shadow: 0 2px 12px rgba(0,0,0,0.06);
       border: 1px solid #e9edf4;
       overflow: hidden;
-      transition: all 0.25s;
-      height: 100%;
     }
-    .cliente-card:hover {
-      box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-      transform: translateY(-4px);
-    }
-    .cliente-card .card-header-custom {
+    .card-cliente .card-header-custom {
       padding: 1rem 1.25rem;
-      border-bottom: 1px solid #e9edf4;
       background: #fafbfc;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .cliente-card .card-header-custom .cliente-nombre {
+      border-bottom: 1px solid #e9edf4;
       font-weight: 700;
-      font-size: 1.05rem;
-      color: #1a2634;
+      color: var(--cliente-primary);
     }
-    .badge-estado {
-      font-size: 0.7rem;
-      font-weight: 600;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .badge-activo {
-      background: #d4edda;
-      color: #155724;
-    }
-    .badge-inactivo {
-      background: #f8d7da;
-      color: #721c24;
-    }
-    .cliente-card .card-body-custom {
+    .card-cliente .card-body-custom {
       padding: 1.25rem;
     }
-    .cliente-card .card-body-custom .info-item {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.9rem;
-      color: #3d4a5a;
-      margin-bottom: 0.5rem;
-    }
-    .cliente-card .card-body-custom .info-item i {
-      color: var(--admin-primary);
-      width: 1.2rem;
-      font-size: 1rem;
-    }
     .badge-proyecto {
-      background: var(--admin-primary-light);
-      color: var(--admin-primary);
+      background: #e8edf5;
+      color: var(--cliente-primary);
       padding: 0.3rem 0.8rem;
       border-radius: 20px;
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       font-weight: 600;
       display: inline-block;
       margin: 0.2rem 0.2rem;
     }
-    .cliente-card .card-footer-custom {
-      padding: 0.75rem 1.25rem;
-      background: #fafbfc;
-      border-top: 1px solid #e9edf4;
+    .equipo-row {
       display: flex;
+      align-items: center;
       gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f0f2f5;
       flex-wrap: wrap;
     }
-    .cliente-card .card-footer-custom .btn-sm-custom {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.75rem;
+    .equipo-row .rol {
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 180px;
+      color: #1a2634;
+    }
+    .equipo-row input {
+      border: 1px solid #dce2eb;
       border-radius: 6px;
-      font-weight: 500;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 120px;
+    }
+    .equipo-row input:focus {
+      border-color: var(--cliente-primary);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(27, 75, 143, 0.1);
+    }
+    .equipo-row .btn-sm-custom {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
     }
     .empty-state {
       text-align: center;
-      padding: 4rem 2rem;
+      padding: 3rem 1rem;
       background: white;
       border-radius: 1.5rem;
       border: 2px dashed #dce2eb;
     }
     .empty-state i {
-      font-size: 3.5rem;
+      font-size: 3rem;
       color: #bcc9d6;
     }
     .empty-state h5 {
       color: #3d4a5a;
       margin-top: 1rem;
     }
-    .empty-state p {
-      color: #8a9aa8;
-    }
-    .btn-action {
-      font-weight: 600;
-      padding: 0.5rem 1.2rem;
+    .btn-captura {
+      background: var(--cliente-success);
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 0.7rem 2rem;
       border-radius: 10px;
       transition: all 0.2s;
     }
-    .btn-action i {
-      margin-right: 0.4rem;
-    }
-    .btn-activar {
-      background: var(--admin-success);
+    .btn-captura:hover {
+      background: #258a4e;
       color: white;
-      border: none;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 158, 91, 0.3);
     }
-    .btn-activar:hover {
-      background: #218838;
-      color: white;
-    }
-    .btn-suspender {
-      background: var(--admin-danger);
-      color: white;
-      border: none;
-    }
-    .btn-suspender:hover {
-      background: #c82333;
-      color: white;
-    }
-    .loading-spinner {
-      display: inline-block;
-      width: 2rem;
-      height: 2rem;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid var(--admin-primary);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    .btn-captura:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
     .toast-container {
       position: fixed;
@@ -221,22 +173,36 @@
       padding: 1rem 1.5rem;
       border-radius: 12px;
       box-shadow: 0 8px 30px rgba(0,0,0,0.15);
-      border-left: 5px solid var(--admin-success);
+      border-left: 5px solid var(--cliente-success);
       margin-bottom: 10px;
-      min-width: 300px;
+      min-width: 280px;
       animation: slideIn 0.3s ease;
     }
     .toast-custom.error {
-      border-left-color: var(--admin-danger);
+      border-left-color: var(--cliente-danger);
+    }
+    .btn-corregir {
+      background: #ffc107;
+      border: none;
+      color: #212529;
+      font-weight: 700;
+      padding: 0.5rem 1.5rem;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .btn-corregir:hover {
+      background: #e0a800;
+      color: #212529;
     }
     @keyframes slideIn {
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
     @media (max-width: 768px) {
-      .admin-header { padding: 1rem; }
-      .admin-header h1 { font-size: 1.2rem; }
-      .stats-card .number { font-size: 1.5rem; }
+      .cliente-header { padding: 1rem; }
+      .cliente-header h1 { font-size: 1.2rem; }
+      .equipo-row .rol { min-width: 120px; }
+      .equipo-row input { min-width: 80px; }
       .toast-custom { min-width: auto; }
     }
   </style>
@@ -244,78 +210,127 @@
 <body>
 
   <!-- HEADER -->
-  <div class="admin-header d-flex flex-wrap justify-content-between align-items-center">
+  <div class="cliente-header d-flex flex-wrap justify-content-between align-items-center">
     <div>
-      <h1><i class="bi bi-gear-fill me-2"></i>Panel de Administración</h1>
-      <small>Gestión de Clientes, Proyectos y Usuarios</small>
+      <h1><i class="bi bi-building me-2"></i><span id="cliente-nombre-header">Cliente</span></h1>
+      <small>Portal del Cliente — Gestión de Proyectos y Equipo</small>
     </div>
     <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
       <span id="user-info" class="text-white-50" style="font-size:0.85rem;"></span>
+      <!-- ✅ BOTÓN SALIR CORREGIDO -->
       <button class="btn-salir" onclick="cerrarSesion()">
         <i class="bi bi-box-arrow-left me-1"></i>Salir
       </button>
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATIONS -->
+  <!-- TOAST -->
   <div class="toast-container" id="toast-container"></div>
 
   <!-- CONTENIDO -->
   <div class="container-fluid px-4 py-4">
 
-    <!-- ESTADÍSTICAS RÁPIDAS -->
-    <div class="row g-3 mb-4" id="stats-container">
-      <div class="col-md-3">
-        <div class="stats-card">
-          <div class="number" id="stats-clientes">0</div>
-          <div class="label"><i class="bi bi-building me-1"></i>Total Clientes</div>
-        </div>
+    <!-- BANNER DE ESTADO -->
+    <div id="estado-banner" class="estado-banner estado-activo">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>Cuenta Activa</span>
+    </div>
+
+    <!-- PROYECTOS -->
+    <div class="card-cliente mb-4">
+      <div class="card-header-custom d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-folder me-2"></i>Mis Proyectos</span>
+        <!-- ✅ BOTÓN CORREGIR / VOLVER A EMPEZAR -->
+        <button class="btn-corregir" onclick="reiniciarCaptura()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Corregir / Volver a empezar
+        </button>
       </div>
-      <div class="col-md-3">
-        <div class="stats-card">
-          <div class="number" id="stats-activos">0</div>
-          <div class="label"><i class="bi bi-check-circle me-1" style="color:var(--admin-success);"></i>Activos</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stats-card">
-          <div class="number" id="stats-inactivos">0</div>
-          <div class="label"><i class="bi bi-x-circle me-1" style="color:var(--admin-danger);"></i>Inactivos</div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="stats-card">
-          <div class="number" id="stats-proyectos">0</div>
-          <div class="label"><i class="bi bi-folder me-1"></i>Proyectos</div>
+      <div class="card-body-custom" id="proyectos-container">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Cargando proyectos...</p>
         </div>
       </div>
     </div>
 
-    <!-- BOTONES DE ACCIÓN -->
-    <div class="d-flex flex-wrap gap-2 mb-4">
-      <button class="btn btn-primary btn-action" onclick="agregarCliente()">
-        <i class="bi bi-person-plus"></i>Agregar Cliente
-      </button>
-      <button class="btn btn-success btn-action" onclick="agregarProyecto()">
-        <i class="bi bi-folder-plus"></i>Agregar Proyecto
-      </button>
-      <button class="btn btn-secondary btn-action" onclick="cargarClientes()">
-        <i class="bi bi-arrow-clockwise"></i>Refrescar
-      </button>
+    <!-- EQUIPO DE TRABAJO -->
+    <div class="card-cliente mb-4">
+      <div class="card-header-custom">
+        <i class="bi bi-people me-2"></i>Habilitar Equipo de Trabajo
+      </div>
+      <div class="card-body-custom">
+        <p class="text-muted" style="font-size:0.9rem;">
+          <i class="bi bi-info-circle me-1"></i>
+          Crea usuarios y contraseñas para cada rol. Estos usuarios podrán acceder a la Captura de Obra.
+        </p>
+
+        <!-- Gerente de Construcción -->
+        <div class="equipo-row">
+          <span class="rol"><i class="bi bi-person-badge me-1"></i>Gerente de Construcción</span>
+          <input type="text" id="usr-gerente" placeholder="Usuario" class="form-control form-control-sm">
+          <input type="text" id="pass-gerente" placeholder="Contraseña" class="form-control form-control-sm">
+          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('gerente')">
+            <i class="bi bi-check2"></i> Guardar
+          </button>
+          <span id="status-gerente" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
+        </div>
+
+        <!-- Superintendente -->
+        <div class="equipo-row">
+          <span class="rol"><i class="bi bi-person-badge me-1"></i>Superintendente de Construcción</span>
+          <input type="text" id="usr-super" placeholder="Usuario" class="form-control form-control-sm">
+          <input type="text" id="pass-super" placeholder="Contraseña" class="form-control form-control-sm">
+          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('super')">
+            <i class="bi bi-check2"></i> Guardar
+          </button>
+          <span id="status-super" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
+        </div>
+
+        <!-- Residente Obra Civil -->
+        <div class="equipo-row">
+          <span class="rol"><i class="bi bi-person-badge me-1"></i>Residente de Obra Civil</span>
+          <input type="text" id="usr-civil" placeholder="Usuario" class="form-control form-control-sm">
+          <input type="text" id="pass-civil" placeholder="Contraseña" class="form-control form-control-sm">
+          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('civil')">
+            <i class="bi bi-check2"></i> Guardar
+          </button>
+          <span id="status-civil" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
+        </div>
+
+        <!-- Residente Instalaciones -->
+        <div class="equipo-row">
+          <span class="rol"><i class="bi bi-person-badge me-1"></i>Residente de Instalaciones</span>
+          <input type="text" id="usr-instalaciones" placeholder="Usuario" class="form-control form-control-sm">
+          <input type="text" id="pass-instalaciones" placeholder="Contraseña" class="form-control form-control-sm">
+          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('instalaciones')">
+            <i class="bi bi-check2"></i> Guardar
+          </button>
+          <span id="status-instalaciones" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
+        </div>
+
+        <!-- Residente Administración -->
+        <div class="equipo-row">
+          <span class="rol"><i class="bi bi-person-badge me-1"></i>Residente de Administración</span>
+          <input type="text" id="usr-admin" placeholder="Usuario" class="form-control form-control-sm">
+          <input type="text" id="pass-admin" placeholder="Contraseña" class="form-control form-control-sm">
+          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('admin')">
+            <i class="bi bi-check2"></i> Guardar
+          </button>
+          <span id="status-admin" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
+        </div>
+
+      </div>
     </div>
 
-    <!-- LISTA DE CLIENTES -->
-    <div id="lista-clientes">
-      <div class="text-center py-5">
-        <div class="loading-spinner"></div>
-        <p class="mt-3 text-muted">Cargando clientes...</p>
-      </div>
+    <!-- BOTÓN CAPTURA -->
+    <div class="text-center mt-4">
+      <button class="btn-captura" id="btn-captura" onclick="irACaptura()">
+        <i class="bi bi-table me-2"></i>Acceder a Captura de Obra
+      </button>
     </div>
 
     <div class="mt-4 pt-2 text-center text-muted border-top" style="font-size:0.8rem;">
       <i class="bi bi-database me-1"></i> Datos conectados a la API en Render.
-      <span class="mx-2">|</span>
-      <i class="bi bi-info-circle me-1"></i> Panel de administración en tiempo real.
     </div>
   </div>
 
@@ -325,9 +340,6 @@
     // ============================================================
     const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
     const TOKEN_KEY = 'caasa_admin_token';
-    const ADMIN_USER = 'adminjc';
-    // ⚠️ IMPORTANTE: Cambiar esta contraseña en producción
-    const ADMIN_PASSWORD = 'Re19202007';
 
     // ============================================================
     // TOAST NOTIFICATIONS
@@ -347,18 +359,43 @@
     }
 
     // ============================================================
-    // FUNCIONES DE AUTENTICACIÓN
+    // FUNCIONES DE AUTENTICACIÓN - ✅ CORREGIDAS
     // ============================================================
     function obtenerToken() {
       return localStorage.getItem(TOKEN_KEY);
     }
 
-    function guardarToken(token) {
-      localStorage.setItem(TOKEN_KEY, token);
-    }
-
     function eliminarToken() {
       localStorage.removeItem(TOKEN_KEY);
+    }
+
+    function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        // Limpiar TODO el localStorage
+        localStorage.clear();
+        // Redirigir a index.html
+        window.location.href = 'index.html';
+      }
+    }
+
+    // ============================================================
+    // REINICIAR CAPTURA - ✅ NUEVA FUNCIÓN
+    // ============================================================
+    function reiniciarCaptura() {
+      if (confirm('⚠️ ¿Estás seguro de que quieres reiniciar la captura?\n\nSe borrarán los datos temporales del proyecto y podrás empezar de nuevo.')) {
+        // Limpiar solo datos de captura
+        localStorage.removeItem('obra360_proyecto_id');
+        localStorage.removeItem('obra360_cliente_id');
+        localStorage.removeItem('obra360_token');
+        localStorage.removeItem('obra360_proyecto');
+        localStorage.removeItem('obra360_vista');
+        localStorage.removeItem('proyecto_id');
+        // Recargar la página
+        mostrarToast('🔄 Datos de captura reiniciados. Puedes empezar de nuevo.');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      }
     }
 
     // ============================================================
@@ -366,12 +403,6 @@
     // ============================================================
     async function apiFetch(endpoint, options = {}) {
       const token = obtenerToken();
-      
-      // Validar token antes de hacer peticiones protegidas
-      if (!token && (endpoint.startsWith('/admin/') || endpoint.startsWith('/clientes/'))) {
-        throw new Error('No hay sesión activa');
-      }
-
       const headers = {
         'Content-Type': 'application/json',
         ...options.headers
@@ -401,92 +432,19 @@
     }
 
     // ============================================================
-    // LOGIN AUTOMÁTICO
+    // DATOS DEL CLIENTE
     // ============================================================
-    async function loginAdmin() {
-      try {
-        // Si ya hay token, verificar que sea válido
-        if (obtenerToken()) {
-          try {
-            await apiFetch('/verificar_token');
-            return true;
-          } catch (e) {
-            eliminarToken();
-          }
-        }
+    function getClienteId() {
+      return parseInt(localStorage.getItem('cliente_id'));
+    }
 
-        // ⚠️ En producción, usar un formulario de login en lugar de credenciales fijas
-        const response = await fetch(`${API_URL}/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            usuario: ADMIN_USER,
-            password: ADMIN_PASSWORD
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Error de autenticación');
-        }
-
-        const data = await response.json();
-        
-        if (!data.success || !data.token) {
-          throw new Error(data.mensaje || 'Login fallido');
-        }
-
-        guardarToken(data.token);
-        document.getElementById('user-info').textContent = `👤 ${data.nombre || 'Administrador'}`;
-        return true;
-      } catch (error) {
-        console.error('Error de login:', error);
-        mostrarToast('No se pudo autenticar con el servidor', 'error');
-        return false;
-      }
+    function getClienteNombre() {
+      return localStorage.getItem('cliente_nombre') || 'Cliente';
     }
 
     // ============================================================
-    // FUNCIONES DE NEGOCIO
+    // OBTENER PROYECTOS DESDE API
     // ============================================================
-
-    async function obtenerClientes() {
-      try {
-        return await apiFetch('/admin/clientes');
-      } catch (error) {
-        console.error('Error obteniendo clientes:', error);
-        throw error;
-      }
-    }
-
-    async function crearCliente(nombre, modeloGestion, usuario, password) {
-      try {
-        return await apiFetch('/admin/clientes', {
-          method: 'POST',
-          body: JSON.stringify({
-            nombre,
-            modelo_gestion: modeloGestion,
-            usuario,
-            password
-          })
-        });
-      } catch (error) {
-        console.error('Error creando cliente:', error);
-        throw error;
-      }
-    }
-
-    async function cambiarEstadoCliente(clienteId, activo) {
-      try {
-        return await apiFetch(`/admin/clientes/${clienteId}/estado`, {
-          method: 'PUT',
-          body: JSON.stringify({ activo })
-        });
-      } catch (error) {
-        console.error('Error cambiando estado:', error);
-        throw error;
-      }
-    }
-
     async function obtenerProyectos(clienteId) {
       try {
         return await apiFetch(`/clientes/${clienteId}/proyectos`);
@@ -496,259 +454,244 @@
       }
     }
 
-    async function crearProyecto(clienteId, nombreProyecto, vista3d = '') {
+    // ============================================================
+    // OBTENER EQUIPO DESDE API
+    // ============================================================
+    async function obtenerEquipo(clienteId) {
       try {
-        return await apiFetch(`/admin/clientes/${clienteId}/proyectos`, {
+        return await apiFetch(`/clientes/${clienteId}/equipo`);
+      } catch (error) {
+        console.error('Error obteniendo equipo:', error);
+        return [];
+      }
+    }
+
+    // ============================================================
+    // CREAR MIEMBRO DE EQUIPO EN API
+    // ============================================================
+    async function crearEquipo(clienteId, proyectoId, rol, usuario, password) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/equipo`, {
           method: 'POST',
           body: JSON.stringify({
-            nombre_proyecto: nombreProyecto,
-            vista_3d: vista3d
+            proyecto_id: proyectoId,
+            rol: rol,
+            usuario: usuario,
+            password: password
           })
         });
       } catch (error) {
-        console.error('Error creando proyecto:', error);
+        console.error('Error creando equipo:', error);
         throw error;
       }
     }
 
     // ============================================================
-    // RENDERIZAR LISTA Y ESTADÍSTICAS
+    // RENDERIZAR PROYECTOS
     // ============================================================
-    async function cargarClientes() {
-      const contenedor = document.getElementById('lista-clientes');
-      contenedor.innerHTML = `
-        <div class="text-center py-5">
-          <div class="loading-spinner"></div>
-          <p class="mt-3 text-muted">Cargando clientes...</p>
-        </div>
-      `;
+    async function renderizarProyectos() {
+      const container = document.getElementById('proyectos-container');
+      const clienteId = getClienteId();
 
-      try {
-        const clientes = await obtenerClientes();
-        
-        let totalProyectos = 0;
-        let activos = 0;
-        let inactivos = 0;
-
-        // ⚠️ Mejora de escalabilidad: Cargar proyectos en paralelo
-        const promesasProyectos = clientes.map(async (cliente) => {
-          if (cliente.activo) activos++;
-          else inactivos++;
-          
-          try {
-            const proyectos = await obtenerProyectos(cliente.id);
-            cliente._proyectos = proyectos;
-            totalProyectos += proyectos.length;
-          } catch (e) {
-            cliente._proyectos = [];
-          }
-        });
-
-        await Promise.all(promesasProyectos);
-
-        document.getElementById('stats-clientes').textContent = clientes.length;
-        document.getElementById('stats-activos').textContent = activos;
-        document.getElementById('stats-inactivos').textContent = inactivos;
-        document.getElementById('stats-proyectos').textContent = totalProyectos;
-
-        if (clientes.length === 0) {
-          contenedor.innerHTML = `
-            <div class="empty-state">
-              <i class="bi bi-building"></i>
-              <h5>No hay clientes registrados</h5>
-              <p>Haz clic en <strong>"Agregar Cliente"</strong> para comenzar a gestionar tus clientes.</p>
-            </div>
-          `;
-          return;
-        }
-
-        let html = '<div class="row g-4">';
-        for (const cliente of clientes) {
-          const proyectos = cliente._proyectos || [];
-          const proyectosHtml = proyectos.length > 0
-            ? proyectos.map(p => `<span class="badge-proyecto"><i class="bi bi-folder2-open me-1"></i>${p.nombre_proyecto}</span>`).join(' ')
-            : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-folder-x me-1"></i>Sin proyectos</span>';
-
-          const estadoLabel = cliente.activo ? '✅ Activo' : '⛔ Inactivo';
-          const estadoBadge = cliente.activo ? 'badge-activo' : 'badge-inactivo';
-          const modeloLabel = cliente.modelo_gestion || 'Cliente';
-
-          html += `
-            <div class="col-md-6 col-xl-4">
-              <div class="cliente-card">
-                <div class="card-header-custom">
-                  <span class="cliente-nombre"><i class="bi bi-building me-2" style="color:var(--admin-primary);"></i>${cliente.nombre}</span>
-                  <span class="badge-estado ${estadoBadge}">${estadoLabel}</span>
-                </div>
-                <div class="card-body-custom">
-                  <div class="info-item">
-                    <i class="bi bi-tag"></i>
-                    <span><strong>Modelo:</strong> ${modeloLabel}</span>
-                  </div>
-                  <div class="info-item">
-                    <i class="bi bi-person"></i>
-                    <span><strong>Usuario:</strong> ${cliente.usuario}</span>
-                  </div>
-                  <div class="info-item">
-                    <i class="bi bi-folder"></i>
-                    <span><strong>Proyectos:</strong> ${proyectos.length}</span>
-                  </div>
-                  <div class="info-item">
-                    <i class="bi bi-calendar3"></i>
-                    <span><strong>Desde:</strong> ${cliente.fecha_creacion ? cliente.fecha_creacion.split(' ')[0] : '—'}</span>
-                  </div>
-                  <div class="mt-2">
-                    <strong style="font-size:0.8rem;color:#6c7a8a;">Proyectos:</strong><br>
-                    ${proyectosHtml}
-                  </div>
-                </div>
-                <div class="card-footer-custom">
-                  <button class="btn btn-outline-primary btn-sm-custom" onclick="verDetalle('${cliente.id}')">
-                    <i class="bi bi-eye"></i> Ver
-                  </button>
-                  ${cliente.activo 
-                    ? `<button class="btn btn-suspender btn-sm-custom" onclick="cambiarEstado('${cliente.id}', false)">
-                        <i class="bi bi-pause-circle"></i> Suspender
-                      </button>`
-                    : `<button class="btn btn-activar btn-sm-custom" onclick="cambiarEstado('${cliente.id}', true)">
-                        <i class="bi bi-play-circle"></i> Activar
-                      </button>`
-                  }
-                </div>
-              </div>
-            </div>
-          `;
-        }
-        html += '</div>';
-        contenedor.innerHTML = html;
-      } catch (error) {
-        contenedor.innerHTML = `
-          <div class="empty-state text-danger">
+      if (!clienteId) {
+        container.innerHTML = `
+          <div class="empty-state">
             <i class="bi bi-exclamation-triangle"></i>
-            <h5>Error al cargar datos</h5>
-            <p>${error.message || 'No se pudo conectar con la API'}</p>
-            <button class="btn btn-primary mt-3" onclick="cargarClientes()">Reintentar</button>
+            <h5>No se encontró información del cliente</h5>
+            <p>Inicia sesión nuevamente.</p>
           </div>
         `;
-        mostrarToast('Error al cargar clientes: ' + error.message, 'error');
+        return;
+      }
+
+      try {
+        const proyectos = await obtenerProyectos(clienteId);
+
+        if (!proyectos || proyectos.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="bi bi-folder-x"></i>
+              <h5>No tienes proyectos asignados</h5>
+              <p>Contacta al administrador para que te asigne proyectos.</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">';
+        proyectos.forEach(p => {
+          html += `<span class="badge-proyecto"><i class="bi bi-folder2-open me-1"></i>${p.nombre_proyecto}</span>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+
+        // Guardar el primer proyecto para usarlo en equipo
+        if (proyectos.length > 0) {
+          localStorage.setItem('proyecto_id', proyectos[0].id);
+        }
+
+      } catch (error) {
+        container.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar proyectos</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+            <button class="btn btn-primary mt-3" onclick="renderizarProyectos()">Reintentar</button>
+          </div>
+        `;
+        mostrarToast('Error al cargar proyectos: ' + error.message, 'error');
       }
     }
 
     // ============================================================
-    // ACCIONES
+    // RENDERIZAR ESTADO
     // ============================================================
-    async function agregarCliente() {
-      const nombre = prompt('Nombre del Cliente (ej. Coppel, ALSUPER, Prologis):');
-      if (!nombre) return;
-      
-      const modeloGestion = prompt('Modelo de gestión (ej. desarrollador, constructora, admin):') || 'desarrollador';
-      const usuario = prompt('Usuario para el cliente:');
-      if (!usuario) return;
-      
-      const password = prompt('Contraseña:');
-      if (!password) return;
+    async function renderizarEstado() {
+      const banner = document.getElementById('estado-banner');
+      const btnCaptura = document.getElementById('btn-captura');
+      const clienteId = getClienteId();
 
-      try {
-        await crearCliente(nombre.trim(), modeloGestion.trim(), usuario.trim(), password.trim());
-        mostrarToast(`Cliente "${nombre}" creado correctamente`);
-        cargarClientes();
-      } catch (error) {
-        mostrarToast('Error creando cliente: ' + error.message, 'error');
+      if (!clienteId) {
+        banner.className = 'estado-banner estado-inactivo';
+        banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>No se pudo verificar estado</span>`;
+        btnCaptura.disabled = true;
+        btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
+        return;
       }
-    }
 
-    async function agregarProyecto() {
       try {
-        const clientes = await obtenerClientes();
-        if (clientes.length === 0) {
-          mostrarToast('Primero debes agregar un cliente.', 'error');
-          return;
+        const response = await apiFetch('/verificar_token');
+        if (response && response.cliente) {
+          const activo = response.cliente.activo;
+          if (activo) {
+            banner.className = 'estado-banner estado-activo';
+            banner.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>Cuenta Activa</span>`;
+            btnCaptura.disabled = false;
+            btnCaptura.innerHTML = `<i class="bi bi-table me-2"></i>Acceder a Captura de Obra`;
+            document.querySelectorAll('.equipo-row input').forEach(input => input.disabled = false);
+            document.querySelectorAll('.equipo-row button').forEach(btn => btn.disabled = false);
+          } else {
+            banner.className = 'estado-banner estado-inactivo';
+            banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Cuenta Inactiva</span>`;
+            btnCaptura.disabled = true;
+            btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado (cuenta inactiva)`;
+            document.querySelectorAll('.equipo-row input').forEach(input => input.disabled = true);
+            document.querySelectorAll('.equipo-row button').forEach(btn => btn.disabled = true);
+          }
         }
-
-        const lista = clientes.map(c => `${c.nombre} (ID: ${c.id})`).join('\n');
-        const clienteId = prompt(`Selecciona el cliente escribiendo su ID:\n${lista}`);
-        if (!clienteId) return;
-
-        // ✅ CORREGIDO: Comparación exacta de ID
-        const cliente = clientes.find(c => String(c.id) === String(clienteId.trim()));
-        if (!cliente) {
-          mostrarToast('Cliente no encontrado.', 'error');
-          return;
-        }
-
-        const nombreProyecto = prompt('Nombre del Proyecto:');
-        if (!nombreProyecto) return;
-
-        const vista3d = prompt('URL de vista 3D (opcional):') || '';
-
-        await crearProyecto(cliente.id, nombreProyecto.trim(), vista3d.trim());
-        mostrarToast(`Proyecto "${nombreProyecto}" creado para ${cliente.nombre}`);
-        cargarClientes();
       } catch (error) {
-        mostrarToast('Error creando proyecto: ' + error.message, 'error');
+        console.error('Error verificando estado:', error);
+        banner.className = 'estado-banner estado-inactivo';
+        banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Error de verificación</span>`;
+        btnCaptura.disabled = true;
+        btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
       }
     }
 
-    async function cambiarEstado(id, activo) {
+    // ============================================================
+    // GUARDAR EQUIPO
+    // ============================================================
+    async function guardarEquipo(rol) {
+      const usuarioMap = {
+        gerente: 'usr-gerente',
+        super: 'usr-super',
+        civil: 'usr-civil',
+        instalaciones: 'usr-instalaciones',
+        admin: 'usr-admin'
+      };
+      const passMap = {
+        gerente: 'pass-gerente',
+        super: 'pass-super',
+        civil: 'pass-civil',
+        instalaciones: 'pass-instalaciones',
+        admin: 'pass-admin'
+      };
+      const statusMap = {
+        gerente: 'status-gerente',
+        super: 'status-super',
+        civil: 'status-civil',
+        instalaciones: 'status-instalaciones',
+        admin: 'status-admin'
+      };
+      const nombreRol = {
+        gerente: 'Gerente de Construcción',
+        super: 'Superintendente de Construcción',
+        civil: 'Residente de Obra Civil',
+        instalaciones: 'Residente de Instalaciones',
+        admin: 'Residente de Administración'
+      };
+
+      const usuario = document.getElementById(usuarioMap[rol]).value.trim();
+      const password = document.getElementById(passMap[rol]).value.trim();
+      const clienteId = getClienteId();
+      const proyectoId = parseInt(localStorage.getItem('proyecto_id'));
+
+      if (!usuario || !password) {
+        mostrarToast('⚠️ Completa usuario y contraseña para ' + nombreRol[rol], 'error');
+        return;
+      }
+
+      if (!clienteId || !proyectoId) {
+        mostrarToast('⚠️ No se encontró cliente o proyecto. Reintenta.', 'error');
+        return;
+      }
+
       try {
-        await cambiarEstadoCliente(id, activo);
-        const estado = activo ? 'ACTIVADO' : 'SUSPENDIDO';
-        mostrarToast(`Cliente ${estado} correctamente`);
-        cargarClientes();
+        const result = await crearEquipo(clienteId, proyectoId, nombreRol[rol], usuario, password);
+        const statusEl = document.getElementById(statusMap[rol]);
+        statusEl.style.display = 'inline';
+        setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+        mostrarToast(`✅ ${nombreRol[rol]} habilitado correctamente`);
+        document.getElementById(usuarioMap[rol]).value = '';
+        document.getElementById(passMap[rol]).value = '';
       } catch (error) {
-        mostrarToast('Error cambiando estado: ' + error.message, 'error');
+        mostrarToast('❌ Error: ' + error.message, 'error');
       }
     }
 
-    async function verDetalle(id) {
-      try {
-        const clientes = await obtenerClientes();
-        const cliente = clientes.find(c => String(c.id) === String(id));
-        if (!cliente) {
-          mostrarToast('Cliente no encontrado', 'error');
-          return;
-        }
-
-        const proyectos = await obtenerProyectos(id);
-        const proyectoNombres = proyectos.map(p => `• ${p.nombre_proyecto}`).join('\n') || 'Ninguno';
-
-        const estado = cliente.activo ? '✅ Activo' : '⛔ Inactivo';
-        alert(`📋 DETALLE DE CLIENTE\n\n` +
-              `Nombre: ${cliente.nombre}\n` +
-              `Usuario: ${cliente.usuario}\n` +
-              `Modelo: ${cliente.modelo_gestion || 'Cliente'}\n` +
-              `Estado: ${estado}\n` +
-              `Proyectos (${proyectos.length}):\n${proyectoNombres}\n` +
-              `Creación: ${cliente.fecha_creacion || '—'}`);
-      } catch (error) {
-        mostrarToast('Error obteniendo detalles: ' + error.message, 'error');
-      }
-    }
-
-    function cerrarSesion() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        eliminarToken();
+    // ============================================================
+    // IR A CAPTURA
+    // ============================================================
+    function irACaptura() {
+      const token = obtenerToken();
+      if (!token) {
+        mostrarToast('⛔ Sesión expirada. Inicia sesión nuevamente.', 'error');
         window.location.href = 'index.html';
+        return;
       }
+
+      const clienteId = getClienteId();
+      const proyectoId = parseInt(localStorage.getItem('proyecto_id'));
+
+      if (!proyectoId) {
+        mostrarToast('⚠️ No hay proyecto seleccionado. Contacta al administrador.', 'error');
+        return;
+      }
+
+      localStorage.setItem('obra360_proyecto_id', proyectoId);
+      localStorage.setItem('obra360_cliente_id', clienteId);
+      localStorage.setItem('obra360_token', token);
+
+      window.location.href = 'captura.html';
     }
 
     // ============================================================
     // INICIALIZAR
     // ============================================================
     (async function init() {
-      const autenticado = await loginAdmin();
-      if (autenticado) {
-        cargarClientes();
-      } else {
-        document.getElementById('lista-clientes').innerHTML = `
-          <div class="empty-state text-danger">
-            <i class="bi bi-lock"></i>
-            <h5>No se pudo autenticar</h5>
-            <p>Verifica que el servidor esté funcionando y las credenciales sean correctas.</p>
-            <button class="btn btn-primary mt-3" onclick="location.reload()">Reintentar</button>
-          </div>
-        `;
+      const token = obtenerToken();
+      const nombre = getClienteNombre();
+
+      if (!token) {
+        window.location.href = 'index.html';
+        return;
       }
+
+      document.getElementById('cliente-nombre-header').textContent = nombre;
+      document.getElementById('user-info').textContent = '👤 ' + nombre;
+
+      await renderizarEstado();
+      await renderizarProyectos();
     })();
   </script>
 
