@@ -360,21 +360,9 @@
     }
 
     // ============================================================
-    // VERIFICAR SESIÓN AL CARGAR
+    // VERIFICACIÓN DE SESIÓN DESACTIVADA (eliminado el bucle)
     // ============================================================
-
-    (function verificarSesion() {
-      const token = localStorage.getItem('token');
-      console.log('🔍 Verificando sesión - Token:', token);
-      if (token) {
-        const rol = localStorage.getItem('rol');
-        if (rol === 'admin') {
-          window.location.href = 'Portal Administrador.html';
-        } else if (rol === 'cliente') {
-          window.location.href = 'Portal_Cliente.html';
-        }
-      }
-    })();
+    console.log('📄 Página principal cargada - Inicio de sesión manual');
   </script>
 
   <!-- BOOTSTRAP JS (necesario para el carrusel) -->
