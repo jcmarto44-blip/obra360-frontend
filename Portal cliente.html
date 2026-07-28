@@ -34,17 +34,6 @@
       font-size: 0.9rem;
       font-weight: 300;
     }
-    .cliente-header .nav-links a {
-      color: rgba(255,255,255,0.85);
-      text-decoration: none;
-      margin: 0 0.75rem;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    .cliente-header .nav-links a:hover {
-      color: white;
-      text-decoration: underline;
-    }
     .btn-salir {
       background: rgba(255,255,255,0.15);
       border: 1px solid rgba(255,255,255,0.3);
@@ -53,6 +42,7 @@
       border-radius: 8px;
       font-weight: 600;
       transition: all 0.2s;
+      border: none;
     }
     .btn-salir:hover {
       background: rgba(255,255,255,0.25);
@@ -172,27 +162,35 @@
       transform: none;
       box-shadow: none;
     }
-    .loading {
-      text-align: center;
-      padding: 2rem;
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
     }
-    .loading .spinner {
-      width: 40px;
-      height: 40px;
-      border: 4px solid #e9edf4;
-      border-top-color: var(--cliente-primary);
-      border-radius: 50%;
-      animation: girar 0.8s linear infinite;
-      margin: 0 auto 1rem;
+    .toast-custom {
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      border-left: 5px solid var(--cliente-success);
+      margin-bottom: 10px;
+      min-width: 280px;
+      animation: slideIn 0.3s ease;
     }
-    @keyframes girar {
-      to { transform: rotate(360deg); }
+    .toast-custom.error {
+      border-left-color: var(--cliente-danger);
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
     @media (max-width: 768px) {
       .cliente-header { padding: 1rem; }
       .cliente-header h1 { font-size: 1.2rem; }
       .equipo-row .rol { min-width: 120px; }
       .equipo-row input { min-width: 80px; }
+      .toast-custom { min-width: auto; }
     }
   </style>
 </head>
@@ -204,32 +202,35 @@
       <h1><i class="bi bi-building me-2"></i><span id="cliente-nombre-header">Cliente</span></h1>
       <small>Portal del Cliente — Gestión de Proyectos y Equipo</small>
     </div>
-    <div class="nav-links d-flex align-items-center gap-2 mt-2 mt-md-0">
-      <span id="clienteUser" class="text-white me-2" style="opacity:0.8;font-size:0.9rem;"></span>
+    <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+      <span id="user-info" class="text-white-50" style="font-size:0.85rem;"></span>
       <button class="btn-salir" onclick="cerrarSesion()">
         <i class="bi bi-box-arrow-left me-1"></i>Salir
       </button>
     </div>
   </div>
 
+  <!-- TOAST -->
+  <div class="toast-container" id="toast-container"></div>
+
   <!-- CONTENIDO -->
   <div class="container-fluid px-4 py-4">
 
-    <!-- BANNER DE ESTADO (ACTIVO/INACTIVO) -->
+    <!-- BANNER DE ESTADO -->
     <div id="estado-banner" class="estado-banner estado-activo">
       <i class="bi bi-check-circle-fill"></i>
       <span>Cuenta Activa</span>
     </div>
 
-    <!-- PROYECTOS DEL CLIENTE -->
+    <!-- PROYECTOS -->
     <div class="card-cliente mb-4">
       <div class="card-header-custom">
         <i class="bi bi-folder me-2"></i>Mis Proyectos
       </div>
       <div class="card-body-custom" id="proyectos-container">
-        <div class="loading">
-          <div class="spinner"></div>
-          <p>Cargando proyectos...</p>
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Cargando proyectos...</p>
         </div>
       </div>
     </div>
@@ -303,7 +304,7 @@
       </div>
     </div>
 
-    <!-- BOTÓN ACCESO A CAPTURA -->
+    <!-- BOTÓN CAPTURA -->
     <div class="text-center mt-4">
       <button class="btn-captura" id="btn-captura" onclick="irACaptura()">
         <i class="bi bi-table me-2"></i>Acceder a Captura de Obra
@@ -311,7 +312,7 @@
     </div>
 
     <div class="mt-4 pt-2 text-center text-muted border-top" style="font-size:0.8rem;">
-      <i class="bi bi-database me-1"></i> Los datos se guardan en el servidor.
+      <i class="bi bi-database me-1"></i> Datos conectados a la API en Render.
     </div>
   </div>
 
@@ -319,65 +320,156 @@
     // ============================================================
     // CONFIGURACIÓN
     // ============================================================
-    const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
+    const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
+    const TOKEN_KEY = 'caasa_admin_token';
 
     // ============================================================
-    // VERIFICAR SESIÓN
+    // TOAST NOTIFICATIONS
     // ============================================================
-    function verificarSesion() {
-      const token = localStorage.getItem('token');
-      const rol = localStorage.getItem('rol');
-      const nombre = localStorage.getItem('cliente_nombre');
-      const usuario = localStorage.getItem('usuario');
-      
-      if (!token || rol !== 'cliente') {
-        window.location.href = 'index.html';
-      }
-      
-      document.getElementById('cliente-nombre-header').textContent = nombre || 'Cliente';
-      document.getElementById('clienteUser').textContent = '👤 ' + (usuario || '');
+    function mostrarToast(mensaje, tipo = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast-custom ${tipo === 'error' ? 'error' : ''}`;
+      const icono = tipo === 'error' ? '❌' : '✅';
+      toast.innerHTML = `${icono} ${mensaje}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // ============================================================
+    // FUNCIONES DE AUTENTICACIÓN
+    // ============================================================
+    function obtenerToken() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function eliminarToken() {
+      localStorage.removeItem(TOKEN_KEY);
     }
 
     function cerrarSesion() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('rol');
-      localStorage.removeItem('cliente_id');
-      localStorage.removeItem('cliente_nombre');
-      localStorage.removeItem('usuario');
-      window.location.href = 'index.html';
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        eliminarToken();
+        localStorage.removeItem('rol');
+        localStorage.removeItem('cliente_id');
+        localStorage.removeItem('cliente_nombre');
+        localStorage.removeItem('usuario');
+        window.location.href = 'index.html';
+      }
     }
 
-    function getToken() {
-      return localStorage.getItem('token');
+    // ============================================================
+    // PETICIONES A LA API
+    // ============================================================
+    async function apiFetch(endpoint, options = {}) {
+      const token = obtenerToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        eliminarToken();
+        window.location.href = 'index.html';
+        throw new Error('Sesión expirada');
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error ${response.status}`);
+      }
+
+      return response.json();
     }
 
+    // ============================================================
+    // DATOS DEL CLIENTE
+    // ============================================================
     function getClienteId() {
       return parseInt(localStorage.getItem('cliente_id'));
     }
 
+    function getClienteNombre() {
+      return localStorage.getItem('cliente_nombre') || 'Cliente';
+    }
+
     // ============================================================
-    // RENDERIZAR PROYECTOS DESDE API
+    // OBTENER PROYECTOS DESDE API
+    // ============================================================
+    async function obtenerProyectos(clienteId) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/proyectos`);
+      } catch (error) {
+        console.error('Error obteniendo proyectos:', error);
+        return [];
+      }
+    }
+
+    // ============================================================
+    // OBTENER EQUIPO DESDE API
+    // ============================================================
+    async function obtenerEquipo(clienteId) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/equipo`);
+      } catch (error) {
+        console.error('Error obteniendo equipo:', error);
+        return [];
+      }
+    }
+
+    // ============================================================
+    // CREAR MIEMBRO DE EQUIPO EN API
+    // ============================================================
+    async function crearEquipo(clienteId, proyectoId, rol, usuario, password) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/equipo`, {
+          method: 'POST',
+          body: JSON.stringify({
+            proyecto_id: proyectoId,
+            rol: rol,
+            usuario: usuario,
+            password: password
+          })
+        });
+      } catch (error) {
+        console.error('Error creando equipo:', error);
+        throw error;
+      }
+    }
+
+    // ============================================================
+    // RENDERIZAR PROYECTOS
     // ============================================================
     async function renderizarProyectos() {
       const container = document.getElementById('proyectos-container');
-      const token = getToken();
       const clienteId = getClienteId();
 
-      if (!token || !clienteId) {
-        window.location.href = 'index.html';
+      if (!clienteId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>No se encontró información del cliente</h5>
+            <p>Inicia sesión nuevamente.</p>
+          </div>
+        `;
         return;
       }
 
       try {
-        const response = await fetch(`${API_URL}/clientes/${clienteId}/proyectos?token=${token}`);
-        
-        if (response.status === 403) {
-          alert('Sesión expirada. Inicia sesión nuevamente.');
-          cerrarSesion();
-          return;
-        }
-
-        const proyectos = await response.json();
+        const proyectos = await obtenerProyectos(clienteId);
 
         if (!proyectos || proyectos.length === 0) {
           container.innerHTML = `
@@ -397,58 +489,72 @@
         html += '</div>';
         container.innerHTML = html;
 
+        // Guardar el primer proyecto para usarlo en equipo
+        if (proyectos.length > 0) {
+          localStorage.setItem('proyecto_id', proyectos[0].id);
+        }
+
       } catch (error) {
-        console.error('Error al cargar proyectos:', error);
         container.innerHTML = `
-          <div class="empty-state">
+          <div class="empty-state text-danger">
             <i class="bi bi-exclamation-triangle"></i>
             <h5>Error al cargar proyectos</h5>
-            <p>${error.message}</p>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+            <button class="btn btn-primary mt-3" onclick="renderizarProyectos()">Reintentar</button>
           </div>
         `;
+        mostrarToast('Error al cargar proyectos: ' + error.message, 'error');
       }
     }
 
     // ============================================================
-    // MOSTRAR ESTADO ACTIVO/INACTIVO DESDE API
+    // RENDERIZAR ESTADO
     // ============================================================
-    async function mostrarEstado() {
-      const token = getToken();
-      const clienteId = getClienteId();
+    async function renderizarEstado() {
       const banner = document.getElementById('estado-banner');
       const btnCaptura = document.getElementById('btn-captura');
+      const clienteId = getClienteId();
 
-      if (!token || !clienteId) return;
+      if (!clienteId) {
+        banner.className = 'estado-banner estado-inactivo';
+        banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>No se pudo verificar estado</span>`;
+        btnCaptura.disabled = true;
+        btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
+        return;
+      }
 
       try {
-        // Obtener datos del cliente desde /cliente/me
-        const response = await fetch(`${API_URL}/cliente/me?token=${token}`);
-        if (response.ok) {
-          const cliente = await response.json();
-          
-          if (cliente.activo === false) {
-            banner.className = 'estado-banner estado-inactivo';
-            banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Cuenta Inactiva</span>`;
-            btnCaptura.disabled = true;
-            btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado (cuenta inactiva)`;
-            document.querySelectorAll('.equipo-row input').forEach(input => input.disabled = true);
-            document.querySelectorAll('.equipo-row button').forEach(btn => btn.disabled = true);
-          } else {
+        // Verificar token y obtener datos del cliente
+        const response = await apiFetch('/verificar_token');
+        if (response && response.cliente) {
+          const activo = response.cliente.activo;
+          if (activo) {
             banner.className = 'estado-banner estado-activo';
             banner.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>Cuenta Activa</span>`;
             btnCaptura.disabled = false;
             btnCaptura.innerHTML = `<i class="bi bi-table me-2"></i>Acceder a Captura de Obra`;
             document.querySelectorAll('.equipo-row input').forEach(input => input.disabled = false);
             document.querySelectorAll('.equipo-row button').forEach(btn => btn.disabled = false);
+          } else {
+            banner.className = 'estado-banner estado-inactivo';
+            banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Cuenta Inactiva</span>`;
+            btnCaptura.disabled = true;
+            btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado (cuenta inactiva)`;
+            document.querySelectorAll('.equipo-row input').forEach(input => input.disabled = true);
+            document.querySelectorAll('.equipo-row button').forEach(btn => btn.disabled = true);
           }
         }
       } catch (error) {
-        console.error('Error al obtener estado:', error);
+        console.error('Error verificando estado:', error);
+        banner.className = 'estado-banner estado-inactivo';
+        banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Error de verificación</span>`;
+        btnCaptura.disabled = true;
+        btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
       }
     }
 
     // ============================================================
-    // GUARDAR EQUIPO VÍA API
+    // GUARDAR EQUIPO
     // ============================================================
     async function guardarEquipo(rol) {
       const usuarioMap = {
@@ -472,145 +578,88 @@
         instalaciones: 'status-instalaciones',
         admin: 'status-admin'
       };
+      const nombreRol = {
+        gerente: 'Gerente de Construcción',
+        super: 'Superintendente de Construcción',
+        civil: 'Residente de Obra Civil',
+        instalaciones: 'Residente de Instalaciones',
+        admin: 'Residente de Administración'
+      };
 
       const usuario = document.getElementById(usuarioMap[rol]).value.trim();
       const password = document.getElementById(passMap[rol]).value.trim();
+      const clienteId = getClienteId();
+      const proyectoId = parseInt(localStorage.getItem('proyecto_id'));
 
       if (!usuario || !password) {
-        alert('⚠️ Completa usuario y contraseña para ' + rol);
+        mostrarToast('⚠️ Completa usuario y contraseña para ' + nombreRol[rol], 'error');
         return;
       }
 
-      const token = getToken();
-      const clienteId = getClienteId();
-
-      if (!token || !clienteId) {
-        alert('⚠️ Sesión expirada. Inicia sesión nuevamente.');
-        cerrarSesion();
+      if (!clienteId || !proyectoId) {
+        mostrarToast('⚠️ No se encontró cliente o proyecto. Reintenta.', 'error');
         return;
       }
 
       try {
-        // Obtener proyectos del cliente
-        const projResponse = await fetch(`${API_URL}/clientes/${clienteId}/proyectos?token=${token}`);
-        const proyectos = await projResponse.json();
-
-        if (proyectos.length === 0) {
-          alert('⚠️ No tienes proyectos. Contacta al administrador.');
-          return;
-        }
-
-        // Usar el primer proyecto (o permitir seleccionar)
-        const proyectoId = proyectos[0].id;
-
-        const response = await fetch(`${API_URL}/clientes/${clienteId}/equipo?token=${token}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            proyecto_id: proyectoId,
-            rol: rol,
-            usuario: usuario,
-            password: password
-          })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          alert('❌ Error: ' + (data.detail || data.mensaje || 'Error desconocido'));
-          return;
-        }
-
-        // Mostrar check verde
+        const result = await crearEquipo(clienteId, proyectoId, nombreRol[rol], usuario, password);
         const statusEl = document.getElementById(statusMap[rol]);
         statusEl.style.display = 'inline';
-        setTimeout(() => {
-          statusEl.style.display = 'none';
-        }, 3000);
-
-        alert(`✅ ${rol} habilitado correctamente.`);
-
+        setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
+        mostrarToast(`✅ ${nombreRol[rol]} habilitado correctamente`);
+        // Limpiar campos
+        document.getElementById(usuarioMap[rol]).value = '';
+        document.getElementById(passMap[rol]).value = '';
       } catch (error) {
-        alert('❌ Error de conexión: ' + error.message);
+        mostrarToast('❌ Error: ' + error.message, 'error');
       }
     }
 
     // ============================================================
-    // CARGAR EQUIPO GUARDADO DESDE API
-    // ============================================================
-    async function cargarEquipo() {
-      const token = getToken();
-      const clienteId = getClienteId();
-
-      if (!token || !clienteId) return;
-
-      try {
-        const response = await fetch(`${API_URL}/clientes/${clienteId}/equipo?token=${token}`);
-        if (!response.ok) return;
-
-        const equipo = await response.json();
-
-        const usuarioMap = {
-          'Gerente de Construcción': 'usr-gerente',
-          'Superintendente de Construcción': 'usr-super',
-          'Residente de Obra Civil': 'usr-civil',
-          'Residente de Instalaciones': 'usr-instalaciones',
-          'Residente de Administración': 'usr-admin'
-        };
-        const passMap = {
-          'Gerente de Construcción': 'pass-gerente',
-          'Superintendente de Construcción': 'pass-super',
-          'Residente de Obra Civil': 'pass-civil',
-          'Residente de Instalaciones': 'pass-instalaciones',
-          'Residente de Administración': 'pass-admin'
-        };
-        const statusMap = {
-          'Gerente de Construcción': 'status-gerente',
-          'Superintendente de Construcción': 'status-super',
-          'Residente de Obra Civil': 'status-civil',
-          'Residente de Instalaciones': 'status-instalaciones',
-          'Residente de Administración': 'status-admin'
-        };
-
-        equipo.forEach(miembro => {
-          const usuarioInput = document.getElementById(usuarioMap[miembro.rol]);
-          const passInput = document.getElementById(passMap[miembro.rol]);
-          const statusEl = document.getElementById(statusMap[miembro.rol]);
-          
-          if (usuarioInput && passInput) {
-            usuarioInput.value = miembro.usuario;
-            passInput.value = '••••••••'; // No mostramos la contraseña real
-            if (statusEl) statusEl.style.display = 'inline';
-          }
-        });
-
-      } catch (error) {
-        console.error('Error al cargar equipo:', error);
-      }
-    }
-
-    // ============================================================
-    // IR A CAPTURA DE OBRA
+    // IR A CAPTURA
     // ============================================================
     function irACaptura() {
-      const token = getToken();
+      const token = obtenerToken();
       if (!token) {
-        alert('⛔ Acceso denegado. Inicia sesión nuevamente.');
-        cerrarSesion();
+        mostrarToast('⛔ Sesión expirada. Inicia sesión nuevamente.', 'error');
+        window.location.href = 'index.html';
         return;
       }
-      // Guardar el cliente actual para que captura.html lo sepa
-      localStorage.setItem('obra360_cliente', localStorage.getItem('cliente_nombre') || '');
+
+      const clienteId = getClienteId();
+      const proyectoId = parseInt(localStorage.getItem('proyecto_id'));
+
+      if (!proyectoId) {
+        mostrarToast('⚠️ No hay proyecto seleccionado. Contacta al administrador.', 'error');
+        return;
+      }
+
+      // Guardar datos para captura.html
+      localStorage.setItem('obra360_proyecto_id', proyectoId);
+      localStorage.setItem('obra360_cliente_id', clienteId);
+      localStorage.setItem('obra360_token', token);
+
       window.location.href = 'captura.html';
     }
 
     // ============================================================
     // INICIALIZAR
     // ============================================================
-    verificarSesion();
-    renderizarProyectos();
-    mostrarEstado();
-    cargarEquipo();
+    (async function init() {
+      const token = obtenerToken();
+      const nombre = getClienteNombre();
+
+      if (!token) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      document.getElementById('cliente-nombre-header').textContent = nombre;
+      document.getElementById('user-info').textContent = '👤 ' + nombre;
+
+      await renderizarEstado();
+      await renderizarProyectos();
+    })();
   </script>
 
 </body>
