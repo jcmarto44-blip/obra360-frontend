@@ -342,6 +342,9 @@
         localStorage.setItem('cliente_nombre', data.nombre);
         localStorage.setItem('usuario', usuario);
 
+        console.log('✅ Token guardado:', localStorage.getItem('token'));
+        console.log('✅ Rol guardado:', localStorage.getItem('rol'));
+
         // Redirigir según rol
         if (data.rol === 'admin') {
           window.location.href = 'Portal Administrador.html';
@@ -362,6 +365,7 @@
 
     (function verificarSesion() {
       const token = localStorage.getItem('token');
+      console.log('🔍 Verificando sesión - Token:', token);
       if (token) {
         const rol = localStorage.getItem('rol');
         if (rol === 'admin') {
