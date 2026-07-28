@@ -95,6 +95,29 @@
       display: inline-block;
       margin: 0.2rem 0.2rem;
     }
+    .badge-proyecto-seleccionado {
+      background: var(--cliente-primary);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin: 0.2rem 0.2rem;
+      cursor: pointer;
+      border: 2px solid var(--cliente-primary);
+    }
+    .badge-proyecto-seleccionado:hover {
+      background: #2a6bb0;
+    }
+    .badge-proyecto {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .badge-proyecto:hover {
+      background: var(--cliente-primary);
+      color: white;
+    }
     .equipo-row {
       display: flex;
       align-items: center;
@@ -185,6 +208,16 @@
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
+    .proyecto-seleccionado-info {
+      background: var(--cliente-primary);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
     @media (max-width: 768px) {
       .cliente-header { padding: 1rem; }
       .cliente-header h1 { font-size: 1.2rem; }
@@ -222,10 +255,13 @@
       <span>Cuenta Activa</span>
     </div>
 
-    <!-- PROYECTOS -->
+    <!-- PROYECTOS DEL CLIENTE CON SELECCIÓN -->
     <div class="card-cliente mb-4">
       <div class="card-header-custom">
         <i class="bi bi-folder me-2"></i>Mis Proyectos
+        <span class="text-muted" style="font-size:0.8rem;font-weight:400;">
+          <i class="bi bi-info-circle"></i> Haz clic en un proyecto para seleccionarlo
+        </span>
       </div>
       <div class="card-body-custom" id="proyectos-container">
         <div class="text-center py-4">
@@ -235,76 +271,32 @@
       </div>
     </div>
 
-    <!-- EQUIPO DE TRABAJO -->
-    <div class="card-cliente mb-4">
+    <!-- PROYECTO SELECCIONADO (info) -->
+    <div id="proyecto-seleccionado-info" style="display:none;" class="text-center mb-3">
+      <span class="proyecto-seleccionado-info">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Proyecto seleccionado: <span id="proyecto-seleccionado-nombre">—</span>
+      </span>
+    </div>
+
+    <!-- EQUIPO DE TRABAJO (del proyecto seleccionado) -->
+    <div class="card-cliente mb-4" id="equipo-card">
       <div class="card-header-custom">
         <i class="bi bi-people me-2"></i>Habilitar Equipo de Trabajo
+        <span id="equipo-proyecto-label" class="text-muted" style="font-size:0.8rem;font-weight:400;">
+          (Selecciona un proyecto primero)
+        </span>
       </div>
-      <div class="card-body-custom">
-        <p class="text-muted" style="font-size:0.9rem;">
-          <i class="bi bi-info-circle me-1"></i>
-          Crea usuarios y contraseñas para cada rol. Estos usuarios podrán acceder a la Captura de Obra.
-        </p>
-
-        <!-- Gerente de Construcción -->
-        <div class="equipo-row">
-          <span class="rol"><i class="bi bi-person-badge me-1"></i>Gerente de Construcción</span>
-          <input type="text" id="usr-gerente" placeholder="Usuario" class="form-control form-control-sm">
-          <input type="text" id="pass-gerente" placeholder="Contraseña" class="form-control form-control-sm">
-          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('gerente')">
-            <i class="bi bi-check2"></i> Guardar
-          </button>
-          <span id="status-gerente" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
+      <div class="card-body-custom" id="equipo-body">
+        <div class="empty-state">
+          <i class="bi bi-folder-x"></i>
+          <h5>Selecciona un proyecto</h5>
+          <p>Haz clic en uno de tus proyectos para habilitar su equipo de trabajo.</p>
         </div>
-
-        <!-- Superintendente -->
-        <div class="equipo-row">
-          <span class="rol"><i class="bi bi-person-badge me-1"></i>Superintendente de Construcción</span>
-          <input type="text" id="usr-super" placeholder="Usuario" class="form-control form-control-sm">
-          <input type="text" id="pass-super" placeholder="Contraseña" class="form-control form-control-sm">
-          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('super')">
-            <i class="bi bi-check2"></i> Guardar
-          </button>
-          <span id="status-super" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
-        </div>
-
-        <!-- Residente Obra Civil -->
-        <div class="equipo-row">
-          <span class="rol"><i class="bi bi-person-badge me-1"></i>Residente de Obra Civil</span>
-          <input type="text" id="usr-civil" placeholder="Usuario" class="form-control form-control-sm">
-          <input type="text" id="pass-civil" placeholder="Contraseña" class="form-control form-control-sm">
-          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('civil')">
-            <i class="bi bi-check2"></i> Guardar
-          </button>
-          <span id="status-civil" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
-        </div>
-
-        <!-- Residente Instalaciones -->
-        <div class="equipo-row">
-          <span class="rol"><i class="bi bi-person-badge me-1"></i>Residente de Instalaciones</span>
-          <input type="text" id="usr-instalaciones" placeholder="Usuario" class="form-control form-control-sm">
-          <input type="text" id="pass-instalaciones" placeholder="Contraseña" class="form-control form-control-sm">
-          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('instalaciones')">
-            <i class="bi bi-check2"></i> Guardar
-          </button>
-          <span id="status-instalaciones" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
-        </div>
-
-        <!-- Residente Administración -->
-        <div class="equipo-row">
-          <span class="rol"><i class="bi bi-person-badge me-1"></i>Residente de Administración</span>
-          <input type="text" id="usr-admin" placeholder="Usuario" class="form-control form-control-sm">
-          <input type="text" id="pass-admin" placeholder="Contraseña" class="form-control form-control-sm">
-          <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('admin')">
-            <i class="bi bi-check2"></i> Guardar
-          </button>
-          <span id="status-admin" class="text-success" style="font-size:0.8rem;display:none;">✅</span>
-        </div>
-
       </div>
     </div>
 
-    <!-- BOTÓN CAPTURA -->
+    <!-- BOTÓN ACCESO A CAPTURA -->
     <div class="text-center mt-4">
       <button class="btn-captura" id="btn-captura" onclick="irACaptura()">
         <i class="bi bi-table me-2"></i>Acceder a Captura de Obra
@@ -322,6 +314,10 @@
     // ============================================================
     const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
     const TOKEN_KEY = 'caasa_admin_token';
+
+    // Variable global para proyecto seleccionado
+    let proyectoSeleccionadoId = null;
+    let proyectoSeleccionadoNombre = null;
 
     // ============================================================
     // TOAST NOTIFICATIONS
@@ -353,11 +349,7 @@
 
     function cerrarSesion() {
       if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        eliminarToken();
-        localStorage.removeItem('rol');
-        localStorage.removeItem('cliente_id');
-        localStorage.removeItem('cliente_nombre');
-        localStorage.removeItem('usuario');
+        localStorage.clear();
         window.location.href = 'index.html';
       }
     }
@@ -421,9 +413,11 @@
     // ============================================================
     // OBTENER EQUIPO DESDE API
     // ============================================================
-    async function obtenerEquipo(clienteId) {
+    async function obtenerEquipo(clienteId, proyectoId) {
       try {
-        return await apiFetch(`/clientes/${clienteId}/equipo`);
+        const equipo = await apiFetch(`/clientes/${clienteId}/equipo`);
+        // Filtrar equipo por proyecto
+        return equipo.filter(m => m.proyecto_id === proyectoId);
       } catch (error) {
         console.error('Error obteniendo equipo:', error);
         return [];
@@ -451,7 +445,7 @@
     }
 
     // ============================================================
-    // RENDERIZAR PROYECTOS
+    // RENDERIZAR PROYECTOS CON SELECCIÓN
     // ============================================================
     async function renderizarProyectos() {
       const container = document.getElementById('proyectos-container');
@@ -484,14 +478,18 @@
 
         let html = '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">';
         proyectos.forEach(p => {
-          html += `<span class="badge-proyecto"><i class="bi bi-folder2-open me-1"></i>${p.nombre_proyecto}</span>`;
+          const seleccionado = (proyectoSeleccionadoId === p.id) ? 'badge-proyecto-seleccionado' : 'badge-proyecto';
+          const icono = (proyectoSeleccionadoId === p.id) ? 'check-circle-fill' : 'folder2-open';
+          html += `<span class="${seleccionado}" onclick="seleccionarProyecto(${p.id}, '${p.nombre_proyecto}')">
+            <i class="bi bi-${icono} me-1"></i>${p.nombre_proyecto}
+          </span>`;
         });
         html += '</div>';
         container.innerHTML = html;
 
-        // Guardar el primer proyecto para usarlo en equipo
-        if (proyectos.length > 0) {
-          localStorage.setItem('proyecto_id', proyectos[0].id);
+        // Si hay proyectos y no hay seleccionado, seleccionar el primero
+        if (proyectos.length > 0 && proyectoSeleccionadoId === null) {
+          seleccionarProyecto(proyectos[0].id, proyectos[0].nombre_proyecto);
         }
 
       } catch (error) {
@@ -504,6 +502,158 @@
           </div>
         `;
         mostrarToast('Error al cargar proyectos: ' + error.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // SELECCIONAR PROYECTO
+    // ============================================================
+    function seleccionarProyecto(id, nombre) {
+      proyectoSeleccionadoId = id;
+      proyectoSeleccionadoNombre = nombre;
+
+      // Mostrar info del proyecto seleccionado
+      document.getElementById('proyecto-seleccionado-info').style.display = 'block';
+      document.getElementById('proyecto-seleccionado-nombre').textContent = nombre;
+
+      // Actualizar label del equipo
+      document.getElementById('equipo-proyecto-label').textContent = `(${nombre})`;
+
+      // Guardar en localStorage para captura
+      localStorage.setItem('proyecto_id', id);
+      localStorage.setItem('proyecto_nombre', nombre);
+
+      // Renderizar equipo del proyecto seleccionado
+      renderizarEquipo();
+
+      // Actualizar badges
+      renderizarProyectos();
+    }
+
+    // ============================================================
+    // RENDERIZAR EQUIPO DEL PROYECTO SELECCIONADO
+    // ============================================================
+    async function renderizarEquipo() {
+      const container = document.getElementById('equipo-body');
+      const clienteId = getClienteId();
+
+      if (!proyectoSeleccionadoId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-folder-x"></i>
+            <h5>Selecciona un proyecto</h5>
+            <p>Haz clic en uno de tus proyectos para habilitar su equipo de trabajo.</p>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const equipo = await obtenerEquipo(clienteId, proyectoSeleccionadoId);
+
+        // Mapear roles para verificar si ya existen
+        const rolesExistentes = {};
+        equipo.forEach(m => {
+          rolesExistentes[m.rol] = m;
+        });
+
+        // Definir roles fijos
+        const roles = [
+          { id: 'gerente', label: 'Gerente de Construcción' },
+          { id: 'super', label: 'Superintendente de Construcción' },
+          { id: 'civil', label: 'Residente de Obra Civil' },
+          { id: 'instalaciones', label: 'Residente de Instalaciones' },
+          { id: 'admin', label: 'Residente de Administración' }
+        ];
+
+        let html = `
+          <p class="text-muted" style="font-size:0.9rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Crea usuarios y contraseñas para cada rol en el proyecto <strong>${proyectoSeleccionadoNombre}</strong>.
+          </p>
+        `;
+
+        roles.forEach(rol => {
+          const existe = rolesExistentes[rol.label];
+          const usuarioValue = existe ? existe.usuario : '';
+          const passwordValue = ''; // No mostramos contraseña por seguridad
+          const statusDisplay = existe ? 'inline' : 'none';
+
+          html += `
+            <div class="equipo-row">
+              <span class="rol"><i class="bi bi-person-badge me-1"></i>${rol.label}</span>
+              <input type="text" id="usr-${rol.id}" placeholder="Usuario" class="form-control form-control-sm" value="${usuarioValue}" ${existe ? 'disabled' : ''}>
+              <input type="text" id="pass-${rol.id}" placeholder="Contraseña" class="form-control form-control-sm" value="${passwordValue}" ${existe ? 'disabled' : ''}>
+              ${existe 
+                ? `<button class="btn btn-sm btn-danger btn-sm-custom" onclick="eliminarMiembroEquipo(${existe.id})">
+                    <i class="bi bi-trash3"></i> Eliminar
+                  </button>`
+                : `<button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('${rol.id}', '${rol.label}')">
+                    <i class="bi bi-check2"></i> Guardar
+                  </button>`
+              }
+              <span id="status-${rol.id}" class="text-success" style="font-size:0.8rem;display:${statusDisplay};">✅</span>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        container.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar equipo</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+          </div>
+        `;
+        mostrarToast('Error al cargar equipo: ' + error.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // GUARDAR EQUIPO
+    // ============================================================
+    async function guardarEquipo(rolId, rolLabel) {
+      const usuario = document.getElementById(`usr-${rolId}`).value.trim();
+      const password = document.getElementById(`pass-${rolId}`).value.trim();
+      const clienteId = getClienteId();
+
+      if (!usuario || !password) {
+        mostrarToast('⚠️ Completa usuario y contraseña para ' + rolLabel, 'error');
+        return;
+      }
+
+      if (!clienteId || !proyectoSeleccionadoId) {
+        mostrarToast('⚠️ No se encontró cliente o proyecto. Reintenta.', 'error');
+        return;
+      }
+
+      try {
+        await crearEquipo(clienteId, proyectoSeleccionadoId, rolLabel, usuario, password);
+        mostrarToast(`✅ ${rolLabel} habilitado correctamente para ${proyectoSeleccionadoNombre}`);
+        renderizarEquipo();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // ELIMINAR MIEMBRO DE EQUIPO
+    // ============================================================
+    async function eliminarMiembroEquipo(equipoId) {
+      if (!confirm('¿Eliminar este miembro del equipo?')) return;
+
+      const clienteId = getClienteId();
+
+      try {
+        await apiFetch(`/clientes/${clienteId}/equipo/${equipoId}`, {
+          method: 'DELETE'
+        });
+        mostrarToast('✅ Miembro eliminado correctamente');
+        renderizarEquipo();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
       }
     }
 
@@ -524,7 +674,6 @@
       }
 
       try {
-        // Verificar token y obtener datos del cliente
         const response = await apiFetch('/verificar_token');
         if (response && response.cliente) {
           const activo = response.cliente.activo;
@@ -533,15 +682,11 @@
             banner.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>Cuenta Activa</span>`;
             btnCaptura.disabled = false;
             btnCaptura.innerHTML = `<i class="bi bi-table me-2"></i>Acceder a Captura de Obra`;
-            document.querySelectorAll('.equipo-row input').forEach(input => input.disabled = false);
-            document.querySelectorAll('.equipo-row button').forEach(btn => btn.disabled = false);
           } else {
             banner.className = 'estado-banner estado-inactivo';
             banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Cuenta Inactiva</span>`;
             btnCaptura.disabled = true;
             btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado (cuenta inactiva)`;
-            document.querySelectorAll('.equipo-row input').forEach(input => input.disabled = true);
-            document.querySelectorAll('.equipo-row button').forEach(btn => btn.disabled = true);
           }
         }
       } catch (error) {
@@ -550,68 +695,6 @@
         banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Error de verificación</span>`;
         btnCaptura.disabled = true;
         btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
-      }
-    }
-
-    // ============================================================
-    // GUARDAR EQUIPO
-    // ============================================================
-    async function guardarEquipo(rol) {
-      const usuarioMap = {
-        gerente: 'usr-gerente',
-        super: 'usr-super',
-        civil: 'usr-civil',
-        instalaciones: 'usr-instalaciones',
-        admin: 'usr-admin'
-      };
-      const passMap = {
-        gerente: 'pass-gerente',
-        super: 'pass-super',
-        civil: 'pass-civil',
-        instalaciones: 'pass-instalaciones',
-        admin: 'pass-admin'
-      };
-      const statusMap = {
-        gerente: 'status-gerente',
-        super: 'status-super',
-        civil: 'status-civil',
-        instalaciones: 'status-instalaciones',
-        admin: 'status-admin'
-      };
-      const nombreRol = {
-        gerente: 'Gerente de Construcción',
-        super: 'Superintendente de Construcción',
-        civil: 'Residente de Obra Civil',
-        instalaciones: 'Residente de Instalaciones',
-        admin: 'Residente de Administración'
-      };
-
-      const usuario = document.getElementById(usuarioMap[rol]).value.trim();
-      const password = document.getElementById(passMap[rol]).value.trim();
-      const clienteId = getClienteId();
-      const proyectoId = parseInt(localStorage.getItem('proyecto_id'));
-
-      if (!usuario || !password) {
-        mostrarToast('⚠️ Completa usuario y contraseña para ' + nombreRol[rol], 'error');
-        return;
-      }
-
-      if (!clienteId || !proyectoId) {
-        mostrarToast('⚠️ No se encontró cliente o proyecto. Reintenta.', 'error');
-        return;
-      }
-
-      try {
-        const result = await crearEquipo(clienteId, proyectoId, nombreRol[rol], usuario, password);
-        const statusEl = document.getElementById(statusMap[rol]);
-        statusEl.style.display = 'inline';
-        setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
-        mostrarToast(`✅ ${nombreRol[rol]} habilitado correctamente`);
-        // Limpiar campos
-        document.getElementById(usuarioMap[rol]).value = '';
-        document.getElementById(passMap[rol]).value = '';
-      } catch (error) {
-        mostrarToast('❌ Error: ' + error.message, 'error');
       }
     }
 
@@ -626,16 +709,15 @@
         return;
       }
 
-      const clienteId = getClienteId();
-      const proyectoId = parseInt(localStorage.getItem('proyecto_id'));
-
-      if (!proyectoId) {
-        mostrarToast('⚠️ No hay proyecto seleccionado. Contacta al administrador.', 'error');
+      if (!proyectoSeleccionadoId) {
+        mostrarToast('⚠️ Selecciona un proyecto primero.', 'error');
         return;
       }
 
-      // Guardar datos para captura.html
-      localStorage.setItem('obra360_proyecto_id', proyectoId);
+      const clienteId = getClienteId();
+
+      localStorage.setItem('obra360_proyecto_id', proyectoSeleccionadoId);
+      localStorage.setItem('obra360_proyecto_nombre', proyectoSeleccionadoNombre);
       localStorage.setItem('obra360_cliente_id', clienteId);
       localStorage.setItem('obra360_token', token);
 
