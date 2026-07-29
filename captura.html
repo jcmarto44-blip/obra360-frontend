@@ -65,6 +65,21 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 .header-actions .proyecto-tag{
   font-size:11px;background:rgba(255,255,255,.15);padding:5px 10px;border-radius:12px;
 }
+/* ✅ BOTÓN MODELO Y REPORTES */
+.btn-modelo-reportes {
+  background: #17a2b8;
+  border: 1px solid #17a2b8;
+  color: #fff;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.btn-modelo-reportes:hover {
+  background: #138496;
+  border-color: #138496;
+}
 
 /* ============== SHELL ============== */
 .app-shell{display:flex;height:calc(100vh - 58px);}
@@ -251,6 +266,10 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
     <span class="proyecto-tag" id="tag-proyecto">Proyecto: —</span>
     <button id="btn-importar">Importar</button>
     <button onclick="exportarCSV()">Exportar</button>
+    <!-- ✅ BOTÓN MODELO Y REPORTES -->
+    <button class="btn-modelo-reportes" onclick="window.location.href='Modelo_y_Reportes.html'">
+      <i class="bi bi-eye me-1"></i>Modelo y Reportes
+    </button>
     <button style="background:var(--marca-color-acento);border-color:var(--marca-color-acento)" onclick="guardarModuloActivo()">Guardar</button>
   </div>
 </div>
