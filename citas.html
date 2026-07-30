@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Análisis y Reportes de Obra 360 — Agenda tu Cita</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
@@ -38,6 +39,130 @@
       justify-content:center;align-items:center;
     }
     .cajaCita{background:white;padding:30px;width:420px;max-width:92vw;border-radius:15px;box-shadow:0 5px 25px rgba(0,0,0,.4);}
+
+    /* ===== RESPONSIVE: MOBILE Y TABLET ===== */
+
+    /* --- MOBILE (< 768px) --- */
+    @media (max-width: 767.98px) {
+
+      /* Navbar: logo más pequeño, texto más pequeño, wrap */
+      .navbar .container-fluid {
+        flex-wrap: wrap !important;
+        row-gap: 10px !important;
+        padding: 8px 16px !important;
+      }
+      .navbar-logo {
+        height: 48px !important;
+        margin-right: 12px !important;
+      }
+      .navbar-titulo {
+        font-size: 1.15rem !important;
+        letter-spacing: 0 !important;
+      }
+      .navbar-subtitulo {
+        font-size: 0.78rem !important;
+      }
+      .navbar .btn {
+        font-size: 0.85rem !important;
+        padding: 6px 14px !important;
+      }
+
+      /* Hero: sacar el botón de encima de la imagen, mostrarlo abajo */
+      .hero-wrap {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        padding: 0 8px !important;
+      }
+      .hero-wrap > img {
+        max-height: 240px !important;
+        width: 100% !important;
+        object-fit: cover !important;
+      }
+      .hero-cta-flotante {
+        position: static !important;
+        transform: none !important;
+        margin-top: 14px !important;
+        width: 100% !important;
+        text-align: center !important;
+      }
+      .hero-cta-flotante .btn {
+        font-size: 1rem !important;
+        padding: 12px 28px !important;
+        width: 100% !important;
+      }
+
+      /* Tagline bar: texto más pequeño, ocultar separadores */
+      .tagline-bar {
+        padding: 14px 12px !important;
+      }
+      .tagline-bar span {
+        font-size: 0.82rem !important;
+        letter-spacing: 0 !important;
+        display: inline !important;
+      }
+      .tagline-bar .sep {
+        display: none !important;
+      }
+      .tagline-bar .tagline-items {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        align-items: center !important;
+      }
+
+      /* Sección Nosotros */
+      .textoNosotros {
+        font-size: 0.92rem !important;
+        padding: 18px !important;
+      }
+
+      /* Tarjetas por qué: 2 columnas en lugar de 4 */
+      .col-md-3 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+      }
+
+      /* Formulario */
+      .card-body {
+        padding: 20px 16px !important;
+      }
+
+      /* Footer */
+      footer p {
+        font-size: 0.9rem !important;
+      }
+    }
+
+    /* --- TABLET (768px – 1024px) --- */
+    @media (min-width: 768px) and (max-width: 1024px) {
+
+      /* Navbar */
+      .navbar-logo {
+        height: 65px !important;
+        margin-right: 16px !important;
+      }
+      .navbar-titulo {
+        font-size: 1.65rem !important;
+      }
+
+      /* Hero: botón más compacto */
+      .hero-wrap > img {
+        max-height: 420px !important;
+      }
+      .hero-cta-flotante {
+        right: 3% !important;
+      }
+      .hero-cta-flotante .btn {
+        font-size: 0.95rem !important;
+        padding: 12px 22px !important;
+      }
+
+      /* Tagline */
+      .tagline-bar span {
+        font-size: 0.95rem !important;
+      }
+    }
   </style>
 </head>
 
@@ -48,13 +173,13 @@
     <div class="container-fluid d-flex align-items-center justify-content-between px-4">
       <div class="d-flex align-items-center">
         <img src="https://obra360-frontend.vercel.app/images/Captura%20de%20pantalla%202026-05-26%20114834.jpg"
-             alt="CAASA"
+             alt="CAASA" class="navbar-logo"
              style="height: 90px; width: auto; margin-right: 24px; border-radius: 15px; background-color: white; padding: 5px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);">
         <div>
-          <h1 class="text-white fw-bold m-0" style="font-size: 2.4rem; letter-spacing: 1px;">
+          <h1 class="text-white fw-bold m-0 navbar-titulo" style="font-size: 2.4rem; letter-spacing: 1px;">
             Análisis y Reportes de Obra 360
           </h1>
-          <p class="text-white mt-1 mb-0" style="font-size: 1rem; opacity: 0.95;">
+          <p class="text-white mt-1 mb-0 navbar-subtitulo" style="font-size: 1rem; opacity: 0.95;">
             Plataforma Integral de Control y Seguimiento de Obra
           </p>
         </div>
@@ -69,7 +194,7 @@
     <div class="hero-cta-flotante">
       <a href="#contacto" class="btn btn-success btn-lg fw-bold">Agenda tu Cita</a>
     </div>
-  </div>
+  </div></div>
 
   <!-- COLLAGE + QUIENES SOMOS -->
   <section id="nosotros" class="container mt-5">
@@ -192,5 +317,5 @@
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+<script src="https://replit-cdn.com/replit-pill/replit-pill.global.js" data-repl-id="ae28b96a-e86a-4987-b3c2-5df56b28d1b7"></script></body>
 </html>
