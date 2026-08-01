@@ -62,6 +62,19 @@
       background: #138496;
       color: white;
     }
+    .btn-bitacora-header {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-bitacora-header:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+    }
     .btn-eliminar-cliente {
       background: var(--admin-danger);
       border: none;
@@ -268,6 +281,47 @@
       from { transform: translateX(100%); opacity: 0; }
       to { transform: translateX(0); opacity: 1; }
     }
+
+    /* ===== MODAL BITÁCORA (mismos colores del panel, sin morado) ===== */
+    .modal-bitacora-overlay {
+      display:none; position:fixed; inset:0; background:rgba(20,28,38,.5); z-index:2000;
+      align-items:center; justify-content:center; padding: 20px;
+    }
+    .modal-bitacora-overlay.open { display:flex; }
+    .modal-bitacora-box {
+      background:#fff; width:100%; max-width:900px; max-height:85vh; border-radius:12px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3); display:flex; flex-direction:column; overflow:hidden;
+    }
+    .modal-bitacora-head {
+      background: linear-gradient(135deg, var(--admin-primary), #2a6bb0); color:#fff; padding:16px 22px;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .modal-bitacora-head h3 { margin:0; font-size:16px; }
+    .modal-bitacora-head small { opacity:.85; font-size:12px; }
+    .modal-bitacora-head .btn-close-bitacora { background:rgba(255,255,255,.15); border:none; color:#fff; border-radius:6px; padding:4px 10px; cursor:pointer; }
+    .modal-bitacora-filtros {
+      padding: 12px 22px; background:var(--admin-primary-light); border-bottom:1px solid #dce4f0; display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .modal-bitacora-body { padding: 0; overflow-y:auto; flex:1; }
+    .resumen-tiempo {
+      background: var(--admin-primary-light); border: 1px solid #cddaf0; border-radius: 10px; padding: 14px 18px; margin: 14px 22px; font-size: 0.9rem; color: var(--admin-primary);
+    }
+    .resumen-tiempo b { color: var(--admin-primary); }
+    table.tabla-bitacora { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    table.tabla-bitacora thead th {
+      position:sticky; top:0; background:var(--admin-primary-light); padding:10px 14px; text-align:left; font-weight:700;
+      color:var(--admin-primary); border-bottom:2px solid #cddaf0; white-space:nowrap;
+    }
+    table.tabla-bitacora tbody td { padding:9px 14px; border-bottom:1px solid #f0f0f3; color:#3d4a5a; }
+    table.tabla-bitacora tbody tr:hover { background:#fafbfc; }
+    .badge-accion {
+      font-size:0.7rem; font-weight:700; padding:3px 9px; border-radius:12px; text-transform:uppercase; letter-spacing:.3px;
+    }
+    .badge-accion.INICIO_SESION { background:#d4edda; color:#155724; }
+    .badge-accion.CIERRE_SESION { background:#e2e3e5; color:#383d41; }
+    .badge-accion.ALTA_COLABORADOR { background:var(--admin-primary-light); color:var(--admin-primary); }
+    .badge-accion.SUBIR_ARCHIVO { background:#fff3cd; color:#664d03; }
+    .badge-accion.ACCESO_PROYECTO { background:#d1ecf1; color:#0c5460; }
     @media (max-width: 768px) {
       .admin-header { padding: 1rem; }
       .admin-header h1 { font-size: 1.2rem; }
@@ -285,9 +339,11 @@
     </div>
     <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
       <span id="user-info" class="text-white-50" style="font-size:0.85rem;"></span>
-      <!-- ✅ NUEVO BOTÓN: Ver Modelo y Reportes -->
       <button class="btn-modelo-reportes" onclick="window.location.href='Modelo_y_Reportes.html'">
         <i class="bi bi-eye me-1"></i>Ver Modelo y Reportes
+      </button>
+      <button class="btn-bitacora-header" onclick="abrirBitacoraDesdeHeader()">
+        <i class="bi bi-clock-history me-1"></i>Acceso a Bitácora
       </button>
       <button class="btn-salir" onclick="cerrarSesion()">
         <i class="bi bi-box-arrow-left me-1"></i>Salir
@@ -371,6 +427,42 @@
     </div>
   </div>
 
+  <!-- ================= MODAL BITÁCORA (solo admin) ================= -->
+  <div class="modal-bitacora-overlay" id="modal-bitacora">
+    <div class="modal-bitacora-box">
+      <div class="modal-bitacora-head">
+        <div>
+          <h3><i class="bi bi-clock-history me-2"></i>Acceso a Bitácora</h3>
+          <small id="bitacora-cliente-label">—</small>
+        </div>
+        <button class="btn-close-bitacora" onclick="cerrarBitacora()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-bitacora-filtros">
+        <label style="font-size:0.85rem;font-weight:600;color:var(--admin-primary);">Cliente:</label>
+        <select id="bitacora-filtro-cliente" class="form-select form-select-sm" style="width:auto;min-width:180px;" onchange="cambiarClienteBitacora()">
+          <option value="">Selecciona un cliente...</option>
+        </select>
+        <label style="font-size:0.85rem;font-weight:600;color:var(--admin-primary);">Proyecto:</label>
+        <select id="bitacora-filtro-proyecto" class="form-select form-select-sm" style="width:auto;min-width:180px;" onchange="cargarBitacora()">
+          <option value="">Todos los proyectos</option>
+        </select>
+        <button class="btn btn-sm btn-outline-secondary" onclick="cargarBitacora()">
+          <i class="bi bi-arrow-clockwise"></i> Actualizar
+        </button>
+      </div>
+      <div id="bitacora-resumen"></div>
+      <div class="modal-bitacora-body">
+        <div id="bitacora-contenido">
+          <div class="empty-state" style="margin:20px;">
+            <i class="bi bi-clock-history"></i>
+            <h5>Selecciona un cliente</h5>
+            <p>Elige un cliente arriba para ver su actividad.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ============================================================
     // CONFIGURACIÓN
@@ -380,6 +472,7 @@
 
     let clientesGlobal = [];
     let proyectosGlobal = {};
+    let bitacoraClienteActual = null;
 
     // ============================================================
     // TOAST NOTIFICATIONS
@@ -570,6 +663,159 @@
       } catch (error) {
         console.error('Error creando proyecto:', error);
         throw error;
+      }
+    }
+
+    // ============================================================
+    // BITÁCORA (accesible solo desde el botón del header)
+    // ============================================================
+    async function obtenerBitacora(clienteId, proyectoId) {
+      const qs = proyectoId ? `?proyecto_id=${proyectoId}` : '';
+      return await apiFetch(`/clientes/${clienteId}/bitacora${qs}`);
+    }
+
+    function abrirBitacoraDesdeHeader() {
+      const selectCliente = document.getElementById('bitacora-filtro-cliente');
+      selectCliente.innerHTML = '<option value="">Selecciona un cliente...</option>';
+      clientesGlobal.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre;
+        selectCliente.appendChild(opt);
+      });
+
+      document.getElementById('bitacora-filtro-proyecto').innerHTML = '<option value="">Todos los proyectos</option>';
+      document.getElementById('bitacora-cliente-label').textContent = '—';
+      document.getElementById('bitacora-resumen').innerHTML = '';
+      document.getElementById('bitacora-contenido').innerHTML = `
+        <div class="empty-state" style="margin:20px;">
+          <i class="bi bi-clock-history"></i>
+          <h5>Selecciona un cliente</h5>
+          <p>Elige un cliente arriba para ver su actividad.</p>
+        </div>`;
+
+      bitacoraClienteActual = null;
+      document.getElementById('modal-bitacora').classList.add('open');
+    }
+
+    function cambiarClienteBitacora() {
+      const clienteId = document.getElementById('bitacora-filtro-cliente').value;
+      if (!clienteId) return;
+
+      bitacoraClienteActual = clienteId;
+      const cliente = clientesGlobal.find(c => String(c.id) === String(clienteId));
+      document.getElementById('bitacora-cliente-label').textContent = cliente ? cliente.nombre : '—';
+
+      const selectProyecto = document.getElementById('bitacora-filtro-proyecto');
+      selectProyecto.innerHTML = '<option value="">Todos los proyectos</option>';
+      const proyectos = proyectosGlobal[clienteId] || [];
+      proyectos.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.nombre_proyecto;
+        selectProyecto.appendChild(opt);
+      });
+
+      cargarBitacora();
+    }
+
+    function cerrarBitacora() {
+      document.getElementById('modal-bitacora').classList.remove('open');
+    }
+
+    function formatearDuracion(minutos) {
+      if (minutos === null || minutos === undefined) return '—';
+      if (minutos < 60) return `${minutos} min`;
+      const h = Math.floor(minutos / 60);
+      const m = minutos % 60;
+      return `${h}h ${m}min`;
+    }
+
+    function formatearFecha(fechaStr) {
+      try {
+        const d = new Date(fechaStr);
+        return d.toLocaleString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      } catch (e) { return fechaStr; }
+    }
+
+    async function cargarBitacora() {
+      if (!bitacoraClienteActual) return;
+
+      const contenido = document.getElementById('bitacora-contenido');
+      const resumenDiv = document.getElementById('bitacora-resumen');
+      contenido.innerHTML = `
+        <div class="text-center py-5">
+          <div class="loading-spinner"></div>
+          <p class="mt-3 text-muted">Cargando bitácora...</p>
+        </div>`;
+      resumenDiv.innerHTML = '';
+
+      const proyectoId = document.getElementById('bitacora-filtro-proyecto').value || null;
+
+      try {
+        const registros = await obtenerBitacora(bitacoraClienteActual, proyectoId);
+
+        if (!registros || registros.length === 0) {
+          contenido.innerHTML = `
+            <div class="empty-state" style="margin:20px;">
+              <i class="bi bi-clock-history"></i>
+              <h5>Sin actividad registrada todavía</h5>
+              <p>En cuanto los colaboradores usen la app, aquí aparecerá su actividad.</p>
+            </div>`;
+          return;
+        }
+
+        const tiempoPorUsuario = {};
+        registros.forEach(r => {
+          if (r.accion === 'CIERRE_SESION' && r.duracion_minutos) {
+            tiempoPorUsuario[r.usuario] = (tiempoPorUsuario[r.usuario] || 0) + r.duracion_minutos;
+          }
+        });
+        const totalMinutos = Object.values(tiempoPorUsuario).reduce((a, b) => a + b, 0);
+        const usuariosConTiempo = Object.keys(tiempoPorUsuario).length;
+
+        resumenDiv.innerHTML = `
+          <div class="resumen-tiempo">
+            <i class="bi bi-stopwatch me-1"></i>
+            Tiempo total acumulado en la app: <b>${formatearDuracion(totalMinutos)}</b>
+            ${usuariosConTiempo > 0 ? ` — entre <b>${usuariosConTiempo}</b> colaborador(es)` : ''}
+          </div>`;
+
+        let html = `
+          <table class="tabla-bitacora">
+            <thead>
+              <tr>
+                <th>Fecha y hora</th>
+                <th>Usuario</th>
+                <th>Acción</th>
+                <th>Descripción</th>
+                <th>Duración</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        registros.forEach(r => {
+          html += `
+            <tr>
+              <td>${formatearFecha(r.fecha_hora)}</td>
+              <td><i class="bi bi-person-fill me-1" style="color:var(--admin-primary);"></i>${r.usuario}</td>
+              <td><span class="badge-accion ${r.accion}">${r.accion.replace(/_/g,' ')}</span></td>
+              <td>${r.descripcion || '—'}</td>
+              <td>${formatearDuracion(r.duracion_minutos)}</td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table>`;
+        contenido.innerHTML = html;
+
+      } catch (error) {
+        contenido.innerHTML = `
+          <div class="empty-state text-danger" style="margin:20px;">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar la bitácora</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+          </div>`;
+        mostrarToast('Error al cargar bitácora: ' + error.message, 'error');
       }
     }
 
