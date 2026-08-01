@@ -4,7 +4,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Análisis y Reportes de Obra 360</title>
-  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <meta name="google-site-verification" content="google65ecd7f272e644f4" />
 
@@ -20,8 +19,6 @@
     .logoCliente {height:130px;border:3px dashed #0d6efd;border-radius:15px;display:flex;align-items:center;justify-content:center;background:white;color:#0d6efd;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.15);}
     #modalCita {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(20,80,160,.45);backdrop-filter:blur(6px);z-index:999;justify-content:center;align-items:center;}
     .cajaCita {background:white;padding:30px;width:380px;border-radius:15px;box-shadow:0 5px 25px rgba(0,0,0,.4);}
-    
-    /* NUEVO ESTILO PARA LA SECCIÓN CLIENTES IGUAL AL MODAL */
     #clientes {
       background: rgba(20, 80, 160, 0.45);
       backdrop-filter: blur(6px);
@@ -30,34 +27,28 @@
       margin-top: 20px;
       box-shadow: 0 5px 25px rgba(0,0,0,0.3);
     }
-    #clientes h2,
-    #clientes p {
-      color: white !important;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    #clientes h2, #clientes p { color: white !important; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
+    #clientes .btn-primary { background-color: white; color: #0d6efd; border: none; font-weight: bold; }
+    #clientes .btn-primary:hover { background-color: #f0f0f0; color: #0d6efd; }
+
+    .password-wrapper { position: relative; }
+    .password-wrapper input { padding-right: 45px; }
+    .btn-toggle-password {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; font-size: 1.2rem; cursor: pointer;
+      color: #6c757d; padding: 0; line-height: 1;
     }
-    #clientes .btn-primary {
-      background-color: white;
-      color: #0d6efd;
-      border: none;
-      font-weight: bold;
-    }
-    #clientes .btn-primary:hover {
-      background-color: #f0f0f0;
-      color: #0d6efd;
-    }
+    .btn-toggle-password:hover { color: #0d6efd; }
   </style>
 </head>
 
 <body style="background-color: #f5f5f5;">
 
-  <!-- ENCABEZADO (con menú hamburguesa) -->
   <nav class="navbar navbar-dark bg-primary py-3 shadow-lg position-relative">
     <div class="container-fluid d-flex align-items-center justify-content-start px-4">
-      <!-- LOGO -->
       <img src="images/Captura de pantalla 2026-05-26 114834.jpg"
            alt="CAASA"
            style="height: 110px; width: auto; margin-right: 30px; border-radius: 15px; background-color: white; padding: 5px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);">
-      <!-- TITULO -->
       <div>
         <h1 class="text-white fw-bold m-0" style="font-size: 3.2rem; letter-spacing: 1px;">
           Análisis y Reportes de Obra 360
@@ -66,11 +57,9 @@
           Plataforma Integral de Control y Seguimiento de Obra
         </p>
       </div>
-      <!-- BOTÓN HAMBURGUESA -->
       <button class="menu-btn ms-auto" onclick="abrirMenu()">☰</button>
     </div>
 
-    <!-- MENÚ DESPLEGABLE -->
     <div id="menuDesplegable">
       <button onclick="mostrarSeccion('nosotros')">Nosotros</button>
       <button onclick="mostrarSeccion('blog')">Blog</button>
@@ -79,29 +68,16 @@
     </div>
   </nav>
 
-  <!-- ============================= -->
-  <!-- VISTA 1: IMAGEN DE PORTADA + BOTÓN DE ACCESO -->
-  <!-- ============================= -->
   <div id="vistaPrincipal">
-
-    <!-- IMAGEN COMPLETA (proporcional, sin recortes) -->
     <div class="container-fluid mt-4 px-4 text-center">
       <img src="images/portada.png" class="img-fluid rounded shadow-lg border border-3 border-white" style="max-height: 600px;" alt="Obra 360">
     </div>
-
-    <!-- BOTÓN ACCESO DE USUARIOS -->
     <div class="container mt-4 mb-4 text-center">
       <button class="btn btn-primary btn-lg px-5 py-3 fw-bold" onclick="mostrarAcceso()">Acceso de Usuarios</button>
     </div>
+  </div>
 
-  </div><!-- fin vistaPrincipal -->
-
-  <!-- ============================= -->
-  <!-- VISTA 2: CARRUSEL + LOGIN (se muestra al dar clic en Acceso de Usuarios) -->
-  <!-- ============================= -->
   <div id="vistaAcceso" style="display:none;">
-
-    <!-- CARRUSEL -->
     <div class="container-fluid mt-4 px-4">
       <div id="carouselObra360" class="carousel slide shadow-lg rounded overflow-hidden border border-3 border-white" data-bs-ride="carousel">
         <div class="carousel-inner">
@@ -127,42 +103,35 @@
       </div>
     </div>
 
-    <!-- LOGIN REAL -->
     <div class="container mt-4">
       <div class="card shadow border-0 rounded-4">
         <div class="card-body p-4 text-center">
           <h3 class="text-primary fw-bold mb-3" style="font-size: 1.5rem;">Acceso de Usuarios</h3>
-          
+
           <div class="mb-3 text-start">
             <label class="form-label fw-bold">Usuario</label>
-            <input type="text" id="loginUsuario" class="form-control" placeholder="Ej: admin, coppel_01">
+            <input type="text" id="loginUsuario" class="form-control" placeholder="Ingresa tu usuario">
           </div>
           <div class="mb-3 text-start">
             <label class="form-label fw-bold">Contraseña</label>
-            <input type="password" id="loginPassword" class="form-control" placeholder="••••••••">
+            <div class="password-wrapper">
+              <input type="password" id="loginPassword" class="form-control" placeholder="Escribe tu contraseña">
+              <button type="button" class="btn-toggle-password" id="btnTogglePassword" onclick="togglePassword()" aria-label="Mostrar u ocultar contraseña">👁️</button>
+            </div>
           </div>
-          
-          <button class="btn btn-primary px-5 py-2 fw-bold" onclick="loginReal()">
-            Iniciar Sesión
-          </button>
-          
+
+          <button class="btn btn-primary px-5 py-2 fw-bold" onclick="loginReal()">Iniciar Sesión</button>
+
           <div id="loginMensaje" class="mt-3 text-danger fw-bold" style="display:none;"></div>
         </div>
       </div>
     </div>
 
-    <!-- REGRESAR -->
     <div class="container mt-4 mb-4 text-center">
       <button class="btn btn-outline-primary" onclick="volverImagen()">← Regresar a Portada</button>
     </div>
+  </div>
 
-  </div><!-- fin vistaAcceso -->
-
-  <!-- ============================= -->
-  <!-- SECCIONES DEL MENÚ (ocultas al inicio) -->
-  <!-- ============================= -->
-
-  <!-- Sección Nosotros -->
   <section id="nosotros" class="seccionNueva container mt-4">
     <h2 class="text-primary fw-bold mb-4">Nosotros</h2>
     <div class="row g-4">
@@ -182,7 +151,6 @@
     <button class="btn btn-primary mt-4" onclick="volverInicio()">← Regresar</button>
   </section>
 
-  <!-- Sección Blog -->
   <section id="blog" class="seccionNueva container mt-4">
     <h2 class="text-primary fw-bold mb-4">Blog</h2>
     <div class="row g-4">
@@ -199,9 +167,6 @@
     <button class="btn btn-primary mt-4" onclick="volverInicio()">← Regresar</button>
   </section>
 
-  <!-- ========================================================== -->
-  <!-- SECCIÓN CLIENTES - CON FONDO BLUR IGUAL AL MODAL -->
-  <!-- ========================================================== -->
   <section id="clientes" class="seccionNueva container mt-4">
     <h2 class="fw-bold mb-4 text-center" style="color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">Forma parte de nuestro desarrollo</h2>
     <div class="row justify-content-center">
@@ -219,7 +184,6 @@
     </div>
   </section>
 
-  <!-- Modal Agendar Cita -->
   <div id="modalCita">
     <div class="cajaCita">
       <h4 class="text-primary fw-bold text-center mb-4">Agendar cita</h4>
@@ -231,7 +195,6 @@
     </div>
   </div>
 
-  <!-- FOOTER (siempre visible, sin importar la sección) -->
   <footer class="bg-dark text-white text-center p-4 mt-5 shadow-lg">
     <p style="font-size: 1.1rem;">
       Síguenos en:
@@ -247,22 +210,14 @@
     <p class="m-0 fw-bold" style="font-size: 1rem;">CAASA – Análisis y Reportes de Obra 360</p>
   </footer>
 
-  <!-- ============================= -->
-  <!-- SCRIPTS -->
-  <!-- ============================= -->
   <script>
-    // Muestra/oculta el menú desplegable
     function abrirMenu() {
       const menu = document.getElementById('menuDesplegable');
       menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
-
-    // Oculta todas las secciones del menú (nosotros, blog, clientes)
     function ocultarSeccionesNuevas() {
       document.querySelectorAll('.seccionNueva').forEach(sec => sec.style.display = 'none');
     }
-
-    // Muestra una sección específica del menú
     function mostrarSeccion(id) {
       document.getElementById('vistaPrincipal').style.display = 'none';
       document.getElementById('vistaAcceso').style.display = 'none';
@@ -270,51 +225,37 @@
       ocultarSeccionesNuevas();
       document.getElementById(id).style.display = 'block';
     }
-
-    // Regresa a la vista principal (imagen de portada)
     function volverInicio() {
       ocultarSeccionesNuevas();
       document.getElementById('vistaAcceso').style.display = 'none';
       document.getElementById('menuDesplegable').style.display = 'none';
       document.getElementById('vistaPrincipal').style.display = 'block';
     }
-
-    // Muestra el carrusel + login al dar clic en "Acceso de Usuarios"
     function mostrarAcceso() {
       document.getElementById('vistaPrincipal').style.display = 'none';
       ocultarSeccionesNuevas();
       document.getElementById('vistaAcceso').style.display = 'block';
       document.getElementById('loginMensaje').style.display = 'none';
     }
-
-    // Regresa de la vista de carrusel/login a la imagen de portada
     function volverImagen() {
       document.getElementById('vistaAcceso').style.display = 'none';
       document.getElementById('vistaPrincipal').style.display = 'block';
     }
-
-    // Abre el modal de agendar cita
     function abrirCita() {
       document.getElementById('menuDesplegable').style.display = 'none';
       document.getElementById('modalCita').style.display = 'flex';
     }
-
-    // Cierra el modal de agendar cita
     function cerrarCita() {
       document.getElementById('modalCita').style.display = 'none';
     }
-
-    // Envía la cita agendada a tu correo mediante Formspree
     function enviarCita() {
       const nombre = document.getElementById('nombreCita').value.trim();
       const correo = document.getElementById('correoCita').value.trim();
       const celular = document.getElementById('celularCita').value.trim();
-
       if (!nombre || !correo || !celular) {
         alert('Por favor llena todos los campos.');
         return;
       }
-
       fetch('https://formspree.io/f/xjgqqnjz', {
         method: 'POST',
         headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
@@ -336,9 +277,17 @@
       });
     }
 
-    // ============================================================
-    // LOGIN REAL CON BACKEND
-    // ============================================================
+    function togglePassword() {
+      const campo = document.getElementById('loginPassword');
+      const boton = document.getElementById('btnTogglePassword');
+      if (campo.type === 'password') {
+        campo.type = 'text';
+        boton.textContent = '🙈';
+      } else {
+        campo.type = 'password';
+        boton.textContent = '👁️';
+      }
+    }
 
     const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
 
@@ -352,7 +301,6 @@
         mensajeEl.style.display = 'block';
         return;
       }
-
       mensajeEl.style.display = 'none';
 
       try {
@@ -361,7 +309,6 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ usuario, password })
         });
-
         const data = await response.json();
 
         if (!data.success) {
@@ -370,23 +317,26 @@
           return;
         }
 
-        // ✅ CORREGIDO: Guardar token con el nombre correcto
         localStorage.setItem('caasa_admin_token', data.token);
         localStorage.setItem('rol', data.rol);
         localStorage.setItem('cliente_id', data.cliente_id);
         localStorage.setItem('cliente_nombre', data.nombre);
         localStorage.setItem('usuario', usuario);
 
-        console.log('✅ Token guardado:', localStorage.getItem('caasa_admin_token'));
-        console.log('✅ Rol guardado:', localStorage.getItem('rol'));
+        if (data.proyecto_id) {
+          localStorage.setItem('obra360_proyecto_id', data.proyecto_id);
+          localStorage.setItem('obra360_proyecto_nombre', data.nombre_proyecto || '');
+          localStorage.setItem('obra360_cliente_id', data.cliente_id);
+          localStorage.setItem('obra360_token', data.token);
+          window.location.href = 'captura.html';
+          return;
+        }
 
-        // ✅ CORREGIDO: Redirigir según rol
         if (data.rol === 'admin') {
           window.location.href = 'Portal_Administrador.html';
         } else {
           window.location.href = 'Portal_Cliente.html';
         }
-
       } catch (error) {
         mensajeEl.textContent = '❌ Error de conexión con el servidor';
         mensajeEl.style.display = 'block';
@@ -394,13 +344,9 @@
       }
     }
 
-    // ============================================================
-    // VERIFICACIÓN DE SESIÓN DESACTIVADA
-    // ============================================================
     console.log('📄 Página principal cargada - Inicio de sesión manual');
   </script>
 
-  <!-- BOOTSTRAP JS (necesario para el carrusel) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
