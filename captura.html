@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>Registro de Proyecto — CAASA</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
 :root{
   --marca-color-primario:#1b4b8f;
@@ -79,9 +81,9 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
   background: #138496;
   border-color: #138496;
 }
-.btn-inicio-header {
-  background: rgba(255,255,255,0.15);
-  border: 1px solid rgba(255,255,255,0.3);
+.btn-salir-header {
+  background: #dc3545;
+  border: 1px solid #dc3545;
   color: #fff;
   font-weight: 600;
   padding: 6px 12px;
@@ -89,8 +91,9 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
   font-size: 12px;
   cursor: pointer;
 }
-.btn-inicio-header:hover {
-  background: rgba(255,255,255,0.25);
+.btn-salir-header:hover {
+  background: #c82333;
+  border-color: #c82333;
 }
 
 /* ============== SHELL ============== */
@@ -108,7 +111,8 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 }
 .menu-item:hover{background:#e4eaf3;}
 .menu-item.active{background:#d6e3f5;border-left:3px solid var(--azul-header);font-weight:600;color:var(--azul-header);}
-.menu-item .ico{width:18px;text-align:center;font-size:13px;flex-shrink:0;}
+.menu-item .ico{width:20px;text-align:center;font-size:14px;flex-shrink:0;color:var(--texto-secundario);}
+.menu-item.active .ico{color:var(--azul-header);}
 .menu-item.disabled{color:#b7bfc7;cursor:default;}
 .menu-item.disabled:hover{background:transparent;}
 
@@ -118,6 +122,7 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 .grupo-toggle{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12.5px;font-weight:600;
   color:var(--texto-oscuro);cursor:pointer;}
 .grupo-toggle:hover{background:#e4eaf3;}
+.grupo-toggle .ico{color:var(--texto-secundario);}
 .grupo-body{display:none;}
 .grupo-body.open{display:block;}
 .chev{margin-left:auto;font-size:10px;color:var(--texto-secundario);}
@@ -157,7 +162,7 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
   cursor:pointer;transition:all .2s;
 }
 #mod-inicio .modulo-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:var(--azul-seleccion);}
-#mod-inicio .modulo-card .ico{font-size:24px;display:block;margin-bottom:4px;}
+#mod-inicio .modulo-card .ico{font-size:22px;display:block;margin-bottom:4px;color:var(--texto-secundario);}
 #mod-inicio .modulo-card .nombre{font-weight:600;font-size:12.5px;}
 #mod-inicio .modulo-card .estado{font-size:10px;color:var(--texto-secundario);}
 #mod-inicio .modulo-card.bloqueado{opacity:.5;cursor:default;}
@@ -279,9 +284,11 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
     <button id="btn-importar">Importar</button>
     <button onclick="exportarCSV()">Exportar</button>
     <button class="btn-modelo-reportes" onclick="window.location.href='Modelo_y_Reportes.html'">
-      Modelo y Reportes
+      <i class="bi bi-eye"></i> Modelo y Reportes
     </button>
-    <button class="btn-inicio-header" onclick="irAInicio()">🏠 Inicio</button>
+    <button class="btn-salir-header" onclick="cerrarSesionYSalir()">
+      <i class="bi bi-box-arrow-right"></i> Salir
+    </button>
     <button style="background:var(--marca-color-acento);border-color:var(--marca-color-acento)" onclick="guardarModuloActivo()">Guardar</button>
   </div>
 </div>
@@ -292,41 +299,63 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
   <div class="sidebar" id="sidebar">
     <div class="company"><b>CAASA · Obra 360</b><span id="cfg-proyecto-sidebar" style="display:block;font-size:11px;">Proyecto: —</span></div>
 
-    <div class="menu-item active" data-tab="inicio"><span class="ico">🏠</span> Inicio</div>
+    <div class="menu-item active" data-tab="inicio"><span class="ico"><i class="bi bi-house"></i></span> Inicio</div>
 
     <div class="area">Construcción</div>
 
     <!-- ===== PLANEACIÓN ===== -->
     <div class="grupo-toggle open" data-grupo="planeacion">
-      <span class="ico">📁</span> Planeación de Obra <span class="chev">▾</span>
+      <span class="ico"><i class="bi bi-folder"></i></span> Planeación de Obra <span class="chev">▾</span>
     </div>
     <div class="grupo-body open submenu" id="grupo-planeacion">
 
       <!-- Costo Plan: SOLO para Desarrollador -->
-      <div class="menu-item" data-tab="costo_plan" data-visible-para="Desarrollador">Costo Plan</div>
+      <div class="menu-item" data-tab="costo_plan" data-visible-para="Desarrollador">
+        <span class="ico"><i class="bi bi-coin"></i></span> Costo Plan
+      </div>
 
-      <div class="menu-item" data-tab="presupuestal">Control Presupuestal</div>
-      <div class="menu-item" data-tab="materiales">Materiales</div>
-      <div class="menu-item" data-tab="mano_obra">Mano de Obra</div>
+      <div class="menu-item" data-tab="presupuestal">
+        <span class="ico"><i class="bi bi-bar-chart"></i></span> Control Presupuestal
+      </div>
+
+      <div class="menu-item" data-tab="materiales">
+        <span class="ico"><i class="bi bi-box-seam"></i></span> Materiales
+      </div>
+
+      <div class="menu-item" data-tab="mano_obra">
+        <span class="ico"><i class="bi bi-person-workspace"></i></span> Mano de Obra
+      </div>
 
       <!-- Calidad: SOLO para Desarrollador -->
-      <div class="menu-item" data-tab="calidad" data-visible-para="Desarrollador">Calidad</div>
+      <div class="menu-item" data-tab="calidad" data-visible-para="Desarrollador">
+        <span class="ico"><i class="bi bi-check-circle"></i></span> Calidad
+      </div>
 
       <!-- ===== COMPRAS (padre con sub-índices) ===== -->
       <div class="grupo-toggle open" data-grupo="compras">
-        <span class="ico">🛒</span> Compras <span class="chev">▾</span>
+        <span class="ico"><i class="bi bi-cart"></i></span> Compras <span class="chev">▾</span>
       </div>
       <div class="grupo-body open submenu" id="grupo-compras">
         <!-- Control de Pedidos: SOLO para Constructora -->
-        <div class="menu-item" data-tab="control_pedidos" data-visible-para="Constructora">Control de Pedidos</div>
+        <div class="menu-item" data-tab="control_pedidos" data-visible-para="Constructora">
+          <span class="ico"><i class="bi bi-box"></i></span> Control de Pedidos
+        </div>
         <!-- Requisiciones: AMBOS -->
-        <div class="menu-item" data-tab="requisiciones">Requisiciones</div>
+        <div class="menu-item" data-tab="requisiciones">
+          <span class="ico"><i class="bi bi-clipboard"></i></span> Requisiciones
+        </div>
         <!-- Órdenes de Compra: SOLO para Desarrollador -->
-        <div class="menu-item" data-tab="ordenes_compra" data-visible-para="Desarrollador">Órdenes de Compra</div>
+        <div class="menu-item" data-tab="ordenes_compra" data-visible-para="Desarrollador">
+          <span class="ico"><i class="bi bi-file-text"></i></span> Órdenes de Compra
+        </div>
         <!-- Pago a Proveedores: AMBOS -->
-        <div class="menu-item" data-tab="pago_proveedores">Pago a Proveedores</div>
+        <div class="menu-item" data-tab="pago_proveedores">
+          <span class="ico"><i class="bi bi-wallet2"></i></span> Pago a Proveedores
+        </div>
         <!-- Estimaciones: AMBOS -->
-        <div class="menu-item" data-tab="estimaciones">Estimaciones</div>
+        <div class="menu-item" data-tab="estimaciones">
+          <span class="ico"><i class="bi bi-graph-up"></i></span> Estimaciones
+        </div>
       </div>
 
     </div>
@@ -411,6 +440,16 @@ function getModeloGestion() {
 }
 
 /* =====================================================================
+   CERRAR SESIÓN Y SALIR
+   ===================================================================== */
+function cerrarSesionYSalir() {
+  if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
+}
+
+/* =====================================================================
    FILTRAR SIDEBAR SEGÚN MODELO DE GESTIÓN
    ===================================================================== */
 function filtrarSidebarPorModelo() {
@@ -462,16 +501,16 @@ function renderizarModulosInicio() {
   const visibles = getModulosVisibles();
   
   const todosLosModulos = {
-    costo_plan: { ico: '💰', nombre: 'Costo Plan' },
-    presupuestal: { ico: '📊', nombre: 'Control Presupuestal' },
-    materiales: { ico: '🧱', nombre: 'Materiales' },
-    mano_obra: { ico: '👷', nombre: 'Mano de Obra' },
-    calidad: { ico: '✅', nombre: 'Calidad' },
-    control_pedidos: { ico: '📦', nombre: 'Control de Pedidos' },
-    requisiciones: { ico: '📋', nombre: 'Requisiciones' },
-    ordenes_compra: { ico: '📄', nombre: 'Órdenes de Compra' },
-    pago_proveedores: { ico: '💰', nombre: 'Pago a Proveedores' },
-    estimaciones: { ico: '📈', nombre: 'Estimaciones' }
+    costo_plan: { ico: 'bi-coin', nombre: 'Costo Plan' },
+    presupuestal: { ico: 'bi-bar-chart', nombre: 'Control Presupuestal' },
+    materiales: { ico: 'bi-box-seam', nombre: 'Materiales' },
+    mano_obra: { ico: 'bi-person-workspace', nombre: 'Mano de Obra' },
+    calidad: { ico: 'bi-check-circle', nombre: 'Calidad' },
+    control_pedidos: { ico: 'bi-box', nombre: 'Control de Pedidos' },
+    requisiciones: { ico: 'bi-clipboard', nombre: 'Requisiciones' },
+    ordenes_compra: { ico: 'bi-file-text', nombre: 'Órdenes de Compra' },
+    pago_proveedores: { ico: 'bi-wallet2', nombre: 'Pago a Proveedores' },
+    estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' }
   };
   
   let html = '';
@@ -480,7 +519,7 @@ function renderizarModulosInicio() {
     if (mod) {
       html += `
         <div class="modulo-card" onclick="navegarA('${key}')">
-          <span class="ico">${mod.ico}</span>
+          <span class="ico"><i class="${mod.ico}"></i></span>
           <span class="nombre">${mod.nombre}</span>
           <span class="estado">Activo</span>
         </div>
@@ -489,13 +528,13 @@ function renderizarModulosInicio() {
   });
   
   html += `
-    <div class="modulo-card bloqueado"><span class="ico">🏦</span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico">⚖️</span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico">👥</span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico">🏗️</span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico">📦</span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico">🔧</span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico">🛠️</span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-bank"></i></span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-scale"></i></span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-people"></i></span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-building"></i></span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-warehouse"></i></span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-gear"></i></span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-tools"></i></span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
   `;
   
   container.innerHTML = html;
@@ -883,7 +922,7 @@ function entrarApp(){
 })();
 
 /* =====================================================================
-   IR A INICIO (desde header o sidebar)
+   IR A INICIO (desde sidebar)
    ===================================================================== */
 function irAInicio() {
   navegarA('inicio');
@@ -906,7 +945,6 @@ function construirModuloHTML(modKey){
       <div class="module" id="mod-${modKey}" data-mod="${modKey}">
         <div class="module-title-row">
           <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
-          <button class="btn-inicio-header" onclick="irAInicio()" style="background:var(--azul-header);color:#fff;border:none;padding:4px 12px;border-radius:3px;font-size:12px;cursor:pointer;">🏠 Inicio</button>
         </div>
         <div class="info-banner">
           Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
@@ -953,7 +991,6 @@ function construirModuloHTML(modKey){
     <div class="module" id="mod-${modKey}" data-mod="${modKey}">
       <div class="module-title-row">
         <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
-        <button class="btn-inicio-header" onclick="irAInicio()" style="background:var(--azul-header);color:#fff;border:none;padding:4px 12px;border-radius:3px;font-size:12px;cursor:pointer;">🏠 Inicio</button>
       </div>
       <div class="info-banner">
         Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
