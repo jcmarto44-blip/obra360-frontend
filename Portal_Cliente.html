@@ -226,6 +226,16 @@
       display: inline-block;
       margin-bottom: 1rem;
     }
+    .badge-modelo {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
     @media (max-width: 768px) {
       .cliente-header { padding: 1rem; }
       .cliente-header h1 { font-size: 1.2rem; }
@@ -240,7 +250,11 @@
   <!-- HEADER -->
   <div class="cliente-header d-flex flex-wrap justify-content-between align-items-center">
     <div>
-      <h1><i class="bi bi-building me-2"></i><span id="cliente-nombre-header">Cliente</span></h1>
+      <h1>
+        <i class="bi bi-building me-2"></i>
+        <span id="cliente-nombre-header">Cliente</span>
+        <span id="modelo-gestion-badge" class="badge-modelo">—</span>
+      </h1>
       <small>Portal del Cliente — Gestión de Proyectos y Equipo</small>
     </div>
     <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
@@ -324,7 +338,7 @@
     // CONFIGURACIÓN
     // ============================================================
     const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
-    const TOKEN_KEY = 'caasa_admin_token';  // ✅ CORREGIDO
+    const TOKEN_KEY = 'caasa_admin_token';
 
     let proyectoSeleccionadoId = null;
     let proyectoSeleccionadoNombre = null;
@@ -374,6 +388,10 @@
 
     function getClienteNombre() {
       return localStorage.getItem('cliente_nombre') || 'Cliente';
+    }
+
+    function getModeloGestion() {
+      return localStorage.getItem('modelo_gestion') || '';
     }
 
     // ============================================================
@@ -694,7 +712,7 @@
     }
 
     // ============================================================
-    // IR A CAPTURA
+    // IR A CAPTURA (con propagación de modelo_gestion)
     // ============================================================
     function irACaptura() {
       const token = obtenerToken();
@@ -710,11 +728,17 @@
       }
 
       const clienteId = getClienteId();
+      const modeloGestion = getModeloGestion();
 
       localStorage.setItem('obra360_proyecto_id', proyectoSeleccionadoId);
       localStorage.setItem('obra360_proyecto_nombre', proyectoSeleccionadoNombre);
       localStorage.setItem('obra360_cliente_id', clienteId);
       localStorage.setItem('obra360_token', token);
+
+      // ✅ PROPAGAR modelo_gestion A captura.html
+      if (modeloGestion) {
+        localStorage.setItem('obra360_modelo_gestion', modeloGestion);
+      }
 
       window.location.href = 'captura.html';
     }
@@ -723,8 +747,9 @@
     // INICIALIZAR
     // ============================================================
     (async function init() {
-      const token = localStorage.getItem('caasa_admin_token');  // ✅ CORREGIDO
+      const token = localStorage.getItem('caasa_admin_token');
       const nombre = localStorage.getItem('cliente_nombre') || 'Cliente';
+      const modeloGestion = getModeloGestion();
 
       if (!token) {
         window.location.href = 'index.html';
@@ -733,6 +758,15 @@
 
       document.getElementById('cliente-nombre-header').textContent = nombre;
       document.getElementById('user-info').textContent = '👤 ' + nombre;
+
+      // ✅ MOSTRAR modelo_gestion EN EL HEADER
+      const badge = document.getElementById('modelo-gestion-badge');
+      if (modeloGestion) {
+        badge.textContent = modeloGestion;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
 
       try {
         await renderizarEstado();
