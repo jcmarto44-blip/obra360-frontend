@@ -65,7 +65,6 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 .header-actions .proyecto-tag{
   font-size:11px;background:rgba(255,255,255,.15);padding:5px 10px;border-radius:12px;
 }
-/* ✅ BOTÓN MODELO Y REPORTES */
 .btn-modelo-reportes {
   background: #17a2b8;
   border: 1px solid #17a2b8;
@@ -79,6 +78,19 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 .btn-modelo-reportes:hover {
   background: #138496;
   border-color: #138496;
+}
+.btn-inicio-header {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: #fff;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 3px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.btn-inicio-header:hover {
+  background: rgba(255,255,255,0.25);
 }
 
 /* ============== SHELL ============== */
@@ -163,7 +175,7 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 .module-title{font-size:15px;font-weight:700;}
 .module-title .count{font-weight:400;font-size:11.5px;color:var(--texto-secundario);margin-left:8px;}
 
-.subtabs{display:flex;gap:2px;margin-bottom:10px;border-bottom:1px solid var(--gris-borde);}
+.subtabs{display:flex;gap:2px;margin-bottom:10px;border-bottom:1px solid var(--gris-borde);flex-wrap:wrap;}
 .subtab{padding:7px 14px;font-size:12px;font-weight:600;color:var(--texto-secundario);cursor:pointer;
   border-bottom:2px solid transparent;}
 .subtab.active{color:var(--azul-header);border-bottom:2px solid var(--azul-header);}
@@ -266,10 +278,10 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
     <span class="proyecto-tag" id="tag-proyecto">Proyecto: —</span>
     <button id="btn-importar">Importar</button>
     <button onclick="exportarCSV()">Exportar</button>
-    <!-- ✅ BOTÓN MODELO Y REPORTES -->
     <button class="btn-modelo-reportes" onclick="window.location.href='Modelo_y_Reportes.html'">
-      <i class="bi bi-eye me-1"></i>Modelo y Reportes
+      Modelo y Reportes
     </button>
+    <button class="btn-inicio-header" onclick="irAInicio()">🏠 Inicio</button>
     <button style="background:var(--marca-color-acento);border-color:var(--marca-color-acento)" onclick="guardarModuloActivo()">Guardar</button>
   </div>
 </div>
@@ -284,20 +296,39 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
     <div class="area">Construcción</div>
 
+    <!-- ===== PLANEACIÓN ===== -->
     <div class="grupo-toggle open" data-grupo="planeacion">
       <span class="ico">📁</span> Planeación de Obra <span class="chev">▾</span>
     </div>
     <div class="grupo-body open submenu" id="grupo-planeacion">
-      <div class="menu-item" data-tab="costo_plan">Costo Plan</div>
+
+      <!-- Costo Plan: SOLO para Desarrollador -->
+      <div class="menu-item" data-tab="costo_plan" data-visible-para="Desarrollador">Costo Plan</div>
+
       <div class="menu-item" data-tab="presupuestal">Control Presupuestal</div>
       <div class="menu-item" data-tab="materiales">Materiales</div>
       <div class="menu-item" data-tab="mano_obra">Mano de Obra</div>
-      <div class="menu-item" data-tab="calidad">Calidad</div>
-      <div class="menu-item" data-tab="compras">Compras</div>
-      <div class="menu-item" data-tab="requisiciones">Requisiciones</div>
-      <div class="menu-item" data-tab="ordenes_compra">Órdenes de Compra</div>
-      <div class="menu-item" data-tab="pago_proveedores">Pago a Proveedores</div>
-      <div class="menu-item" data-tab="estimaciones">Estimaciones</div>
+
+      <!-- Calidad: SOLO para Desarrollador -->
+      <div class="menu-item" data-tab="calidad" data-visible-para="Desarrollador">Calidad</div>
+
+      <!-- ===== COMPRAS (padre con sub-índices) ===== -->
+      <div class="grupo-toggle open" data-grupo="compras">
+        <span class="ico">🛒</span> Compras <span class="chev">▾</span>
+      </div>
+      <div class="grupo-body open submenu" id="grupo-compras">
+        <!-- Control de Pedidos: SOLO para Constructora -->
+        <div class="menu-item" data-tab="control_pedidos" data-visible-para="Constructora">Control de Pedidos</div>
+        <!-- Requisiciones: AMBOS -->
+        <div class="menu-item" data-tab="requisiciones">Requisiciones</div>
+        <!-- Órdenes de Compra: SOLO para Desarrollador -->
+        <div class="menu-item" data-tab="ordenes_compra" data-visible-para="Desarrollador">Órdenes de Compra</div>
+        <!-- Pago a Proveedores: AMBOS -->
+        <div class="menu-item" data-tab="pago_proveedores">Pago a Proveedores</div>
+        <!-- Estimaciones: AMBOS -->
+        <div class="menu-item" data-tab="estimaciones">Estimaciones</div>
+      </div>
+
     </div>
 
     <div class="area">Finanzas</div>
@@ -341,24 +372,8 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
       </div>
 
       <h5 style="margin:20px 0 10px;font-size:14px;">📌 Módulos del Sistema</h5>
-      <div class="modulos-grid">
-        <div class="modulo-card" onclick="navegarA('costo_plan')"><span class="ico">💰</span><span class="nombre">Costo Plan</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('presupuestal')"><span class="ico">📊</span><span class="nombre">Control Presupuestal</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('materiales')"><span class="ico">🧱</span><span class="nombre">Materiales</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('mano_obra')"><span class="ico">👷</span><span class="nombre">Mano de Obra</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('calidad')"><span class="ico">✅</span><span class="nombre">Calidad</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('compras')"><span class="ico">🛒</span><span class="nombre">Compras</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('requisiciones')"><span class="ico">📋</span><span class="nombre">Requisiciones</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('ordenes_compra')"><span class="ico">📄</span><span class="nombre">Órdenes de Compra</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('pago_proveedores')"><span class="ico">💰</span><span class="nombre">Pago a Proveedores</span><span class="estado">Activo</span></div>
-        <div class="modulo-card" onclick="navegarA('estimaciones')"><span class="ico">📈</span><span class="nombre">Estimaciones</span><span class="estado">Activo</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🏦</span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">⚖️</span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">👥</span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🏗️</span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">📦</span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🔧</span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
-        <div class="modulo-card bloqueado"><span class="ico">🛠️</span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
+      <div class="modulos-grid" id="modulos-grid-inicio">
+        <!-- Los módulos se renderizan dinámicamente según modelo_gestion -->
       </div>
     </div>
 
@@ -384,6 +399,108 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+/* =====================================================================
+   MODELO DE GESTIÓN
+   ===================================================================== */
+function getModeloGestion() {
+  let modelo = localStorage.getItem('obra360_modelo_gestion');
+  if (!modelo) {
+    modelo = localStorage.getItem('modelo_gestion');
+  }
+  return modelo || 'Desarrollador';
+}
+
+/* =====================================================================
+   FILTRAR SIDEBAR SEGÚN MODELO DE GESTIÓN
+   ===================================================================== */
+function filtrarSidebarPorModelo() {
+  const modelo = getModeloGestion();
+  const items = document.querySelectorAll('.menu-item[data-visible-para]');
+  items.forEach(item => {
+    const visiblePara = item.getAttribute('data-visible-para');
+    if (visiblePara) {
+      const visibles = visiblePara.split(',').map(s => s.trim());
+      if (visibles.includes(modelo)) {
+        item.style.display = 'flex';
+      } else {
+        item.style.display = 'none';
+      }
+    }
+  });
+
+  const grupos = document.querySelectorAll('.grupo-body');
+  grupos.forEach(grupo => {
+    const itemsVisibles = grupo.querySelectorAll('.menu-item:not([style*="display: none"])');
+    if (itemsVisibles.length === 0) {
+      grupo.style.display = 'none';
+      const padre = grupo.closest('.grupo-toggle');
+      if (padre) padre.style.display = 'none';
+    } else {
+      grupo.style.display = '';
+      const padre = grupo.closest('.grupo-toggle');
+      if (padre) padre.style.display = '';
+    }
+  });
+}
+
+/* =====================================================================
+   FILTRAR MÓDULOS DEL INICIO SEGÚN MODELO DE GESTIÓN
+   ===================================================================== */
+function getModulosVisibles() {
+  const modelo = getModeloGestion();
+  const comunes = ['presupuestal', 'materiales', 'mano_obra', 'requisiciones', 'pago_proveedores', 'estimaciones'];
+  const especificos = {
+    'Desarrollador': ['costo_plan', 'calidad', 'ordenes_compra'],
+    'Constructora': ['control_pedidos']
+  };
+  const extra = especificos[modelo] || [];
+  return [...comunes, ...extra];
+}
+
+function renderizarModulosInicio() {
+  const container = document.getElementById('modulos-grid-inicio');
+  const visibles = getModulosVisibles();
+  
+  const todosLosModulos = {
+    costo_plan: { ico: '💰', nombre: 'Costo Plan' },
+    presupuestal: { ico: '📊', nombre: 'Control Presupuestal' },
+    materiales: { ico: '🧱', nombre: 'Materiales' },
+    mano_obra: { ico: '👷', nombre: 'Mano de Obra' },
+    calidad: { ico: '✅', nombre: 'Calidad' },
+    control_pedidos: { ico: '📦', nombre: 'Control de Pedidos' },
+    requisiciones: { ico: '📋', nombre: 'Requisiciones' },
+    ordenes_compra: { ico: '📄', nombre: 'Órdenes de Compra' },
+    pago_proveedores: { ico: '💰', nombre: 'Pago a Proveedores' },
+    estimaciones: { ico: '📈', nombre: 'Estimaciones' }
+  };
+  
+  let html = '';
+  visibles.forEach(key => {
+    const mod = todosLosModulos[key];
+    if (mod) {
+      html += `
+        <div class="modulo-card" onclick="navegarA('${key}')">
+          <span class="ico">${mod.ico}</span>
+          <span class="nombre">${mod.nombre}</span>
+          <span class="estado">Activo</span>
+        </div>
+      `;
+    }
+  });
+  
+  html += `
+    <div class="modulo-card bloqueado"><span class="ico">🏦</span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico">⚖️</span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico">👥</span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico">🏗️</span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico">📦</span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico">🔧</span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico">🛠️</span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
+  `;
+  
+  container.innerHTML = html;
+}
+
 /* =====================================================================
    DATOS DE INICIO (guardados en localStorage)
    ===================================================================== */
@@ -526,13 +643,14 @@ const MODULOS = {
         "Aplanados Interiores (M2)","Estructura Metálica Fabricación (KG)",
         "Montaje Estructura Metálica (KG)","Recubrimiento Pintura Estructura Metálica",
         "Control de Calidad Estructura Metálica"]},
+      {key:"unidad", label:"Unidad", tipo:"select", opciones:["KG","M2","M3","ML","PZA","TON"]},
       {key:"cantidad", label:"Cantidad", tipo:"num"},
       {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
       {key:"costo_total", label:"Costo Total", tipo:"num", calculado:(r)=> (Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
     ],
     datos:[
-      {id:"MO-001", concepto:"Habilitado Acero de Refuerzo (KG)", cantidad:18500, costo_unitario:28, costo_total:null},
-      {id:"MO-002", concepto:"Concreto Vaciado en Elementos (M3)", cantidad:12, costo_unitario:3200, costo_total:null},
+      {id:"MO-001", concepto:"Habilitado Acero de Refuerzo (KG)", unidad:"KG", cantidad:18500, costo_unitario:28, costo_total:null},
+      {id:"MO-002", concepto:"Concreto Vaciado en Elementos (M3)", unidad:"M3", cantidad:12, costo_unitario:3200, costo_total:null},
     ]
   },
 
@@ -563,14 +681,13 @@ const MODULOS = {
     ]
   },
 
-  compras: {
-    label:"Compras",
-    endpoint:"compras",
+  control_pedidos: {
+    label:"Control de Pedidos",
+    endpoint:"control_pedidos",
     columnas:[
-      {key:"id", label:"ID", hidden:true},
+      {key:"no_pedido", label:"No. Pedido"},
       {key:"proveedor", label:"Proveedor"},
       {key:"concepto", label:"Concepto"},
-      {key:"categoria", label:"Categoría"},
       {key:"cantidad", label:"Cantidad", tipo:"num"},
       {key:"unidad", label:"Unidad", tipo:"select", opciones:["pza","kg","m3","m2","ml","ton"]},
       {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
@@ -580,7 +697,7 @@ const MODULOS = {
       {key:"estatus", label:"Estatus", tipo:"select", opciones:["Pendiente","Enviado","Recibido"]},
     ],
     datos:[
-      {id:"COM-001", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", categoria:"Acero", cantidad:5000, unidad:"kg", costo_unitario:27.5, importe:null, fecha_pedido:"2026-06-01", fecha_entrega:"2026-06-15", estatus:"Pendiente"},
+      {no_pedido:"PED-001", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", cantidad:5000, unidad:"kg", costo_unitario:27.5, importe:null, fecha_pedido:"2026-06-01", fecha_entrega:"2026-06-15", estatus:"Pendiente"},
     ]
   },
 
@@ -629,13 +746,18 @@ const MODULOS = {
     endpoint:"pago_proveedores",
     columnas:[
       {key:"proveedor", label:"Proveedor / Contratista"},
-      {key:"imss", label:"IMSS"},
+      {key:"no_proveedor", label:"N° Proveedor"},
+      {key:"pedido_contrato", label:"Pedido/Contrato"},
+      {key:"importe_pedido", label:"Importe Pedido (sin IVA)", tipo:"num"},
+      {key:"importe_pagado", label:"Importe Pagado (a la fecha)", tipo:"num"},
+      {key:"concepto", label:"Concepto"},
+      {key:"imss", label:"IMSS (Vigencia)", tipo:"select", opciones:["Vigente","No Vigente"]},
       {key:"regimen_fiscal", label:"Régimen Fiscal", tipo:"select", opciones:["CIROC","RESICO"]},
-      {key:"no_pedido_contrato", label:"No. Pedido/Contrato"},
-      {key:"estatus_pago", label:"Estatus de Pago", tipo:"select", opciones:["Pendiente","Pagado","Retenido"]},
+      {key:"estatus_pago", label:"Estatus Pago", tipo:"select", opciones:["Pendiente","Pagado","Retenido"]},
     ],
     datos:[
-      {proveedor:"Estructuras del Norte", imss:"Vigente", regimen_fiscal:"RESICO", no_pedido_contrato:"CT-0032", estatus_pago:"Pendiente"},
+      {proveedor:"Estructuras del Norte", no_proveedor:"PROV-001", pedido_contrato:"CT-0032", importe_pedido:1250000, importe_pagado:625000, concepto:"Estructura Metálica Nave 3", imss:"Vigente", regimen_fiscal:"RESICO", estatus_pago:"Pendiente"},
+      {proveedor:"Concretos del Centro", no_proveedor:"PROV-002", pedido_contrato:"CT-0045", importe_pedido:850000, importe_pagado:850000, concepto:"Concreto 250 kg/cm²", imss:"Vigente", regimen_fiscal:"CIROC", estatus_pago:"Pagado"},
     ]
   },
 
@@ -756,7 +878,16 @@ function entrarApp(){
     document.getElementById("gate-vista").value = v;
   }
   cargarDatosInicio();
+  filtrarSidebarPorModelo();
+  renderizarModulosInicio();
 })();
+
+/* =====================================================================
+   IR A INICIO (desde header o sidebar)
+   ===================================================================== */
+function irAInicio() {
+  navegarA('inicio');
+}
 
 /* =====================================================================
    RENDER DE TABLAS (con soporte para subtabs y calculados con allData)
@@ -775,6 +906,7 @@ function construirModuloHTML(modKey){
       <div class="module" id="mod-${modKey}" data-mod="${modKey}">
         <div class="module-title-row">
           <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
+          <button class="btn-inicio-header" onclick="irAInicio()" style="background:var(--azul-header);color:#fff;border:none;padding:4px 12px;border-radius:3px;font-size:12px;cursor:pointer;">🏠 Inicio</button>
         </div>
         <div class="info-banner">
           Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
@@ -821,6 +953,7 @@ function construirModuloHTML(modKey){
     <div class="module" id="mod-${modKey}" data-mod="${modKey}">
       <div class="module-title-row">
         <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
+        <button class="btn-inicio-header" onclick="irAInicio()" style="background:var(--azul-header);color:#fff;border:none;padding:4px 12px;border-radius:3px;font-size:12px;cursor:pointer;">🏠 Inicio</button>
       </div>
       <div class="info-banner">
         Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
