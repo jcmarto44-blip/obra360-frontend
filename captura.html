@@ -320,9 +320,9 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
     <div class="area">Construcción</div>
 
-    <!-- ===== PLANEACIÓN ===== -->
+    <!-- ===== PLANEACIÓN (Desarrollador) ===== -->
     <div class="grupo-toggle open" data-grupo="planeacion">
-      <span class="ico"><i class="bi bi-folder"></i></span> Planeación de Obra <span class="chev">▾</span>
+      <span class="ico"><i class="bi bi-folder"></i></span> Planeación de Proyecto <span class="chev">▾</span>
     </div>
     <div class="grupo-body open submenu" id="grupo-planeacion">
 
@@ -597,45 +597,100 @@ const MODULOS = {
       partidas: {
         label:"Partidas",
         columnas:[
-          {key:"presupuesto", label:"Presupuesto", tipo:"num"},
-          {key:"tramites_permisos", label:"Trámites y Permisos", tipo:"num"},
-          {key:"estudios_disenos", label:"Estudios y Diseños", tipo:"num"},
-          {key:"obras_preliminares", label:"Obras Preliminares y Provisionales", tipo:"num"},
-          {key:"servicios", label:"Servicios", tipo:"num"},
-          {key:"control_obra", label:"Control de Obra", tipo:"num"},
-          {key:"mejoras_terreno", label:"Mejoras al Terreno", tipo:"num"},
-          {key:"obra_negra_cimentacion", label:"Obra Negra Cimentación", tipo:"num"},
-          {key:"obra_negra_edificio", label:"Obra Negra Edificio", tipo:"num"},
-          {key:"complementos_obra_negra", label:"Complementos de Obra Negra", tipo:"num"},
-          {key:"instalaciones_hidrosanitarias", label:"Instalaciones Hidrosanitarias vs Incendios y Gas", tipo:"num"},
-          {key:"instalaciones_electricas", label:"Instalaciones Eléctricas", tipo:"num"},
-          {key:"instalaciones_voz_datos", label:"Instalaciones Ocultas de Red de Voz y Datos", tipo:"num"},
-          {key:"instalaciones_aa", label:"Instalaciones de Acondicionamiento Ambiental", tipo:"num"},
-          {key:"acabados", label:"Acabados", tipo:"num"},
-          {key:"areas_exteriores", label:"Áreas Exteriores", tipo:"num"},
-          {key:"equipo_edificio", label:"Equipo Edificio", tipo:"num"},
+          {key:"concepto", label:"CONCEPTO"},
+          {key:"presupuesto", label:"PRESUPUESTO", tipo:"num"}
         ],
         datos:[
-          {presupuesto:10000000, tramites_permisos:250000, estudios_disenos:300000, obras_preliminares:150000, servicios:120000, control_obra:80000, mejoras_terreno:200000, obra_negra_cimentacion:1200000, obra_negra_edificio:2500000, complementos_obra_negra:400000, instalaciones_hidrosanitarias:350000, instalaciones_electricas:280000, instalaciones_voz_datos:95000, instalaciones_aa:420000, acabados:1800000, areas_exteriores:600000, equipo_edificio:750000}
+          {concepto:"EDIFICIO (CONSTRUCCION)", presupuesto:6583993.52},
+          {concepto:"TRÁMITES Y PERMISOS", presupuesto:0.00},
+          {concepto:"LICENCIAS DE CONSTRUCCIÓN", presupuesto:0.00},
+          {concepto:"CONTRATOS DE SERVICIOS", presupuesto:0.00},
+          {concepto:"ESTUDIOS Y DISEÑOS", presupuesto:380000.00},
+          {concepto:"ESTUDIOS PRELIMINARES", presupuesto:30000.00},
+          {concepto:"DISEÑOS E INGENIERÍAS", presupuesto:350000.00},
+          {concepto:"OBRAS PRELIMINARES Y PROVISIONALES", presupuesto:0.00},
+          {concepto:"OBRAS PRELIMINARES Y PROVISIONALES", presupuesto:0.00},
+          {concepto:"SERVICIOS", presupuesto:25000.00},
+          {concepto:"SERVICIOS", presupuesto:0.00},
+          {concepto:"CONTROL DE OBRA", presupuesto:221500.00},
+          {concepto:"CONTROL DE OBRA", presupuesto:0.00},
+          {concepto:"MEJORAS AL TERRENO (URBANIZACION)", presupuesto:279766.50},
+          {concepto:"TERRACERIAS", presupuesto:279766.50},
+          {concepto:"MUROS DE CONTENCIÓN", presupuesto:0.00},
+          {concepto:"INFRAESTRUCTURA DE SERVICIOS FUERA DEL PREDIO", presupuesto:0.00},
+          {concepto:"VIALIDADES", presupuesto:0.00},
+          {concepto:"OBRA NEGRA TIENDA (CAJÓN)", presupuesto:3503108.69},
+          {concepto:"CIMENTACIÓN", presupuesto:552646.09},
+          {concepto:"ESTRUCTURA METÁLICA", presupuesto:2255656.50},
+          {concepto:"ALBAÑILERÍA", presupuesto:316200.00},
+          {concepto:"LAMINACIÓN EN CUBIERTA Y MUROS", presupuesto:0.00},
+          {concepto:"LOSAS DE ENTREPISO Y AZOTEA", presupuesto:239616.00},
+          {concepto:"FIRMES", presupuesto:138990.10},
+          {concepto:"COMPLEMENTOS DE LA OBRA NEGRA DE TIENDA", presupuesto:712946.00},
+          {concepto:"CISTERNA", presupuesto:0.00},
+          {concepto:"HERRERIAS", presupuesto:600000.00},
+          {concepto:"LIMPIEZA", presupuesto:112946.00},
+          {concepto:"INSTALACIONES HIDROSANITARIAS VS INCENDIOS Y GAS", presupuesto:154000.00},
+          {concepto:"INSTALACIONES OCULTAS HIDROSANITARIAS", presupuesto:104000.00},
+          {concepto:"INSTALACIONES HIDRÁULICAS", presupuesto:0.00},
+          {concepto:"INSTALACIONES SANITARIAS", presupuesto:0.00},
+          {concepto:"INSTALACIONES CONTRA INCENDIOS", presupuesto:50000.00},
+          {concepto:"INSTALACIONES DE GAS", presupuesto:0.00},
+          {concepto:"INSTALACIONES ELÉCTRICAS", presupuesto:921764.61},
+          {concepto:"SUMINISTRO DE CABLE", presupuesto:250000.00},
+          {concepto:"SUMINISTRO DE LUMINARIAS Y LÁMPARAS", presupuesto:156000.00},
+          {concepto:"INSTALACIONES OCULTAS ELÉCTRICAS", presupuesto:24887.50},
+          {concepto:"INSTALACIONES ELÉCTRICAS BAJA TENSION", presupuesto:490877.11},
+          {concepto:"INSTALACIONES OCULTAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
+          {concepto:"INSTALACIONES OCULTAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
+          {concepto:"INSTALACIONES AÉREAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
+          {concepto:"INSTALACIONES DE ACONDICIONAMIENTO AMBIENTAL", presupuesto:128707.72},
+          {concepto:"AIRE ACONDICIONADO", presupuesto:0.00},
+          {concepto:"AIRE LAVADO", presupuesto:0.00},
+          {concepto:"VENTILACION Y EXTRACCIÓN", presupuesto:128707.72},
+          {concepto:"ACABADOS", presupuesto:257200.00},
+          {concepto:"RECUBRIMIENTO EN MUROS", presupuesto:0.00},
+          {concepto:"RECUBRIMIENTO EN PISOS", presupuesto:0.00},
+          {concepto:"ALUMINIO Y VIDRIO", presupuesto:0.00},
+          {concepto:"MUROS FALSOS Y PLAFONES", presupuesto:225000.00},
+          {concepto:"PINTURA GENERAL", presupuesto:32200.00},
+          {concepto:"CARPINTERÍA", presupuesto:0.00},
+          {concepto:"DECORACIÓN", presupuesto:0.00},
+          {concepto:"AREAS EXTERIORES", presupuesto:0.00},
+          {concepto:"ACOMETIDAS EN EL INTERIOR DEL PREDIO", presupuesto:0.00},
+          {concepto:"ESTACIONAMIENTO", presupuesto:0.00},
+          {concepto:"PATIO DE MANIOBRAS", presupuesto:0.00},
+          {concepto:"BARDAS Y CERCOS", presupuesto:0.00},
+          {concepto:"TORRE EMBLEMA", presupuesto:0.00},
+          {concepto:"SOMBRA PEATONAL Y VEHICULARES", presupuesto:0.00},
+          {concepto:"PARADA DE AUTOBUSES", presupuesto:0.00},
+          {concepto:"EQUIPO EDIFICIO", presupuesto:0.00},
+          {concepto:"EQUIPO EDIFICIO", presupuesto:0.00},
+          {concepto:"EQUIPO ELECTRICO", presupuesto:0.00},
+          {concepto:"EQUIPO ACONDICIONAMIENTO AMBIENTAL", presupuesto:0.00},
+          {concepto:"LOGOTIPOS Y LEYENDAS", presupuesto:0.00},
+          {concepto:"EQUIPOS ESPECIALES", presupuesto:0.00},
+          {concepto:"SUMA CONSTRUCCION + EE", presupuesto:6583993.52}
         ]
       },
       indicadores: {
-        label:"Indicadores",
+        label:"Cuadro Informativo",
         columnas:[
-          {key:"area_construccion", label:"Área de Construcción M2", tipo:"num"},
-          {key:"area_terreno", label:"Área de Terreno M2", tipo:"num"},
-          {key:"costo_m2", label:"Costo por M2", tipo:"num"},
-          {key:"cimentacion_m2", label:"Cimentación M2", tipo:"num"},
-          {key:"estructura_metalica_kg", label:"Estructura Metálica KG", tipo:"num"},
-          {key:"estructura_concreto_m2", label:"Estructura Concreto Armado M2", tipo:"num"},
-          {key:"muros_block_m2", label:"Muros de Block y Albanilerías M2", tipo:"num"},
-          {key:"firmes_m2", label:"Firmes de Concreto M2", tipo:"num"},
-          {key:"cubierta_lamina_m2", label:"Cubierta de Lámina M2", tipo:"num"},
-          {key:"costo_construccion_m2", label:"Costo Construcción M2", tipo:"num"},
-          {key:"costo_urbanizacion_m2", label:"Costo Urbanización M2", tipo:"num"},
+          {key:"concepto", label:"CONCEPTO"},
+          {key:"unidad", label:"UNIDAD"},
+          {key:"monto", label:"MONTO", tipo:"num"}
         ],
         datos:[
-          {area_construccion:8500, area_terreno:12000, costo_m2:8500, cimentacion_m2:3200, estructura_metalica_kg:45000, estructura_concreto_m2:2800, muros_block_m2:4200, firmes_m2:3800, cubierta_lamina_m2:2500, costo_construccion_m2:7200, costo_urbanizacion_m2:1800}
+          {concepto:"AREA DE CONSTRUCCION", unidad:"M2", monto:0.00},
+          {concepto:"AREA DE TERRENO", unidad:"M2", monto:0.00},
+          {concepto:"COSTO CAJON / M2", unidad:"M2", monto:3263492.69},
+          {concepto:"CIMENTACION", unidad:"M2", monto:552646.09},
+          {concepto:"ESTRUCTURA METALICA", unidad:"KG", monto:2255656.50},
+          {concepto:"MUROS DE BLOCK Y ALBANILERIAS", unidad:"M2", monto:316200.00},
+          {concepto:"CUBIERTA DE LAMINA", unidad:"M2", monto:0.00},
+          {concepto:"FIRMES DE CONCRETO", unidad:"M2", monto:138990.10},
+          {concepto:"COSTO CONSTRUCCION", unidad:"M2", monto:0.00},
+          {concepto:"COSTO URBANIZACION", unidad:"M2", monto:0.00}
         ]
       }
     }
@@ -741,6 +796,7 @@ const MODULOS = {
     label:"Control de Pedidos",
     endpoint:"control_pedidos",
     columnas:[
+      {key:"id", label:"ID", hidden:true},
       {key:"no_pedido", label:"No. Pedido"},
       {key:"proveedor", label:"Proveedor"},
       {key:"concepto", label:"Concepto"},
@@ -753,7 +809,7 @@ const MODULOS = {
       {key:"estatus", label:"Estatus", tipo:"select", opciones:["Pendiente","Enviado","Recibido"]},
     ],
     datos:[
-      {no_pedido:"PED-001", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", cantidad:5000, unidad:"kg", costo_unitario:27.5, importe:null, fecha_pedido:"2026-06-01", fecha_entrega:"2026-06-15", estatus:"Pendiente"},
+      {id:"CP-001", no_pedido:"PED-001", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", cantidad:5000, unidad:"kg", costo_unitario:27.5, importe:null, fecha_pedido:"2026-06-01", fecha_entrega:"2026-06-15", estatus:"Pendiente"},
     ]
   },
 
@@ -761,6 +817,7 @@ const MODULOS = {
     label:"Requisiciones",
     endpoint:"requisiciones",
     columnas:[
+      {key:"id", label:"ID", hidden:true},
       {key:"no", label:"Nº"},
       {key:"descripcion", label:"Descripción"},
       {key:"solicitado", label:"Solicitado"},
@@ -771,8 +828,8 @@ const MODULOS = {
       {key:"estado_compras", label:"Estado Compras", tipo:"select", opciones:["Pendiente","En Proceso","Cotizando","Aprobado","Rechazado","Comprado"]},
     ],
     datos:[
-      {no:"REQ-001", descripcion:"Varilla 3/8 para cimentación", solicitado:"J. Pérez", fecha_solicitud:"2026-06-01", elaboro_req:"M. Gómez", area_obra:"Cimentación", contratista_asignado:"Aceros del Bajío", estado_compras:"Cotizando"},
-      {no:"REQ-002", descripcion:"Concreto premezclado 250 kg/cm²", solicitado:"L. Ramírez", fecha_solicitud:"2026-06-03", elaboro_req:"M. Gómez", area_obra:"Estructura", contratista_asignado:"Concretos del Centro", estado_compras:"Pendiente"},
+      {id:"REQ-001", no:"REQ-001", descripcion:"Varilla 3/8 para cimentación", solicitado:"J. Pérez", fecha_solicitud:"2026-06-01", elaboro_req:"M. Gómez", area_obra:"Cimentación", contratista_asignado:"Aceros del Bajío", estado_compras:"Cotizando"},
+      {id:"REQ-002", no:"REQ-002", descripcion:"Concreto premezclado 250 kg/cm²", solicitado:"L. Ramírez", fecha_solicitud:"2026-06-03", elaboro_req:"M. Gómez", area_obra:"Estructura", contratista_asignado:"Concretos del Centro", estado_compras:"Pendiente"},
     ]
   },
 
@@ -780,20 +837,21 @@ const MODULOS = {
     label:"Órdenes de Compra",
     endpoint:"ordenes_compra",
     columnas:[
-      {key:"no_oc", label:"No. OC"},
-      {key:"proveedor", label:"Proveedor"},
-      {key:"concepto", label:"Concepto"},
-      {key:"categoria", label:"Categoría"},
-      {key:"cantidad", label:"Cantidad", tipo:"num"},
-      {key:"unidad", label:"Unidad", tipo:"select", opciones:["pza","kg","m3","m2","ml","ton"]},
-      {key:"pu", label:"P.U.", tipo:"num"},
-      {key:"importe", label:"Importe", tipo:"num", calculado:(r)=>(Number(r.cantidad)||0)*(Number(r.pu)||0)},
-      {key:"fecha", label:"Fecha", tipo:"fecha"},
-      {key:"quien_requisito", label:"Quién Requisitó", tipo:"select", opciones:["Ing","Arq","Lic","CP"]},
-      {key:"estatus", label:"Estatus", tipo:"select", opciones:["Pendiente","Recibido"]},
+      {key:"id", label:"ID", hidden:true},
+      {key:"orden_compra", label:"ORDEN DE COMPRA"},
+      {key:"presup", label:"PRESUP.", tipo:"num"},
+      {key:"pedido", label:"PEDIDO"},
+      {key:"empresa", label:"EMPRESA"},
+      {key:"descripcion", label:"DESCRIPCIÓN"},
+      {key:"responsable", label:"RESPONSABLE"},
+      {key:"monto", label:"MONTO", tipo:"num"},
+      {key:"factura", label:"FACTURA"},
+      {key:"monto_pagado", label:"MONTO PAGADO", tipo:"num"},
+      {key:"saldo", label:"SALDO", tipo:"num"},
+      {key:"observaciones", label:"OBSERVACIONES"}
     ],
     datos:[
-      {no_oc:"OC-1042", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", categoria:"Acero", cantidad:5000, unidad:"kg", pu:27.5, importe:null, fecha:"2026-06-02", quien_requisito:"Ing", estatus:"Recibido"},
+      {id:"OC-001", orden_compra:"OC-1042", presup:0.00, pedido:"PED-001", empresa:"Aceros del Bajío", descripcion:"Varilla 3/8", responsable:"Ing. García", monto:0.00, factura:"FAC-001", monto_pagado:0.00, saldo:0.00, observaciones:""},
     ]
   },
 
@@ -801,6 +859,7 @@ const MODULOS = {
     label:"Pago a Proveedores y Contratistas",
     endpoint:"pago_proveedores",
     columnas:[
+      {key:"id", label:"ID", hidden:true},
       {key:"proveedor", label:"Proveedor / Contratista"},
       {key:"no_proveedor", label:"N° Proveedor"},
       {key:"pedido_contrato", label:"Pedido/Contrato"},
@@ -812,8 +871,8 @@ const MODULOS = {
       {key:"estatus_pago", label:"Estatus Pago", tipo:"select", opciones:["Pendiente","Pagado","Retenido"]},
     ],
     datos:[
-      {proveedor:"Estructuras del Norte", no_proveedor:"PROV-001", pedido_contrato:"CT-0032", importe_pedido:1250000, importe_pagado:625000, concepto:"Estructura Metálica Nave 3", imss:"Vigente", regimen_fiscal:"RESICO", estatus_pago:"Pendiente"},
-      {proveedor:"Concretos del Centro", no_proveedor:"PROV-002", pedido_contrato:"CT-0045", importe_pedido:850000, importe_pagado:850000, concepto:"Concreto 250 kg/cm²", imss:"Vigente", regimen_fiscal:"CIROC", estatus_pago:"Pagado"},
+      {id:"PP-001", proveedor:"Estructuras del Norte", no_proveedor:"PROV-001", pedido_contrato:"CT-0032", importe_pedido:1250000, importe_pagado:625000, concepto:"Estructura Metálica Nave 3", imss:"Vigente", regimen_fiscal:"RESICO", estatus_pago:"Pendiente"},
+      {id:"PP-002", proveedor:"Concretos del Centro", no_proveedor:"PROV-002", pedido_contrato:"CT-0045", importe_pedido:850000, importe_pagado:850000, concepto:"Concreto 250 kg/cm²", imss:"Vigente", regimen_fiscal:"CIROC", estatus_pago:"Pagado"},
     ]
   },
 
@@ -821,6 +880,7 @@ const MODULOS = {
     label:"Estimaciones",
     endpoint:"estimaciones",
     columnas:[
+      {key:"id", label:"ID", hidden:true},
       {key:"estimacion_no", label:"Estimación #"},
       {key:"numero_factura", label:"Número de Factura"},
       {key:"concepto", label:"Concepto"},
@@ -857,6 +917,7 @@ const MODULOS = {
     ],
     datos:[
       {
+        id:"EST-001",
         estimacion_no:"E-001",
         numero_factura:"FAC-001",
         concepto:"Cimentación - Zapata Z-1",
@@ -872,6 +933,7 @@ const MODULOS = {
         disponible:null
       },
       {
+        id:"EST-002",
         estimacion_no:"E-002",
         numero_factura:"FAC-002",
         concepto:"Estructura Metálica - Nave 3",
@@ -887,6 +949,7 @@ const MODULOS = {
         disponible:null
       },
       {
+        id:"EST-003",
         estimacion_no:"E-003",
         numero_factura:"FAC-003",
         concepto:"Acabados - Pisos y Muros",
