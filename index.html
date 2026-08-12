@@ -40,6 +40,100 @@
       color: #6c757d; padding: 0; line-height: 1;
     }
     .btn-toggle-password:hover { color: #0d6efd; }
+
+    /* ============================================================
+       BANNER DE COOKIES PROFESIONAL CON FONDO AZUL DIFUMINADO
+       ============================================================ */
+    #cookieBanner {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(13, 110, 253, 0.12);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 20px 28px;
+      z-index: 9999;
+      border-radius: 16px;
+      box-shadow: 0 8px 40px rgba(13, 110, 253, 0.12);
+      display: none;
+      max-width: 820px;
+      width: 92%;
+      border: 1px solid rgba(13, 110, 253, 0.12);
+      transition: all 0.3s ease;
+    }
+    #cookieBanner .cookie-contenido {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    #cookieBanner .cookie-texto {
+      font-size: 0.95rem;
+      text-align: center;
+      line-height: 1.6;
+      color: #1a2634;
+      font-weight: 400;
+    }
+    #cookieBanner .cookie-texto a {
+      color: #0d6efd;
+      text-decoration: underline;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    #cookieBanner .cookie-texto a:hover {
+      color: #0a58ca;
+    }
+    #cookieBanner .cookie-botones {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #cookieBanner .btn-cookie-aceptar {
+      background: #0d6efd;
+      color: white;
+      border: none;
+      padding: 10px 32px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+    }
+    #cookieBanner .btn-cookie-aceptar:hover {
+      background: #0a58ca;
+      transform: scale(1.03);
+      box-shadow: 0 6px 20px rgba(13, 110, 253, 0.35);
+    }
+    #cookieBanner .btn-cookie-rechazar {
+      background: transparent;
+      color: #1a2634;
+      border: 1px solid rgba(13, 110, 253, 0.25);
+      padding: 10px 32px;
+      border-radius: 30px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 0.9rem;
+    }
+    #cookieBanner .btn-cookie-rechazar:hover {
+      background: rgba(13, 110, 253, 0.05);
+      border-color: #0d6efd;
+    }
+    @media (min-width: 576px) {
+      #cookieBanner .cookie-contenido {
+        flex-direction: row;
+      }
+      #cookieBanner .cookie-texto {
+        text-align: left;
+        flex: 1;
+      }
+      #cookieBanner .cookie-botones {
+        flex-shrink: 0;
+      }
+    }
   </style>
 </head>
 
@@ -198,6 +292,23 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       BANNER DE COOKIES PROFESIONAL CON FONDO AZUL DIFUMINADO
+       ============================================================ -->
+  <div id="cookieBanner">
+    <div class="cookie-contenido">
+      <div class="cookie-texto">
+        <i class="bi bi-shield-check" style="color: #0d6efd; margin-right: 6px;"></i>
+        Utilizamos cookies propias y de terceros para fines estrictamente necesarios para el funcionamiento del servicio, así como para fines analíticos y de personalización. Para más información, consulta nuestra
+        <a href="politica-privacidad.html">Política de Privacidad</a>.
+      </div>
+      <div class="cookie-botones">
+        <button class="btn-cookie-rechazar" onclick="rechazarCookies()">Rechazar</button>
+        <button class="btn-cookie-aceptar" onclick="aceptarCookies()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
   <footer class="bg-dark text-white text-center p-4 mt-5 shadow-lg">
     <p style="font-size: 1.1rem;">
       Síguenos en:
@@ -211,7 +322,6 @@
       Email: caasaempresa@gmail.com - jcmarto44@gmail.com
     </p>
     <p class="m-0 fw-bold" style="font-size: 1rem;">CAASA – Análisis y Reportes de Obra 360</p>
-    <!-- ENLACE A POLÍTICA DE PRIVACIDAD AÑADIDO -->
     <p style="margin-top: 10px; font-size: 0.9rem;">
       <a href="politica-privacidad.html" style="color: #ffffff; text-decoration: underline; font-weight: bold;">Política de Privacidad</a>
     </p>
@@ -237,16 +347,19 @@
       document.getElementById('vistaAcceso').style.display = 'none';
       document.getElementById('menuDesplegable').style.display = 'none';
       document.getElementById('vistaPrincipal').style.display = 'block';
+      document.getElementById('cookieBanner').style.display = 'none';
     }
     function mostrarAcceso() {
       document.getElementById('vistaPrincipal').style.display = 'none';
       ocultarSeccionesNuevas();
       document.getElementById('vistaAcceso').style.display = 'block';
       document.getElementById('loginMensaje').style.display = 'none';
+      mostrarBannerCookies();
     }
     function volverImagen() {
       document.getElementById('vistaAcceso').style.display = 'none';
       document.getElementById('vistaPrincipal').style.display = 'block';
+      document.getElementById('cookieBanner').style.display = 'none';
     }
     function abrirCita() {
       document.getElementById('menuDesplegable').style.display = 'none';
@@ -296,6 +409,29 @@
       }
     }
 
+    // ============================================================
+    // CONTROL DEL BANNER DE COOKIES PROFESIONAL
+    // ============================================================
+    function mostrarBannerCookies() {
+      const consentimiento = sessionStorage.getItem('cookies-consent');
+      const vistaAcceso = document.getElementById('vistaAcceso');
+      if (!consentimiento && vistaAcceso.style.display !== 'none') {
+        document.getElementById('cookieBanner').style.display = 'block';
+      } else {
+        document.getElementById('cookieBanner').style.display = 'none';
+      }
+    }
+
+    function aceptarCookies() {
+      sessionStorage.setItem('cookies-consent', 'aceptadas');
+      document.getElementById('cookieBanner').style.display = 'none';
+    }
+
+    function rechazarCookies() {
+      sessionStorage.setItem('cookies-consent', 'rechazadas');
+      document.getElementById('cookieBanner').style.display = 'none';
+    }
+
     const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
 
     async function loginReal() {
@@ -324,9 +460,6 @@
           return;
         }
 
-        // =====================================================
-        // GUARDAR modelo_gestion EN localStorage
-        // =====================================================
         if (data.modelo_gestion) {
           localStorage.setItem('modelo_gestion', data.modelo_gestion);
         }
@@ -357,6 +490,10 @@
         console.error('Error en login:', error);
       }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      mostrarBannerCookies();
+    });
 
     console.log('📄 Página principal cargada - Inicio de sesión manual');
   </script>
