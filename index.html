@@ -8,6 +8,22 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <meta name="google-site-verification" content="google65ecd7f272e644f4" />
 
+  <!-- ============================================================
+       CONTENT SECURITY POLICY (CSP) - BLOQUEA SCRIPTS NO AUTORIZADOS
+       ============================================================ -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' https://cdn.jsdelivr.net https://formspree.io 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';
+    img-src 'self' data: https://*.supabase.co;
+    connect-src 'self' https://analisis-reportes-obra-360-1.onrender.com https://*.supabase.co https://formspree.io;
+    font-src 'self' https://cdn.jsdelivr.net;
+    frame-src 'none';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+  ">
+
   <style>
     .menu-btn {background:transparent;border:none;color:white;font-size:32px;cursor:pointer;line-height:1;padding:0 5px;}
     #menuDesplegable {display:none;position:absolute;top:70px;right:20px;z-index:20;background:white;width:250px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,.35);overflow:hidden;}
