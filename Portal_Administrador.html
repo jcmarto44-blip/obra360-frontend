@@ -1008,6 +1008,9 @@
       });
     }
 
+    // ============================================================
+    // IR A CAPTURA (CORREGIDO - GUARDA EL MODELO)
+    // ============================================================
     function irACapturaDesdeSelector() {
       const clienteId = document.getElementById('selector-cliente').value;
       const proyectoId = document.getElementById('selector-proyecto').value;
@@ -1029,6 +1032,14 @@
       if (!cliente || !proyecto) {
         mostrarToast('❌ Cliente o proyecto no encontrado.', 'error');
         return;
+      }
+
+      // ============================================================
+      // GUARDAR modelo_gestion DEL CLIENTE EN localStorage
+      // ============================================================
+      if (cliente.modelo_gestion) {
+        localStorage.setItem('obra360_modelo_gestion', cliente.modelo_gestion);
+        localStorage.setItem('modelo_gestion', cliente.modelo_gestion);
       }
 
       localStorage.setItem('obra360_proyecto_id', proyecto.id);
