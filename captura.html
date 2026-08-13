@@ -457,8 +457,11 @@ function getModeloGestion() {
   if (!modelo) {
     modelo = localStorage.getItem('modelo_gestion');
   }
-  return modelo || 'Desarrollador';
-}
+  
+  // ✅ NORMALIZACIÓN: Si existe, convertir a mayúscula inicial
+  if (modelo) {
+    return modelo.charAt(0).toUpperCase() + modelo.slice(1).toLowerCase();
+  }
 
 /* =====================================================================
    CERRAR SESIÓN Y SALIR
