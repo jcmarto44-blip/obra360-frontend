@@ -8,6 +8,9 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <meta name="google-site-verification" content="google65ecd7f272e644f4" />
 
+  <!-- ============================================================
+       CONTENT SECURITY POLICY (CSP) - BLOQUEA SCRIPTS NO AUTORIZADOS
+       ============================================================ -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' https://cdn.jsdelivr.net https://formspree.io 'unsafe-inline' 'unsafe-eval';
@@ -54,6 +57,9 @@
     }
     .btn-toggle-password:hover { color: #0d6efd; }
 
+    /* ============================================================
+       BANNER DE COOKIES PROFESIONAL CON FONDO AZUL DIFUMINADO
+       ============================================================ */
     #cookieBanner {
       position: fixed;
       bottom: 24px;
@@ -302,6 +308,7 @@
     </div>
   </div>
 
+  <!-- BANNER DE COOKIES -->
   <div id="cookieBanner">
     <div class="cookie-contenido">
       <div class="cookie-texto">
@@ -329,6 +336,7 @@
       Email: caasaempresa@gmail.com - jcmarto44@gmail.com
     </p>
     <p class="m-0 fw-bold" style="font-size: 1rem;">CAASA – Análisis y Reportes de Obra 360</p>
+    <!-- ENLACES LEGALES -->
     <p style="margin-top: 10px; font-size: 0.9rem;">
       <a href="politica-privacidad.html" style="color: #ffffff; text-decoration: underline; font-weight: bold;">Política de Privacidad</a> |
       <a href="terminos-servicio.html" style="color: #ffffff; text-decoration: underline; font-weight: bold;">Términos de Servicio</a>
@@ -393,4 +401,119 @@
         if (response.ok) {
           alert('¡Gracias ' + nombre + '! Tu cita fue agendada. Te contactaremos pronto.');
           document.getElementById('nombreCita').value = '';
-          document.getElementById
+          document.getElementById('correoCita').value = '';
+          document.getElementById('celularCita').value = '';
+          cerrarCita();
+        } else {
+          alert('Hubo un problema al enviar tu cita. Por favor intenta de nuevo.');
+        }
+      })
+      .catch(() => {
+        alert('Hubo un problema al enviar tu cita. Revisa tu conexión e intenta de nuevo.');
+      });
+    }
+
+    function togglePassword() {
+      const campo = document.getElementById('loginPassword');
+      const boton = document.getElementById('btnTogglePassword');
+      if (campo.type === 'password') {
+        campo.type = 'text';
+        boton.innerHTML = '<i class="bi bi-eye-slash"></i>';
+      } else {
+        campo.type = 'password';
+        boton.innerHTML = '<i class="bi bi-eye"></i>';
+      }
+    }
+
+    // ============================================================
+    // CONTROL DEL BANNER DE COOKIES
+    // ============================================================
+    function mostrarBannerCookies() {
+      const consentimiento = sessionStorage.getItem('cookies-consent');
+      const vistaAcceso = document.getElementById('vistaAcceso');
+      if (!consentimiento && vistaAcceso.style.display !== 'none') {
+        document.getElementById('cookieBanner').style.display = 'block';
+      } else {
+        document.getElementById('cookieBanner').style.display = 'none';
+      }
+    }
+
+    function aceptarCookies() {
+      sessionStorage.setItem('cookies-consent', 'aceptadas');
+      document.getElementById('cookieBanner').style.display = 'none';
+    }
+
+    function rechazarCookies() {
+      sessionStorage.setItem('cookies-consent', 'rechazadas');
+      document.getElementById('cookieBanner').style.display = 'none';
+    }
+
+    const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
+
+    async function loginReal() {
+      const usuario = document.getElementById('loginUsuario').value.trim();
+      const password = document.getElementById('loginPassword').value.trim();
+      const mensajeEl = document.getElementById('loginMensaje');
+
+      if (!usuario || !password) {
+        mensajeEl.textContent = '⚠️ Completa usuario y contraseña';
+        mensajeEl.style.display = 'block';
+        return;
+      }
+      mensajeEl.style.display = 'none';
+
+      try {
+        const response = await fetch(`${API_URL}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, password })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+          mensajeEl.textContent = '❌ ' + data.mensaje;
+          mensajeEl.style.display = 'block';
+          return;
+        }
+
+        if (data.modelo_gestion) {
+          localStorage.setItem('modelo_gestion', data.modelo_gestion);
+        }
+
+        localStorage.setItem('caasa_admin_token', data.token);
+        localStorage.setItem('rol', data.rol);
+        localStorage.setItem('cliente_id', data.cliente_id);
+        localStorage.setItem('cliente_nombre', data.nombre);
+        localStorage.setItem('usuario', usuario);
+
+        if (data.proyecto_id) {
+          localStorage.setItem('obra360_proyecto_id', data.proyecto_id);
+          localStorage.setItem('obra360_proyecto_nombre', data.nombre_proyecto || '');
+          localStorage.setItem('obra360_cliente_id', data.cliente_id);
+          localStorage.setItem('obra360_token', data.token);
+          window.location.href = 'captura.html';
+          return;
+        }
+
+        if (data.rol === 'admin') {
+          window.location.href = 'Portal_Administrador.html';
+        } else {
+          window.location.href = 'Portal_Cliente.html';
+        }
+      } catch (error) {
+        mensajeEl.textContent = '❌ Error de conexión con el servidor';
+        mensajeEl.style.display = 'block';
+        console.error('Error en login:', error);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      mostrarBannerCookies();
+    });
+
+    console.log('📄 Página principal cargada - Inicio de sesión manual');
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
