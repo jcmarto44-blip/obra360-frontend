@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
-  <title>Análisis y Reportes de Obra 360</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal del Cliente — CAASA</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <meta name="google-site-verification" content="google65ecd7f272e644f4" />
 
-  <!-- ============================================================
-       CONTENT SECURITY POLICY (CSP) - BLOQUEA SCRIPTS NO AUTORIZADOS
-       ============================================================ -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' https://cdn.jsdelivr.net https://formspree.io 'unsafe-inline' 'unsafe-eval';
@@ -25,495 +21,735 @@
   ">
 
   <style>
-    .menu-btn {background:transparent;border:none;color:white;font-size:32px;cursor:pointer;line-height:1;padding:0 5px;}
-    #menuDesplegable {display:none;position:absolute;top:70px;right:20px;z-index:20;background:white;width:250px;border-radius:15px;box-shadow:0 5px 20px rgba(0,0,0,.35);overflow:hidden;}
-    #menuDesplegable button {width:100%;padding:15px;border:none;background:white;color:#0d6efd;font-weight:bold;text-align:left;}
-    #menuDesplegable button:hover {background:#0d6efd;color:white;}
-    .seccionNueva {display:none;padding:30px;}
-    #nosotros img {width:100%;height:400px;object-fit:cover;border-radius:15px;}
-    .textoNosotros {background:white;padding:25px;border-radius:15px;box-shadow:0 5px 15px rgba(0,0,0,.2);font-size:1.05rem;line-height:1.7;}
-    .blog-img {width:100%;height:180px;object-fit:cover;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.25);}
-    .logoCliente {height:130px;border:3px dashed #0d6efd;border-radius:15px;display:flex;align-items:center;justify-content:center;background:white;color:#0d6efd;font-weight:bold;box-shadow:0 4px 10px rgba(0,0,0,.15);}
-    #modalCita {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(20,80,160,.45);backdrop-filter:blur(6px);z-index:999;justify-content:center;align-items:center;}
-    .cajaCita {background:white;padding:30px;width:380px;border-radius:15px;box-shadow:0 5px 25px rgba(0,0,0,.4);}
-    #clientes {
-      background: rgba(20, 80, 160, 0.45);
-      backdrop-filter: blur(6px);
-      border-radius: 15px;
-      padding: 40px 30px;
-      margin-top: 20px;
-      box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+    :root {
+      --cliente-primary: #1b4b8f;
+      --cliente-success: #2e9e5b;
+      --cliente-danger: #dc3545;
+      --cliente-bg: #f4f6f9;
     }
-    #clientes h2, #clientes p { color: white !important; text-shadow: 0 2px 8px rgba(0,0,0,0.4); }
-    #clientes .btn-primary { background-color: white; color: #0d6efd; border: none; font-weight: bold; }
-    #clientes .btn-primary:hover { background-color: #f0f0f0; color: #0d6efd; }
-
-    .password-wrapper { position: relative; }
-    .password-wrapper input { padding-right: 45px; }
-    .btn-toggle-password {
-      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-      background: none; border: none; font-size: 1.3rem; cursor: pointer;
-      color: #6c757d; padding: 0; line-height: 1;
+    body {
+      background: var(--cliente-bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
     }
-    .btn-toggle-password:hover { color: #0d6efd; }
-
-    /* ============================================================
-       BANNER DE COOKIES PROFESIONAL CON FONDO AZUL DIFUMINADO
-       ============================================================ */
-    #cookieBanner {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(13, 110, 253, 0.12);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      padding: 20px 28px;
-      z-index: 9999;
-      border-radius: 16px;
-      box-shadow: 0 8px 40px rgba(13, 110, 253, 0.12);
-      display: none;
-      max-width: 820px;
-      width: 92%;
-      border: 1px solid rgba(13, 110, 253, 0.12);
-      transition: all 0.3s ease;
-    }
-    #cookieBanner .cookie-contenido {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-    #cookieBanner .cookie-texto {
-      font-size: 0.95rem;
-      text-align: center;
-      line-height: 1.6;
-      color: #1a2634;
-      font-weight: 400;
-    }
-    #cookieBanner .cookie-texto a {
-      color: #0d6efd;
-      text-decoration: underline;
-      font-weight: 600;
-      transition: 0.2s;
-    }
-    #cookieBanner .cookie-texto a:hover {
-      color: #0a58ca;
-    }
-    #cookieBanner .cookie-botones {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    #cookieBanner .btn-cookie-aceptar {
-      background: #0d6efd;
+    .cliente-header {
+      background: linear-gradient(135deg, var(--cliente-primary), #2a6bb0);
       color: white;
-      border: none;
-      padding: 10px 32px;
-      border-radius: 30px;
+      padding: 1.2rem 2rem;
+      border-radius: 0 0 1.5rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(27, 75, 143, 0.25);
+    }
+    .cliente-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .cliente-header small {
+      opacity: 0.8;
+      font-size: 0.9rem;
+      font-weight: 300;
+    }
+    .btn-salir {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
       font-weight: 600;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-salir:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+    }
+    .btn-modelo-reportes {
+      background: #17a2b8;
+      border: none;
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-modelo-reportes:hover {
+      background: #138496;
+      color: white;
+    }
+    .estado-banner {
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .estado-activo {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+    .estado-inactivo {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+    .card-cliente {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #e9edf4;
+      overflow: hidden;
+    }
+    .card-cliente .card-header-custom {
+      padding: 1rem 1.25rem;
+      background: #fafbfc;
+      border-bottom: 1px solid #e9edf4;
+      font-weight: 700;
+      color: var(--cliente-primary);
+    }
+    .card-cliente .card-body-custom {
+      padding: 1.25rem;
+    }
+    .badge-proyecto {
+      background: #e8edf5;
+      color: var(--cliente-primary);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin: 0.2rem 0.2rem;
       cursor: pointer;
-      transition: 0.3s;
+      transition: all 0.2s;
+    }
+    .badge-proyecto:hover {
+      background: var(--cliente-primary);
+      color: white;
+    }
+    .badge-proyecto-seleccionado {
+      background: var(--cliente-primary);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin: 0.2rem 0.2rem;
+      cursor: pointer;
+      border: 2px solid var(--cliente-primary);
+    }
+    .equipo-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f0f2f5;
+      flex-wrap: wrap;
+    }
+    .equipo-row .rol {
+      font-weight: 600;
       font-size: 0.9rem;
-      box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
-    }
-    #cookieBanner .btn-cookie-aceptar:hover {
-      background: #0a58ca;
-      transform: scale(1.03);
-      box-shadow: 0 6px 20px rgba(13, 110, 253, 0.35);
-    }
-    #cookieBanner .btn-cookie-rechazar {
-      background: transparent;
+      min-width: 180px;
       color: #1a2634;
-      border: 1px solid rgba(13, 110, 253, 0.25);
-      padding: 10px 32px;
-      border-radius: 30px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.3s;
-      font-size: 0.9rem;
     }
-    #cookieBanner .btn-cookie-rechazar:hover {
-      background: rgba(13, 110, 253, 0.05);
-      border-color: #0d6efd;
+    .equipo-row input {
+      border: 1px solid #dce2eb;
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 120px;
     }
-    @media (min-width: 576px) {
-      #cookieBanner .cookie-contenido {
-        flex-direction: row;
-      }
-      #cookieBanner .cookie-texto {
-        text-align: left;
-        flex: 1;
-      }
-      #cookieBanner .cookie-botones {
-        flex-shrink: 0;
-      }
+    .equipo-row input:focus {
+      border-color: var(--cliente-primary);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(27, 75, 143, 0.1);
+    }
+    .equipo-row .btn-sm-custom {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: white;
+      border-radius: 1.5rem;
+      border: 2px dashed #dce2eb;
+    }
+    .empty-state i {
+      font-size: 3rem;
+      color: #bcc9d6;
+    }
+    .empty-state h5 {
+      color: #3d4a5a;
+      margin-top: 1rem;
+    }
+    .btn-captura {
+      background: var(--cliente-success);
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 0.7rem 2rem;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .btn-captura:hover {
+      background: #258a4e;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 158, 91, 0.3);
+    }
+    .btn-captura:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .toast-custom {
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      border-left: 5px solid var(--cliente-success);
+      margin-bottom: 10px;
+      min-width: 280px;
+      animation: slideIn 0.3s ease;
+    }
+    .toast-custom.error {
+      border-left-color: var(--cliente-danger);
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .proyecto-seleccionado-info {
+      background: var(--cliente-primary);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    .badge-modelo {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    @media (max-width: 768px) {
+      .cliente-header { padding: 1rem; }
+      .cliente-header h1 { font-size: 1.2rem; }
+      .equipo-row .rol { min-width: 120px; }
+      .equipo-row input { min-width: 80px; }
+      .toast-custom { min-width: auto; }
     }
   </style>
 </head>
+<body>
 
-<body style="background-color: #f5f5f5;">
-
-  <nav class="navbar navbar-dark bg-primary py-3 shadow-lg position-relative">
-    <div class="container-fluid d-flex align-items-center justify-content-start px-4">
-      <img src="images/Captura de pantalla 2026-05-26 114834.jpg"
-           alt="CAASA"
-           style="height: 110px; width: auto; margin-right: 30px; border-radius: 15px; background-color: white; padding: 5px; box-shadow: 0px 4px 12px rgba(0,0,0,0.3);">
-      <div>
-        <h1 class="text-white fw-bold m-0" style="font-size: 3.2rem; letter-spacing: 1px;">
-          Análisis y Reportes de Obra 360
-        </h1>
-        <p class="text-white mt-2 mb-0" style="font-size: 1.1rem; opacity: 0.95;">
-          Plataforma Integral de Control y Seguimiento de Obra
-        </p>
-      </div>
-      <button class="menu-btn ms-auto" onclick="abrirMenu()">☰</button>
+  <div class="cliente-header d-flex flex-wrap justify-content-between align-items-center">
+    <div>
+      <h1>
+        <i class="bi bi-building me-2"></i>
+        <span id="cliente-nombre-header">Cliente</span>
+        <span id="modelo-gestion-badge" class="badge-modelo">—</span>
+      </h1>
+      <small>Portal del Cliente — Gestión de Proyectos y Equipo</small>
     </div>
-
-    <div id="menuDesplegable">
-      <button onclick="mostrarSeccion('nosotros')">Nosotros</button>
-      <button onclick="mostrarSeccion('blog')">Blog</button>
-      <button onclick="mostrarSeccion('clientes')">Clientes</button>
-      <button onclick="abrirCita()">Agendar cita</button>
-    </div>
-  </nav>
-
-  <div id="vistaPrincipal">
-    <div class="container-fluid mt-4 px-4 text-center">
-      <img src="images/portada.png" class="img-fluid rounded shadow-lg border border-3 border-white" style="max-height: 600px;" alt="Obra 360">
-    </div>
-    <div class="container mt-4 mb-4 text-center">
-      <button class="btn btn-primary btn-lg px-5 py-3 fw-bold" onclick="mostrarAcceso()">Acceso de Usuarios</button>
+    <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+      <span id="user-info" class="text-white-50" style="font-size:0.85rem;"></span>
+      <button class="btn-modelo-reportes" onclick="window.location.href='Modelo_y_Reportes.html'">
+        <i class="bi bi-eye me-1"></i>Ver Modelo y Reportes
+      </button>
+      <button class="btn-salir" onclick="cerrarSesion()">
+        <i class="bi bi-box-arrow-left me-1"></i>Salir
+      </button>
     </div>
   </div>
 
-  <div id="vistaAcceso" style="display:none;">
-    <div class="container-fluid mt-4 px-4">
-      <div id="carouselObra360" class="carousel slide shadow-lg rounded overflow-hidden border border-3 border-white" data-bs-ride="carousel">
-        <div class="carousel-inner">
-          <div class="carousel-item active">
-            <img src="images/nikguy-construction-site-2733678_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="CEDIS">
-          </div>
-          <div class="carousel-item">
-            <img src="images/elasticcomputefarm-supermarket-949913_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Supermercado">
-          </div>
-          <div class="carousel-item">
-            <img src="images/marcinjozwiak-production-4408573_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Producción">
-          </div>
-          <div class="carousel-item">
-            <img src="images/652234-building-1210677_1920.jpg" class="d-block w-100" style="height: 400px; object-fit: cover;" alt="Edificio">
-          </div>
-        </div>
-        <button class="carousel-control-prev" type="button" data-bs-target="#carouselObra360" data-bs-slide="prev">
-          <span class="carousel-control-prev-icon"></span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#carouselObra360" data-bs-slide="next">
-          <span class="carousel-control-next-icon"></span>
-        </button>
-      </div>
+  <div class="toast-container" id="toast-container"></div>
+
+  <div class="container-fluid px-4 py-4">
+
+    <div id="estado-banner" class="estado-banner estado-activo">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>Cuenta Activa</span>
     </div>
 
-    <div class="container mt-4">
-      <div class="card shadow border-0 rounded-4">
-        <div class="card-body p-4 text-center">
-          <h3 class="text-primary fw-bold mb-3" style="font-size: 1.5rem;">Acceso de Usuarios</h3>
-
-          <div class="mb-3 text-start">
-            <label class="form-label fw-bold">Usuario</label>
-            <input type="text" id="loginUsuario" class="form-control" placeholder="Ingresa tu usuario">
-          </div>
-          <div class="mb-3 text-start">
-            <label class="form-label fw-bold">Contraseña</label>
-            <div class="password-wrapper">
-              <input type="password" id="loginPassword" class="form-control" placeholder="Escribe tu contraseña">
-              <button type="button" class="btn-toggle-password" id="btnTogglePassword" onclick="togglePassword()" aria-label="Mostrar u ocultar contraseña">
-                <i class="bi bi-eye"></i>
-              </button>
-            </div>
-          </div>
-
-          <button class="btn btn-primary px-5 py-2 fw-bold" onclick="loginReal()">Iniciar Sesión</button>
-
-          <div id="loginMensaje" class="mt-3 text-danger fw-bold" style="display:none;"></div>
+    <div class="card-cliente mb-4">
+      <div class="card-header-custom">
+        <i class="bi bi-folder me-2"></i>Mis Proyectos
+        <span class="text-muted" style="font-size:0.8rem;font-weight:400;">
+          <i class="bi bi-info-circle"></i> Haz clic en un proyecto para seleccionarlo
+        </span>
+      </div>
+      <div class="card-body-custom" id="proyectos-container">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Cargando proyectos...</p>
         </div>
       </div>
     </div>
 
-    <div class="container mt-4 mb-4 text-center">
-      <button class="btn btn-outline-primary" onclick="volverImagen()">← Regresar a Portada</button>
+    <div id="proyecto-seleccionado-info" style="display:none;" class="text-center mb-3">
+      <span class="proyecto-seleccionado-info">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Proyecto seleccionado: <span id="proyecto-seleccionado-nombre">—</span>
+      </span>
     </div>
-  </div>
 
-  <section id="nosotros" class="seccionNueva container mt-4">
-    <h2 class="text-primary fw-bold mb-4">Nosotros</h2>
-    <div class="row g-4">
-      <div class="col-md-6"><img src="images/Img somos.png"></div>
-      <div class="col-md-6">
-        <div class="textoNosotros">
-          En Análisis y Reportes de Obra 360 somos una empresa comprometida con transformar la forma en que las organizaciones gestionan sus proyectos. Nacimos de la experiencia, de la necesidad de mejorar la coordinación entre las áreas y de la convicción de que las mejores decisiones se toman cuando todos trabajan con la misma información.
-          <br><br>
-          Nuestra misión es acompañar a las empresas durante todo el ciclo de vida de sus proyectos, proporcionando una visión integral que les permita anticiparse a los retos, optimizar sus recursos y convertir cada inversión en resultados.
-          <br><br>
-          No somos solo una plataforma tecnológica; somos un aliado estratégico que impulsa la colaboración, la planificación y la toma de decisiones, para que cada área participe en el momento correcto y contribuya al éxito del proyecto.
-          <br><br>
-          <strong>Todos informados, disfruta los resultados.</strong>
+    <div class="card-cliente mb-4" id="equipo-card">
+      <div class="card-header-custom">
+        <i class="bi bi-people me-2"></i>Habilitar Equipo de Trabajo
+        <span id="equipo-proyecto-label" class="text-muted" style="font-size:0.8rem;font-weight:400;">
+          (Selecciona un proyecto primero)
+        </span>
+      </div>
+      <div class="card-body-custom" id="equipo-body">
+        <div class="empty-state">
+          <i class="bi bi-folder-x"></i>
+          <h5>Selecciona un proyecto</h5>
+          <p>Haz clic en uno de tus proyectos para habilitar su equipo de trabajo.</p>
         </div>
       </div>
     </div>
-    <button class="btn btn-primary mt-4" onclick="volverInicio()">← Regresar</button>
-  </section>
 
-  <section id="blog" class="seccionNueva container mt-4">
-    <h2 class="text-primary fw-bold mb-4">Blog</h2>
-    <div class="row g-4">
-      <div class="col-md-4"><img class="blog-img" src="images/01.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/02.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/03.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/04.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/05.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/06.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/07.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/08.png"></div>
-      <div class="col-md-4"><img class="blog-img" src="images/09.png"></div>
-    </div>
-    <button class="btn btn-primary mt-4" onclick="volverInicio()">← Regresar</button>
-  </section>
-
-  <section id="clientes" class="seccionNueva container mt-4">
-    <h2 class="fw-bold mb-4 text-center" style="color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.4);">Forma parte de nuestro desarrollo</h2>
-    <div class="row justify-content-center">
-      <div class="col-md-10 text-center">
-        <p style="font-size: 1.5rem; color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-weight:bold;">
-          Descubre cómo tu proyecto avanza y te ayuda a tomar mejores decisiones
-        </p>
-        <p style="font-size: 1.2rem; cursor: pointer; color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.4); font-weight:bold; text-decoration:underline;" onclick="abrirCita()">
-          Agenda tu cita
-        </p>
-      </div>
-    </div>
     <div class="text-center mt-4">
-      <button class="btn btn-primary" style="background-color:white; color:#0d6efd; border:none; font-weight:bold;" onclick="volverInicio()">← Regresar</button>
+      <button class="btn-captura" id="btn-captura" onclick="irACaptura()">
+        <i class="bi bi-table me-2"></i>Acceder a Captura de Obra
+      </button>
     </div>
-  </section>
 
-  <div id="modalCita">
-    <div class="cajaCita">
-      <h4 class="text-primary fw-bold text-center mb-4">Agendar cita</h4>
-      <input type="text" id="nombreCita" class="form-control mb-3" placeholder="Nombre">
-      <input type="email" id="correoCita" class="form-control mb-3" placeholder="E-mail">
-      <input type="tel" id="celularCita" class="form-control mb-3" placeholder="Celular">
-      <button class="btn btn-success w-100 fw-bold mb-2" onclick="enviarCita()">Enviar cita</button>
-      <button class="btn btn-outline-secondary w-100" onclick="cerrarCita()">Salir</button>
+    <div class="mt-4 pt-2 text-center text-muted border-top" style="font-size:0.8rem;">
+      <i class="bi bi-database me-1"></i> Datos conectados a la API en Render.
     </div>
   </div>
-
-  <!-- BANNER DE COOKIES -->
-  <div id="cookieBanner">
-    <div class="cookie-contenido">
-      <div class="cookie-texto">
-        <i class="bi bi-shield-check" style="color: #0d6efd; margin-right: 6px;"></i>
-        Utilizamos cookies propias y de terceros para fines estrictamente necesarios para el funcionamiento del servicio, así como para fines analíticos y de personalización. Para más información, consulta nuestra
-        <a href="politica-privacidad.html">Política de Privacidad</a>.
-      </div>
-      <div class="cookie-botones">
-        <button class="btn-cookie-rechazar" onclick="rechazarCookies()">Rechazar</button>
-        <button class="btn-cookie-aceptar" onclick="aceptarCookies()">Aceptar</button>
-      </div>
-    </div>
-  </div>
-
-  <footer class="bg-dark text-white text-center p-4 mt-5 shadow-lg">
-    <p style="font-size: 1.1rem;">
-      Síguenos en:
-      <a href="https://instagram.com/caasa" class="text-white fw-bold">Instagram</a> |
-      <a href="https://facebook.com/caasa" class="text-white fw-bold">Facebook</a> |
-      <a href="https://www.tiktok.com/@caasa" class="text-white fw-bold">TikTok</a> |
-      <a href="https://wa.me/527298202910" class="text-white fw-bold">WhatsApp</a>
-    </p>
-    <p style="font-size: 1rem;">
-      Cel: 729 820 2910 <br>
-      Email: caasaempresa@gmail.com - jcmarto44@gmail.com
-    </p>
-    <p class="m-0 fw-bold" style="font-size: 1rem;">CAASA – Análisis y Reportes de Obra 360</p>
-    <!-- ENLACES LEGALES -->
-    <p style="margin-top: 10px; font-size: 0.9rem;">
-      <a href="politica-privacidad.html" style="color: #ffffff; text-decoration: underline; font-weight: bold;">Política de Privacidad</a> |
-      <a href="terminos-servicio.html" style="color: #ffffff; text-decoration: underline; font-weight: bold;">Términos de Servicio</a>
-    </p>
-  </footer>
 
   <script>
-    function abrirMenu() {
-      const menu = document.getElementById('menuDesplegable');
-      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
+    const TOKEN_KEY = 'caasa_admin_token';
+
+    let proyectoSeleccionadoId = null;
+    let proyectoSeleccionadoNombre = null;
+
+    function mostrarToast(mensaje, tipo = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast-custom ${tipo === 'error' ? 'error' : ''}`;
+      const icono = tipo === 'error' ? '❌' : '✅';
+      toast.innerHTML = `${icono} ${mensaje}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
     }
-    function ocultarSeccionesNuevas() {
-      document.querySelectorAll('.seccionNueva').forEach(sec => sec.style.display = 'none');
+
+    function obtenerToken() {
+      return localStorage.getItem(TOKEN_KEY);
     }
-    function mostrarSeccion(id) {
-      document.getElementById('vistaPrincipal').style.display = 'none';
-      document.getElementById('vistaAcceso').style.display = 'none';
-      document.getElementById('menuDesplegable').style.display = 'none';
-      ocultarSeccionesNuevas();
-      document.getElementById(id).style.display = 'block';
+
+    function eliminarToken() {
+      localStorage.removeItem(TOKEN_KEY);
     }
-    function volverInicio() {
-      ocultarSeccionesNuevas();
-      document.getElementById('vistaAcceso').style.display = 'none';
-      document.getElementById('menuDesplegable').style.display = 'none';
-      document.getElementById('vistaPrincipal').style.display = 'block';
-      document.getElementById('cookieBanner').style.display = 'none';
-    }
-    function mostrarAcceso() {
-      document.getElementById('vistaPrincipal').style.display = 'none';
-      ocultarSeccionesNuevas();
-      document.getElementById('vistaAcceso').style.display = 'block';
-      document.getElementById('loginMensaje').style.display = 'none';
-      mostrarBannerCookies();
-    }
-    function volverImagen() {
-      document.getElementById('vistaAcceso').style.display = 'none';
-      document.getElementById('vistaPrincipal').style.display = 'block';
-      document.getElementById('cookieBanner').style.display = 'none';
-    }
-    function abrirCita() {
-      document.getElementById('menuDesplegable').style.display = 'none';
-      document.getElementById('modalCita').style.display = 'flex';
-    }
-    function cerrarCita() {
-      document.getElementById('modalCita').style.display = 'none';
-    }
-    function enviarCita() {
-      const nombre = document.getElementById('nombreCita').value.trim();
-      const correo = document.getElementById('correoCita').value.trim();
-      const celular = document.getElementById('celularCita').value.trim();
-      if (!nombre || !correo || !celular) {
-        alert('Por favor llena todos los campos.');
-        return;
+
+    function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
       }
-      fetch('https://formspree.io/f/xjgqqnjz', {
-        method: 'POST',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre: nombre, correo: correo, celular: celular })
-      })
-      .then(response => {
-        if (response.ok) {
-          alert('¡Gracias ' + nombre + '! Tu cita fue agendada. Te contactaremos pronto.');
-          document.getElementById('nombreCita').value = '';
-          document.getElementById('correoCita').value = '';
-          document.getElementById('celularCita').value = '';
-          cerrarCita();
-        } else {
-          alert('Hubo un problema al enviar tu cita. Por favor intenta de nuevo.');
-        }
-      })
-      .catch(() => {
-        alert('Hubo un problema al enviar tu cita. Revisa tu conexión e intenta de nuevo.');
+    }
+
+    function getClienteId() {
+      const id = localStorage.getItem('cliente_id');
+      return id ? parseInt(id) : null;
+    }
+
+    function getClienteNombre() {
+      return localStorage.getItem('cliente_nombre') || 'Cliente';
+    }
+
+    function getModeloGestion() {
+      return localStorage.getItem('modelo_gestion') || '';
+    }
+
+    async function apiFetch(endpoint, options = {}) {
+      const token = obtenerToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers
       });
+
+      if (response.status === 401 || response.status === 403) {
+        eliminarToken();
+        window.location.href = 'index.html';
+        throw new Error('Sesión expirada');
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error ${response.status}`);
+      }
+
+      return response.json();
     }
 
-    function togglePassword() {
-      const campo = document.getElementById('loginPassword');
-      const boton = document.getElementById('btnTogglePassword');
-      if (campo.type === 'password') {
-        campo.type = 'text';
-        boton.innerHTML = '<i class="bi bi-eye-slash"></i>';
-      } else {
-        campo.type = 'password';
-        boton.innerHTML = '<i class="bi bi-eye"></i>';
+    async function obtenerProyectos(clienteId) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/proyectos`);
+      } catch (error) {
+        console.error('Error obteniendo proyectos:', error);
+        return [];
       }
     }
 
-    // ============================================================
-    // CONTROL DEL BANNER DE COOKIES
-    // ============================================================
-    function mostrarBannerCookies() {
-      const consentimiento = sessionStorage.getItem('cookies-consent');
-      const vistaAcceso = document.getElementById('vistaAcceso');
-      if (!consentimiento && vistaAcceso.style.display !== 'none') {
-        document.getElementById('cookieBanner').style.display = 'block';
-      } else {
-        document.getElementById('cookieBanner').style.display = 'none';
+    async function obtenerEquipo(clienteId, proyectoId) {
+      try {
+        const equipo = await apiFetch(`/clientes/${clienteId}/equipo`);
+        return equipo.filter(m => m.proyecto_id === proyectoId);
+      } catch (error) {
+        console.error('Error obteniendo equipo:', error);
+        return [];
       }
     }
 
-    function aceptarCookies() {
-      sessionStorage.setItem('cookies-consent', 'aceptadas');
-      document.getElementById('cookieBanner').style.display = 'none';
+    async function crearEquipo(clienteId, proyectoId, rol, usuario, password) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/equipo`, {
+          method: 'POST',
+          body: JSON.stringify({
+            proyecto_id: proyectoId,
+            rol: rol,
+            usuario: usuario,
+            password: password
+          })
+        });
+      } catch (error) {
+        console.error('Error creando equipo:', error);
+        throw error;
+      }
     }
 
-    function rechazarCookies() {
-      sessionStorage.setItem('cookies-consent', 'rechazadas');
-      document.getElementById('cookieBanner').style.display = 'none';
+    async function eliminarMiembroEquipo(equipoId) {
+      const clienteId = getClienteId();
+      try {
+        return await apiFetch(`/clientes/${clienteId}/equipo/${equipoId}`, {
+          method: 'DELETE'
+        });
+      } catch (error) {
+        console.error('Error eliminando equipo:', error);
+        throw error;
+      }
     }
 
-    const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
+    async function renderizarProyectos() {
+      const container = document.getElementById('proyectos-container');
+      const clienteId = getClienteId();
 
-    async function loginReal() {
-      const usuario = document.getElementById('loginUsuario').value.trim();
-      const password = document.getElementById('loginPassword').value.trim();
-      const mensajeEl = document.getElementById('loginMensaje');
-
-      if (!usuario || !password) {
-        mensajeEl.textContent = '⚠️ Completa usuario y contraseña';
-        mensajeEl.style.display = 'block';
+      if (!clienteId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>No se encontró información del cliente</h5>
+            <p>Inicia sesión nuevamente.</p>
+          </div>
+        `;
         return;
       }
-      mensajeEl.style.display = 'none';
 
       try {
-        const response = await fetch(`${API_URL}/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ usuario, password })
+        const proyectos = await obtenerProyectos(clienteId);
+
+        if (!proyectos || proyectos.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="bi bi-folder-x"></i>
+              <h5>No tienes proyectos asignados</h5>
+              <p>Contacta al administrador para que te asigne proyectos.</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">';
+        proyectos.forEach(p => {
+          const seleccionado = (proyectoSeleccionadoId === p.id) ? 'badge-proyecto-seleccionado' : 'badge-proyecto';
+          const icono = (proyectoSeleccionadoId === p.id) ? 'check-circle-fill' : 'folder2-open';
+          html += `<span class="${seleccionado}" onclick="seleccionarProyecto(${p.id}, '${p.nombre_proyecto}')">
+            <i class="bi bi-${icono} me-1"></i>${p.nombre_proyecto}
+          </span>`;
         });
-        const data = await response.json();
+        html += '</div>';
+        container.innerHTML = html;
 
-        if (!data.success) {
-          mensajeEl.textContent = '❌ ' + data.mensaje;
-          mensajeEl.style.display = 'block';
-          return;
+        if (proyectos.length > 0 && proyectoSeleccionadoId === null) {
+          seleccionarProyecto(proyectos[0].id, proyectos[0].nombre_proyecto);
         }
 
-        if (data.modelo_gestion) {
-          localStorage.setItem('modelo_gestion', data.modelo_gestion);
-        }
-
-        localStorage.setItem('caasa_admin_token', data.token);
-        localStorage.setItem('rol', data.rol);
-        localStorage.setItem('cliente_id', data.cliente_id);
-        localStorage.setItem('cliente_nombre', data.nombre);
-        localStorage.setItem('usuario', usuario);
-
-        if (data.proyecto_id) {
-          localStorage.setItem('obra360_proyecto_id', data.proyecto_id);
-          localStorage.setItem('obra360_proyecto_nombre', data.nombre_proyecto || '');
-          localStorage.setItem('obra360_cliente_id', data.cliente_id);
-          localStorage.setItem('obra360_token', data.token);
-          window.location.href = 'captura.html';
-          return;
-        }
-
-        if (data.rol === 'admin') {
-          window.location.href = 'Portal_Administrador.html';
-        } else {
-          window.location.href = 'Portal_Cliente.html';
-        }
       } catch (error) {
-        mensajeEl.textContent = '❌ Error de conexión con el servidor';
-        mensajeEl.style.display = 'block';
-        console.error('Error en login:', error);
+        container.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar proyectos</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+            <button class="btn btn-primary mt-3" onclick="renderizarProyectos()">Reintentar</button>
+          </div>
+        `;
+        mostrarToast('Error al cargar proyectos: ' + error.message, 'error');
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-      mostrarBannerCookies();
-    });
+    function seleccionarProyecto(id, nombre) {
+      proyectoSeleccionadoId = id;
+      proyectoSeleccionadoNombre = nombre;
 
-    console.log('📄 Página principal cargada - Inicio de sesión manual');
+      document.getElementById('proyecto-seleccionado-info').style.display = 'block';
+      document.getElementById('proyecto-seleccionado-nombre').textContent = nombre;
+      document.getElementById('equipo-proyecto-label').textContent = `(${nombre})`;
+
+      localStorage.setItem('proyecto_id', id);
+      localStorage.setItem('proyecto_nombre', nombre);
+
+      renderizarEquipo();
+      renderizarProyectos();
+    }
+
+    async function renderizarEquipo() {
+      const container = document.getElementById('equipo-body');
+      const clienteId = getClienteId();
+
+      if (!proyectoSeleccionadoId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-folder-x"></i>
+            <h5>Selecciona un proyecto</h5>
+            <p>Haz clic en uno de tus proyectos para habilitar su equipo de trabajo.</p>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const equipo = await obtenerEquipo(clienteId, proyectoSeleccionadoId);
+        const rolesExistentes = {};
+        equipo.forEach(m => { rolesExistentes[m.rol] = m; });
+
+        const roles = [
+          { id: 'gerente', label: 'Gerente de Construcción' },
+          { id: 'super', label: 'Superintendente de Construcción' },
+          { id: 'civil', label: 'Residente de Obra Civil' },
+          { id: 'instalaciones', label: 'Residente de Instalaciones' },
+          { id: 'admin', label: 'Residente de Administración' }
+        ];
+
+        let html = `
+          <p class="text-muted" style="font-size:0.9rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Crea usuarios y contraseñas para cada rol en el proyecto <strong>${proyectoSeleccionadoNombre}</strong>.
+          </p>
+        `;
+
+        roles.forEach(rol => {
+          const existe = rolesExistentes[rol.label];
+          const usuarioValue = existe ? existe.usuario : '';
+          const statusDisplay = existe ? 'inline' : 'none';
+
+          html += `
+            <div class="equipo-row">
+              <span class="rol"><i class="bi bi-person-badge me-1"></i>${rol.label}</span>
+              <input type="text" id="usr-${rol.id}" placeholder="Usuario" class="form-control form-control-sm" value="${usuarioValue}" ${existe ? 'disabled' : ''}>
+              <input type="text" id="pass-${rol.id}" placeholder="Contraseña" class="form-control form-control-sm" ${existe ? 'disabled' : ''}>
+              ${existe 
+                ? `<button class="btn btn-sm btn-danger btn-sm-custom" onclick="eliminarMiembroEquipoAction(${existe.id})">
+                    <i class="bi bi-trash3"></i> Eliminar
+                  </button>`
+                : `<button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('${rol.id}', '${rol.label}')">
+                    <i class="bi bi-check2"></i> Guardar
+                  </button>`
+              }
+              <span id="status-${rol.id}" class="text-success" style="font-size:0.8rem;display:${statusDisplay};">✅</span>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        container.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar equipo</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+          </div>
+        `;
+        mostrarToast('Error al cargar equipo: ' + error.message, 'error');
+      }
+    }
+
+    async function guardarEquipo(rolId, rolLabel) {
+      const usuario = document.getElementById(`usr-${rolId}`).value.trim();
+      const password = document.getElementById(`pass-${rolId}`).value.trim();
+      const clienteId = getClienteId();
+
+      if (!usuario || !password) {
+        mostrarToast('⚠️ Completa usuario y contraseña para ' + rolLabel, 'error');
+        return;
+      }
+
+      if (!clienteId || !proyectoSeleccionadoId) {
+        mostrarToast('⚠️ No se encontró cliente o proyecto. Reintenta.', 'error');
+        return;
+      }
+
+      try {
+        await crearEquipo(clienteId, proyectoSeleccionadoId, rolLabel, usuario, password);
+        mostrarToast(`✅ ${rolLabel} habilitado correctamente para ${proyectoSeleccionadoNombre}`);
+        renderizarEquipo();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function eliminarMiembroEquipoAction(equipoId) {
+      if (!confirm('¿Eliminar este miembro del equipo?')) return;
+
+      try {
+        await eliminarMiembroEquipo(equipoId);
+        mostrarToast('✅ Miembro eliminado correctamente');
+        renderizarEquipo();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function renderizarEstado() {
+      const banner = document.getElementById('estado-banner');
+      const btnCaptura = document.getElementById('btn-captura');
+
+      try {
+        const token = obtenerToken();
+        if (!token) {
+          banner.className = 'estado-banner estado-inactivo';
+          banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>No autenticado</span>`;
+          btnCaptura.disabled = true;
+          btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
+          return;
+        }
+
+        const response = await apiFetch('/verificar_token');
+        if (response && response.cliente) {
+          const activo = response.cliente.activo;
+          if (activo) {
+            banner.className = 'estado-banner estado-activo';
+            banner.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>Cuenta Activa</span>`;
+            btnCaptura.disabled = false;
+            btnCaptura.innerHTML = `<i class="bi bi-table me-2"></i>Acceder a Captura de Obra`;
+          } else {
+            banner.className = 'estado-banner estado-inactivo';
+            banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Cuenta Inactiva</span>`;
+            btnCaptura.disabled = true;
+            btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado (cuenta inactiva)`;
+          }
+        }
+      } catch (error) {
+        console.error('Error verificando estado:', error);
+        banner.className = 'estado-banner estado-inactivo';
+        banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Error de verificación</span>`;
+        btnCaptura.disabled = true;
+        btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
+      }
+    }
+
+    function irACaptura() {
+      const token = obtenerToken();
+      if (!token) {
+        mostrarToast('⛔ Sesión expirada. Inicia sesión nuevamente.', 'error');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      if (!proyectoSeleccionadoId) {
+        mostrarToast('⚠️ Selecciona un proyecto primero.', 'error');
+        return;
+      }
+
+      const clienteId = getClienteId();
+      const modeloGestion = getModeloGestion();
+
+      localStorage.setItem('obra360_proyecto_id', proyectoSeleccionadoId);
+      localStorage.setItem('obra360_proyecto_nombre', proyectoSeleccionadoNombre);
+      localStorage.setItem('obra360_cliente_id', clienteId);
+      localStorage.setItem('obra360_token', token);
+
+      if (modeloGestion) {
+        localStorage.setItem('obra360_modelo_gestion', modeloGestion);
+        localStorage.setItem('modelo_gestion', modeloGestion);
+      }
+
+      window.location.href = 'captura.html';
+    }
+
+    (async function init() {
+      const token = localStorage.getItem('caasa_admin_token');
+      const nombre = localStorage.getItem('cliente_nombre') || 'Cliente';
+      const modeloGestion = getModeloGestion();
+
+      if (!token) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      document.getElementById('cliente-nombre-header').textContent = nombre;
+      document.getElementById('user-info').textContent = '👤 ' + nombre;
+
+      const badge = document.getElementById('modelo-gestion-badge');
+      if (modeloGestion) {
+        badge.textContent = modeloGestion;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      try {
+        await renderizarEstado();
+        await renderizarProyectos();
+      } catch (error) {
+        console.error('Error al inicializar:', error);
+        document.getElementById('proyectos-container').innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar datos</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+            <button class="btn btn-primary mt-3" onclick="location.reload()">Reintentar</button>
+          </div>
+        `;
+      }
+    })();
   </script>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
