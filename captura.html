@@ -308,59 +308,67 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
     <div class="menu-item active" data-tab="inicio"><span class="ico"><i class="bi bi-house"></i></span> Inicio</div>
 
-    <!-- ============================================================ -->
-    <!-- SIDEBAR PARA DESARROLLADOR                                     -->
-    <!-- ============================================================ -->
-    <div id="sidebar-desarrollador" style="display:none;">
-      <div class="area">Construcción</div>
+    <div class="area">Construcción</div>
 
-      <div class="grupo-toggle open" data-grupo="planeacion-dev">
-        <span class="ico"><i class="bi bi-folder"></i></span> Planeación de Proyecto <span class="chev">▾</span>
-      </div>
-      <div class="grupo-body open submenu" id="grupo-planeacion-dev">
-        <div class="menu-item" data-tab="costo_plan"><span class="ico"><i class="bi bi-coin"></i></span> Costo Plan</div>
-        <div class="menu-item" data-tab="presupuestal"><span class="ico"><i class="bi bi-bar-chart"></i></span> Control Presupuestal</div>
-        <div class="menu-item" data-tab="materiales"><span class="ico"><i class="bi bi-box-seam"></i></span> Materiales</div>
-        <div class="menu-item" data-tab="mano_obra"><span class="ico"><i class="bi bi-person-workspace"></i></span> Mano de Obra</div>
-        <div class="menu-item" data-tab="calidad"><span class="ico"><i class="bi bi-check-circle"></i></span> Calidad</div>
-      </div>
-
-      <div class="grupo-toggle open" data-grupo="compras-dev">
-        <span class="ico"><i class="bi bi-cart"></i></span> Compras <span class="chev">▾</span>
-      </div>
-      <div class="grupo-body open submenu" id="grupo-compras-dev">
-        <div class="menu-item" data-tab="control_pedidos"><span class="ico"><i class="bi bi-box"></i></span> Control de Pedidos</div>
-        <div class="menu-item" data-tab="requisiciones"><span class="ico"><i class="bi bi-clipboard"></i></span> Requisiciones</div>
-        <div class="menu-item" data-tab="ordenes_compra"><span class="ico"><i class="bi bi-file-text"></i></span> Órdenes de Compra</div>
-        <div class="menu-item" data-tab="pago_proveedores"><span class="ico"><i class="bi bi-wallet2"></i></span> Pago a Proveedores</div>
-        <div class="menu-item" data-tab="estimaciones"><span class="ico"><i class="bi bi-graph-up"></i></span> Estimaciones</div>
-      </div>
+    <!-- ===== PLANEACIÓN ===== -->
+    <div class="grupo-toggle open" data-grupo="planeacion">
+      <span class="ico"><i class="bi bi-folder"></i></span> Planeación de Proyecto <span class="chev">▾</span>
     </div>
+    <div class="grupo-body open submenu" id="grupo-planeacion">
 
-    <!-- ============================================================ -->
-    <!-- SIDEBAR PARA CONSTRUCTORA                                     -->
-    <!-- ============================================================ -->
-    <div id="sidebar-constructora" style="display:none;">
-      <div class="area">Construcción</div>
-
-      <div class="grupo-toggle open" data-grupo="planeacion-const">
-        <span class="ico"><i class="bi bi-folder"></i></span> Planeación de Obra <span class="chev">▾</span>
-      </div>
-      <div class="grupo-body open submenu" id="grupo-planeacion-const">
-        <div class="menu-item" data-tab="control_pedidos"><span class="ico"><i class="bi bi-box"></i></span> Control de Pedidos</div>
-        <div class="menu-item" data-tab="presupuestal"><span class="ico"><i class="bi bi-bar-chart"></i></span> Control Presupuestal</div>
-        <div class="menu-item" data-tab="materiales"><span class="ico"><i class="bi bi-box-seam"></i></span> Materiales</div>
-        <div class="menu-item" data-tab="mano_obra"><span class="ico"><i class="bi bi-person-workspace"></i></span> Mano de Obra</div>
+      <!-- Costo Plan: SOLO para Desarrollador -->
+      <div class="menu-item" data-tab="costo_plan" data-visible-para="Desarrollador">
+        <span class="ico"><i class="bi bi-coin"></i></span> Costo Plan
       </div>
 
-      <div class="grupo-toggle open" data-grupo="compras-const">
+      <!-- PARA TODOS (Desarrollador y Constructora) -->
+      <div class="menu-item" data-tab="presupuestal" data-visible-para="Desarrollador,Constructora">
+        <span class="ico"><i class="bi bi-bar-chart"></i></span> Control Presupuestal
+      </div>
+
+      <div class="menu-item" data-tab="materiales" data-visible-para="Desarrollador,Constructora">
+        <span class="ico"><i class="bi bi-box-seam"></i></span> Materiales
+      </div>
+
+      <div class="menu-item" data-tab="mano_obra" data-visible-para="Desarrollador,Constructora">
+        <span class="ico"><i class="bi bi-person-workspace"></i></span> Mano de Obra
+      </div>
+
+      <!-- Calidad: SOLO para Desarrollador -->
+      <div class="menu-item" data-tab="calidad" data-visible-para="Desarrollador">
+        <span class="ico"><i class="bi bi-check-circle"></i></span> Calidad
+      </div>
+
+      <!-- ===== COMPRAS (padre con sub-índices) ===== -->
+      <div class="grupo-toggle open" data-grupo="compras">
         <span class="ico"><i class="bi bi-cart"></i></span> Compras <span class="chev">▾</span>
       </div>
-      <div class="grupo-body open submenu" id="grupo-compras-const">
-        <div class="menu-item" data-tab="requisiciones"><span class="ico"><i class="bi bi-clipboard"></i></span> Requisiciones</div>
-        <div class="menu-item" data-tab="pago_proveedores"><span class="ico"><i class="bi bi-wallet2"></i></span> Pago a Proveedores</div>
-        <div class="menu-item" data-tab="estimaciones"><span class="ico"><i class="bi bi-graph-up"></i></span> Estimaciones</div>
+      <div class="grupo-body open submenu" id="grupo-compras">
+        <!-- Control de Pedidos: SOLO para Constructora -->
+        <div class="menu-item" data-tab="control_pedidos" data-visible-para="Constructora">
+          <span class="ico"><i class="bi bi-box"></i></span> Control de Pedidos
+        </div>
+
+        <!-- PARA TODOS (Desarrollador y Constructora) -->
+        <div class="menu-item" data-tab="requisiciones" data-visible-para="Desarrollador,Constructora">
+          <span class="ico"><i class="bi bi-clipboard"></i></span> Requisiciones
+        </div>
+
+        <!-- Órdenes de Compra: SOLO para Desarrollador -->
+        <div class="menu-item" data-tab="ordenes_compra" data-visible-para="Desarrollador">
+          <span class="ico"><i class="bi bi-file-text"></i></span> Órdenes de Compra
+        </div>
+
+        <!-- PARA TODOS (Desarrollador y Constructora) -->
+        <div class="menu-item" data-tab="pago_proveedores" data-visible-para="Desarrollador,Constructora">
+          <span class="ico"><i class="bi bi-wallet2"></i></span> Pago a Proveedores
+        </div>
+
+        <div class="menu-item" data-tab="estimaciones" data-visible-para="Desarrollador,Constructora">
+          <span class="ico"><i class="bi bi-graph-up"></i></span> Estimaciones
+        </div>
       </div>
+
     </div>
 
     <div class="area">Finanzas</div>
@@ -405,7 +413,7 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
       <h5 style="margin:20px 0 10px;font-size:14px;">📌 Módulos del Sistema</h5>
       <div class="modulos-grid" id="modulos-grid-inicio">
-        <!-- Renderizado dinámico según modelo -->
+        <!-- Los módulos se renderizan dinámicamente según modelo_gestion -->
       </div>
     </div>
 
@@ -432,10 +440,8 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* =====================================================================
-   CONFIGURACIÓN
+   MODELO DE GESTIÓN
    ===================================================================== */
-const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
-
 function getModeloGestion() {
   let modelo = localStorage.getItem('obra360_modelo_gestion');
   if (!modelo) {
@@ -445,24 +451,7 @@ function getModeloGestion() {
 }
 
 /* =====================================================================
-   MOSTRAR SIDEBAR SEGÚN MODELO
-   ===================================================================== */
-function mostrarSidebarSegunModelo() {
-  const modelo = getModeloGestion();
-  const dev = document.getElementById('sidebar-desarrollador');
-  const cons = document.getElementById('sidebar-constructora');
-
-  if (modelo === 'Constructora') {
-    dev.style.display = 'none';
-    cons.style.display = 'block';
-  } else {
-    dev.style.display = 'block';
-    cons.style.display = 'none';
-  }
-}
-
-/* =====================================================================
-   CERRAR SESIÓN
+   CERRAR SESIÓN Y SALIR
    ===================================================================== */
 function cerrarSesionYSalir() {
   if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
@@ -472,90 +461,98 @@ function cerrarSesionYSalir() {
 }
 
 /* =====================================================================
-   API: GUARDAR Y RECUPERAR DATOS
+   FILTRAR SIDEBAR SEGÚN MODELO DE GESTIÓN
    ===================================================================== */
-async function guardarDatosEnAPI(modulo, datos) {
-  const token = localStorage.getItem('obra360_token') || localStorage.getItem('caasa_admin_token');
-  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+function filtrarSidebarPorModelo() {
+  const modelo = getModeloGestion();
+  const items = document.querySelectorAll('.menu-item[data-visible-para]');
+  items.forEach(item => {
+    const visiblePara = item.getAttribute('data-visible-para');
+    if (visiblePara) {
+      const visibles = visiblePara.split(',').map(s => s.trim());
+      if (visibles.includes(modelo)) {
+        item.style.display = 'flex';
+      } else {
+        item.style.display = 'none';
+      }
+    }
+  });
 
-  if (!token || !proyectoId) {
-    console.warn('No hay token o proyecto, guardando solo local');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/proyectos/${proyectoId}/datos`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        modulo: modulo,
-        datos: datos
-      })
-    });
-
-    if (!response.ok) throw new Error('Error al guardar en API');
-    return await response.json();
-  } catch (error) {
-    console.error('Error guardando en API:', error);
-    return null;
-  }
-}
-
-async function cargarDatosDesdeAPI(modulo) {
-  const token = localStorage.getItem('obra360_token') || localStorage.getItem('caasa_admin_token');
-  const proyectoId = localStorage.getItem('obra360_proyecto_id');
-
-  if (!token || !proyectoId) return null;
-
-  try {
-    const response = await fetch(`${API_URL}/proyectos/${proyectoId}/datos/${modulo}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-
-    if (!response.ok) return null;
-    return await response.json();
-  } catch (error) {
-    console.error('Error cargando desde API:', error);
-    return null;
-  }
+  const grupos = document.querySelectorAll('.grupo-body');
+  grupos.forEach(grupo => {
+    const itemsVisibles = grupo.querySelectorAll('.menu-item:not([style*="display: none"])');
+    if (itemsVisibles.length === 0) {
+      grupo.style.display = 'none';
+      const padre = grupo.closest('.grupo-toggle');
+      if (padre) padre.style.display = 'none';
+    } else {
+      grupo.style.display = '';
+      const padre = grupo.closest('.grupo-toggle');
+      if (padre) padre.style.display = '';
+    }
+  });
 }
 
 /* =====================================================================
-   GATE — Proyecto + Vista 3D
+   FILTRAR MÓDULOS DEL INICIO SEGÚN MODELO DE GESTIÓN
    ===================================================================== */
-function entrarApp(){
-  const proyecto = document.getElementById("gate-proyecto").value.trim();
-  const vista = document.getElementById("gate-vista").value.trim();
-  if(!proyecto || !vista){
-    alert("Indica el Nombre de Proyecto y la Vista 3D antes de continuar.");
-    return;
-  }
-  localStorage.setItem("obra360_proyecto", proyecto);
-  localStorage.setItem("obra360_vista", vista);
-  document.getElementById("gate").style.display = "none";
-  document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
-  document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
-  document.getElementById("dato-proyecto").value = proyecto;
-  guardarDatosInicio();
+function getModulosVisibles() {
+  const modelo = getModeloGestion();
+  const comunes = ['presupuestal', 'materiales', 'mano_obra', 'requisiciones', 'pago_proveedores', 'estimaciones'];
+  const especificos = {
+    'Desarrollador': ['costo_plan', 'calidad', 'ordenes_compra'],
+    'Constructora': ['control_pedidos']
+  };
+  const extra = especificos[modelo] || [];
+  return [...comunes, ...extra];
 }
 
-(function(){
-  const p = localStorage.getItem("obra360_proyecto");
-  const v = localStorage.getItem("obra360_vista");
-  if(p && v){
-    document.getElementById("gate-proyecto").value = p;
-    document.getElementById("gate-vista").value = v;
-  }
-  cargarDatosInicio();
-  mostrarSidebarSegunModelo();
-  renderizarModulosInicio();
-})();
+function renderizarModulosInicio() {
+  const container = document.getElementById('modulos-grid-inicio');
+  const visibles = getModulosVisibles();
+  
+  const todosLosModulos = {
+    costo_plan: { ico: 'bi-coin', nombre: 'Costo Plan' },
+    presupuestal: { ico: 'bi-bar-chart', nombre: 'Control Presupuestal' },
+    materiales: { ico: 'bi-box-seam', nombre: 'Materiales' },
+    mano_obra: { ico: 'bi-person-workspace', nombre: 'Mano de Obra' },
+    calidad: { ico: 'bi-check-circle', nombre: 'Calidad' },
+    control_pedidos: { ico: 'bi-box', nombre: 'Control de Pedidos' },
+    requisiciones: { ico: 'bi-clipboard', nombre: 'Requisiciones' },
+    ordenes_compra: { ico: 'bi-file-text', nombre: 'Órdenes de Compra' },
+    pago_proveedores: { ico: 'bi-wallet2', nombre: 'Pago a Proveedores' },
+    estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' }
+  };
+  
+  let html = '';
+  visibles.forEach(key => {
+    const mod = todosLosModulos[key];
+    if (mod) {
+      html += `
+        <div class="modulo-card" onclick="navegarA('${key}')">
+          <span class="ico"><i class="${mod.ico}"></i></span>
+          <span class="nombre">${mod.nombre}</span>
+          <span class="estado">Activo</span>
+        </div>
+      `;
+    }
+  });
+  
+  html += `
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-bank"></i></span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-scale"></i></span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-people"></i></span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-building"></i></span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-warehouse"></i></span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-gear"></i></span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
+    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-tools"></i></span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
+  `;
+  
+  container.innerHTML = html;
+}
 
 /* =====================================================================
-   DATOS DE INICIO
+   DATOS DE INICIO (guardados en localStorage)
    ===================================================================== */
 function cargarDatosInicio(){
   const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
@@ -568,7 +565,6 @@ function cargarDatosInicio(){
     }
   });
 }
-
 function guardarDatosInicio(){
   const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
                   "inicio","fin","dias","avance","monto","ejercido","disponible"];
@@ -584,18 +580,7 @@ function guardarDatosInicio(){
 }
 
 /* =====================================================================
-   MÓDULOS VISIBLES SEGÚN MODELO
-   ===================================================================== */
-function getModulosVisibles() {
-  const modelo = getModeloGestion();
-  if (modelo === 'Constructora') {
-    return ['control_pedidos', 'presupuestal', 'materiales', 'mano_obra', 'requisiciones', 'pago_proveedores', 'estimaciones'];
-  }
-  return ['costo_plan', 'presupuestal', 'materiales', 'mano_obra', 'calidad', 'control_pedidos', 'requisiciones', 'ordenes_compra', 'pago_proveedores', 'estimaciones'];
-}
-
-/* =====================================================================
-   CONFIGURACIÓN DE MÓDULOS - TODOS CON ID OCULTO
+   CONFIGURACIÓN DE MÓDULOS
    ===================================================================== */
 const MODULOS = {
 
@@ -605,47 +590,101 @@ const MODULOS = {
     subtabs: {
       partidas: {
         label:"Partidas",
-        columnas: [
-          {key:"id", label:"ID", hidden:true},
+        columnas:[
           {key:"concepto", label:"CONCEPTO"},
           {key:"presupuesto", label:"PRESUPUESTO", tipo:"num"}
         ],
-        datos: [
-          {id:"CP-001", concepto:"EDIFICIO (CONSTRUCCION)", presupuesto:6583993.52},
-          {id:"CP-002", concepto:"TRÁMITES Y PERMISOS", presupuesto:0.00},
-          {id:"CP-003", concepto:"LICENCIAS DE CONSTRUCCIÓN", presupuesto:0.00},
-          {id:"CP-004", concepto:"CONTRATOS DE SERVICIOS", presupuesto:0.00},
-          {id:"CP-005", concepto:"ESTUDIOS Y DISEÑOS", presupuesto:380000.00},
-          {id:"CP-006", concepto:"ESTUDIOS PRELIMINARES", presupuesto:30000.00},
-          {id:"CP-007", concepto:"DISEÑOS E INGENIERÍAS", presupuesto:350000.00},
-          {id:"CP-008", concepto:"OBRAS PRELIMINARES Y PROVISIONALES", presupuesto:0.00},
-          {id:"CP-009", concepto:"SERVICIOS", presupuesto:25000.00},
-          {id:"CP-010", concepto:"CONTROL DE OBRA", presupuesto:221500.00},
-          {id:"CP-011", concepto:"MEJORAS AL TERRENO (URBANIZACION)", presupuesto:279766.50},
-          {id:"CP-012", concepto:"TERRACERIAS", presupuesto:279766.50},
-          {id:"CP-013", concepto:"OBRA NEGRA TIENDA (CAJÓN)", presupuesto:3503108.69},
-          {id:"CP-014", concepto:"CIMENTACIÓN", presupuesto:552646.09},
-          {id:"CP-015", concepto:"ESTRUCTURA METÁLICA", presupuesto:2255656.50},
-          {id:"CP-016", concepto:"ALBAÑILERÍA", presupuesto:316200.00},
-          {id:"CP-017", concepto:"LOSAS DE ENTREPISO Y AZOTEA", presupuesto:239616.00},
-          {id:"CP-018", concepto:"FIRMES", presupuesto:138990.10},
-          {id:"CP-019", concepto:"COMPLEMENTOS DE LA OBRA NEGRA DE TIENDA", presupuesto:712946.00},
-          {id:"CP-020", concepto:"CISTERNA", presupuesto:0.00},
-          {id:"CP-021", concepto:"HERRERIAS", presupuesto:600000.00},
-          {id:"CP-022", concepto:"LIMPIEZA", presupuesto:112946.00},
-          {id:"CP-023", concepto:"INSTALACIONES HIDROSANITARIAS VS INCENDIOS Y GAS", presupuesto:154000.00},
-          {id:"CP-024", concepto:"INSTALACIONES OCULTAS HIDROSANITARIAS", presupuesto:104000.00},
-          {id:"CP-025", concepto:"INSTALACIONES CONTRA INCENDIOS", presupuesto:50000.00},
-          {id:"CP-026", concepto:"INSTALACIONES ELÉCTRICAS", presupuesto:921764.61},
-          {id:"CP-027", concepto:"SUMINISTRO DE CABLE", presupuesto:250000.00},
-          {id:"CP-028", concepto:"SUMINISTRO DE LUMINARIAS Y LÁMPARAS", presupuesto:156000.00},
-          {id:"CP-029", concepto:"INSTALACIONES OCULTAS ELÉCTRICAS", presupuesto:24887.50},
-          {id:"CP-030", concepto:"INSTALACIONES ELÉCTRICAS BAJA TENSION", presupuesto:490877.11},
-          {id:"CP-031", concepto:"INSTALACIONES DE ACONDICIONAMIENTO AMBIENTAL", presupuesto:128707.72},
-          {id:"CP-032", concepto:"VENTILACION Y EXTRACCIÓN", presupuesto:128707.72},
-          {id:"CP-033", concepto:"ACABADOS", presupuesto:257200.00},
-          {id:"CP-034", concepto:"MUROS FALSOS Y PLAFONES", presupuesto:225000.00},
-          {id:"CP-035", concepto:"PINTURA GENERAL", presupuesto:32200.00}
+        datos:[
+          {concepto:"EDIFICIO (CONSTRUCCION)", presupuesto:6583993.52},
+          {concepto:"TRÁMITES Y PERMISOS", presupuesto:0.00},
+          {concepto:"LICENCIAS DE CONSTRUCCIÓN", presupuesto:0.00},
+          {concepto:"CONTRATOS DE SERVICIOS", presupuesto:0.00},
+          {concepto:"ESTUDIOS Y DISEÑOS", presupuesto:380000.00},
+          {concepto:"ESTUDIOS PRELIMINARES", presupuesto:30000.00},
+          {concepto:"DISEÑOS E INGENIERÍAS", presupuesto:350000.00},
+          {concepto:"OBRAS PRELIMINARES Y PROVISIONALES", presupuesto:0.00},
+          {concepto:"OBRAS PRELIMINARES Y PROVISIONALES", presupuesto:0.00},
+          {concepto:"SERVICIOS", presupuesto:25000.00},
+          {concepto:"SERVICIOS", presupuesto:0.00},
+          {concepto:"CONTROL DE OBRA", presupuesto:221500.00},
+          {concepto:"CONTROL DE OBRA", presupuesto:0.00},
+          {concepto:"MEJORAS AL TERRENO (URBANIZACION)", presupuesto:279766.50},
+          {concepto:"TERRACERIAS", presupuesto:279766.50},
+          {concepto:"MUROS DE CONTENCIÓN", presupuesto:0.00},
+          {concepto:"INFRAESTRUCTURA DE SERVICIOS FUERA DEL PREDIO", presupuesto:0.00},
+          {concepto:"VIALIDADES", presupuesto:0.00},
+          {concepto:"OBRA NEGRA TIENDA (CAJÓN)", presupuesto:3503108.69},
+          {concepto:"CIMENTACIÓN", presupuesto:552646.09},
+          {concepto:"ESTRUCTURA METÁLICA", presupuesto:2255656.50},
+          {concepto:"ALBAÑILERÍA", presupuesto:316200.00},
+          {concepto:"LAMINACIÓN EN CUBIERTA Y MUROS", presupuesto:0.00},
+          {concepto:"LOSAS DE ENTREPISO Y AZOTEA", presupuesto:239616.00},
+          {concepto:"FIRMES", presupuesto:138990.10},
+          {concepto:"COMPLEMENTOS DE LA OBRA NEGRA DE TIENDA", presupuesto:712946.00},
+          {concepto:"CISTERNA", presupuesto:0.00},
+          {concepto:"HERRERIAS", presupuesto:600000.00},
+          {concepto:"LIMPIEZA", presupuesto:112946.00},
+          {concepto:"INSTALACIONES HIDROSANITARIAS VS INCENDIOS Y GAS", presupuesto:154000.00},
+          {concepto:"INSTALACIONES OCULTAS HIDROSANITARIAS", presupuesto:104000.00},
+          {concepto:"INSTALACIONES HIDRÁULICAS", presupuesto:0.00},
+          {concepto:"INSTALACIONES SANITARIAS", presupuesto:0.00},
+          {concepto:"INSTALACIONES CONTRA INCENDIOS", presupuesto:50000.00},
+          {concepto:"INSTALACIONES DE GAS", presupuesto:0.00},
+          {concepto:"INSTALACIONES ELÉCTRICAS", presupuesto:921764.61},
+          {concepto:"SUMINISTRO DE CABLE", presupuesto:250000.00},
+          {concepto:"SUMINISTRO DE LUMINARIAS Y LÁMPARAS", presupuesto:156000.00},
+          {concepto:"INSTALACIONES OCULTAS ELÉCTRICAS", presupuesto:24887.50},
+          {concepto:"INSTALACIONES ELÉCTRICAS BAJA TENSION", presupuesto:490877.11},
+          {concepto:"INSTALACIONES OCULTAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
+          {concepto:"INSTALACIONES OCULTAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
+          {concepto:"INSTALACIONES AÉREAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
+          {concepto:"INSTALACIONES DE ACONDICIONAMIENTO AMBIENTAL", presupuesto:128707.72},
+          {concepto:"AIRE ACONDICIONADO", presupuesto:0.00},
+          {concepto:"AIRE LAVADO", presupuesto:0.00},
+          {concepto:"VENTILACION Y EXTRACCIÓN", presupuesto:128707.72},
+          {concepto:"ACABADOS", presupuesto:257200.00},
+          {concepto:"RECUBRIMIENTO EN MUROS", presupuesto:0.00},
+          {concepto:"RECUBRIMIENTO EN PISOS", presupuesto:0.00},
+          {concepto:"ALUMINIO Y VIDRIO", presupuesto:0.00},
+          {concepto:"MUROS FALSOS Y PLAFONES", presupuesto:225000.00},
+          {concepto:"PINTURA GENERAL", presupuesto:32200.00},
+          {concepto:"CARPINTERÍA", presupuesto:0.00},
+          {concepto:"DECORACIÓN", presupuesto:0.00},
+          {concepto:"AREAS EXTERIORES", presupuesto:0.00},
+          {concepto:"ACOMETIDAS EN EL INTERIOR DEL PREDIO", presupuesto:0.00},
+          {concepto:"ESTACIONAMIENTO", presupuesto:0.00},
+          {concepto:"PATIO DE MANIOBRAS", presupuesto:0.00},
+          {concepto:"BARDAS Y CERCOS", presupuesto:0.00},
+          {concepto:"TORRE EMBLEMA", presupuesto:0.00},
+          {concepto:"SOMBRA PEATONAL Y VEHICULARES", presupuesto:0.00},
+          {concepto:"PARADA DE AUTOBUSES", presupuesto:0.00},
+          {concepto:"EQUIPO EDIFICIO", presupuesto:0.00},
+          {concepto:"EQUIPO EDIFICIO", presupuesto:0.00},
+          {concepto:"EQUIPO ELECTRICO", presupuesto:0.00},
+          {concepto:"EQUIPO ACONDICIONAMIENTO AMBIENTAL", presupuesto:0.00},
+          {concepto:"LOGOTIPOS Y LEYENDAS", presupuesto:0.00},
+          {concepto:"EQUIPOS ESPECIALES", presupuesto:0.00},
+          {concepto:"SUMA CONSTRUCCION + EE", presupuesto:6583993.52}
+        ]
+      },
+      indicadores: {
+        label:"Cuadro Informativo",
+        columnas:[
+          {key:"concepto", label:"CONCEPTO"},
+          {key:"unidad", label:"UNIDAD"},
+          {key:"monto", label:"MONTO", tipo:"num"}
+        ],
+        datos:[
+          {concepto:"AREA DE CONSTRUCCION", unidad:"M2", monto:0.00},
+          {concepto:"AREA DE TERRENO", unidad:"M2", monto:0.00},
+          {concepto:"COSTO CAJON / M2", unidad:"M2", monto:3263492.69},
+          {concepto:"CIMENTACION", unidad:"M2", monto:552646.09},
+          {concepto:"ESTRUCTURA METALICA", unidad:"KG", monto:2255656.50},
+          {concepto:"MUROS DE BLOCK Y ALBANILERIAS", unidad:"M2", monto:316200.00},
+          {concepto:"CUBIERTA DE LAMINA", unidad:"M2", monto:0.00},
+          {concepto:"FIRMES DE CONCRETO", unidad:"M2", monto:138990.10},
+          {concepto:"COSTO CONSTRUCCION", unidad:"M2", monto:0.00},
+          {concepto:"COSTO URBANIZACION", unidad:"M2", monto:0.00}
         ]
       }
     }
@@ -811,7 +850,7 @@ const MODULOS = {
   },
 
   pago_proveedores: {
-    label:"Pago a Proveedores",
+    label:"Pago a Proveedores y Contratistas",
     endpoint:"pago_proveedores",
     columnas:[
       {key:"id", label:"ID", hidden:true},
@@ -871,65 +910,100 @@ const MODULOS = {
       }},
     ],
     datos:[
-      {id:"EST-001", estimacion_no:"E-001", numero_factura:"FAC-001", concepto:"Cimentación - Zapata Z-1", monto_contratado:1450000, monto_estimado:420000, estimado_acumulado:null, fondo_garantia:null, f_garantia_acumulado:null, cobrado_a_la_fecha:420000, fecha_estimacion:"2026-06-30", por_cobrar:null, ejercido:410000, disponible:null},
-      {id:"EST-002", estimacion_no:"E-002", numero_factura:"FAC-002", concepto:"Estructura Metálica - Nave 3", monto_contratado:1450000, monto_estimado:580000, estimado_acumulado:null, fondo_garantia:null, f_garantia_acumulado:null, cobrado_a_la_fecha:580000, fecha_estimacion:"2026-07-15", por_cobrar:null, ejercido:560000, disponible:null},
-      {id:"EST-003", estimacion_no:"E-003", numero_factura:"FAC-003", concepto:"Acabados - Pisos y Muros", monto_contratado:1450000, monto_estimado:320000, estimado_acumulado:null, fondo_garantia:null, f_garantia_acumulado:null, cobrado_a_la_fecha:320000, fecha_estimacion:"2026-08-10", por_cobrar:null, ejercido:300000, disponible:null},
+      {
+        id:"EST-001",
+        estimacion_no:"E-001",
+        numero_factura:"FAC-001",
+        concepto:"Cimentación - Zapata Z-1",
+        monto_contratado:1450000,
+        monto_estimado:420000,
+        estimado_acumulado:null,
+        fondo_garantia:null,
+        f_garantia_acumulado:null,
+        cobrado_a_la_fecha:420000,
+        fecha_estimacion:"2026-06-30",
+        por_cobrar:null,
+        ejercido:410000,
+        disponible:null
+      },
+      {
+        id:"EST-002",
+        estimacion_no:"E-002",
+        numero_factura:"FAC-002",
+        concepto:"Estructura Metálica - Nave 3",
+        monto_contratado:1450000,
+        monto_estimado:580000,
+        estimado_acumulado:null,
+        fondo_garantia:null,
+        f_garantia_acumulado:null,
+        cobrado_a_la_fecha:580000,
+        fecha_estimacion:"2026-07-15",
+        por_cobrar:null,
+        ejercido:560000,
+        disponible:null
+      },
+      {
+        id:"EST-003",
+        estimacion_no:"E-003",
+        numero_factura:"FAC-003",
+        concepto:"Acabados - Pisos y Muros",
+        monto_contratado:1450000,
+        monto_estimado:320000,
+        estimado_acumulado:null,
+        fondo_garantia:null,
+        f_garantia_acumulado:null,
+        cobrado_a_la_fecha:320000,
+        fecha_estimacion:"2026-08-10",
+        por_cobrar:null,
+        ejercido:300000,
+        disponible:null
+      }
     ]
   },
 };
 
-let moduloActivo = "inicio";
+let moduloActivo = "presupuestal";
 let subtabActivo = {};
 
 /* =====================================================================
-   RENDERIZAR MÓDULOS DEL INICIO
+   GATE — Proyecto + Vista 3D
    ===================================================================== */
-function renderizarModulosInicio() {
-  const container = document.getElementById('modulos-grid-inicio');
-  const visibles = getModulosVisibles();
+function entrarApp(){
+  const proyecto = document.getElementById("gate-proyecto").value.trim();
+  const vista = document.getElementById("gate-vista").value.trim();
+  if(!proyecto || !vista){
+    alert("Indica el Nombre de Proyecto y la Vista 3D antes de continuar.");
+    return;
+  }
+  localStorage.setItem("obra360_proyecto", proyecto);
+  localStorage.setItem("obra360_vista", vista);
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
+  document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
+  document.getElementById("dato-proyecto").value = proyecto;
+  guardarDatosInicio();
+}
+(function(){
+  const p = localStorage.getItem("obra360_proyecto");
+  const v = localStorage.getItem("obra360_vista");
+  if(p && v){
+    document.getElementById("gate-proyecto").value = p;
+    document.getElementById("gate-vista").value = v;
+  }
+  cargarDatosInicio();
+  filtrarSidebarPorModelo();
+  renderizarModulosInicio();
+})();
 
-  const todosLosModulos = {
-    costo_plan: { ico: 'bi-coin', nombre: 'Costo Plan' },
-    presupuestal: { ico: 'bi-bar-chart', nombre: 'Control Presupuestal' },
-    materiales: { ico: 'bi-box-seam', nombre: 'Materiales' },
-    mano_obra: { ico: 'bi-person-workspace', nombre: 'Mano de Obra' },
-    calidad: { ico: 'bi-check-circle', nombre: 'Calidad' },
-    control_pedidos: { ico: 'bi-box', nombre: 'Control de Pedidos' },
-    requisiciones: { ico: 'bi-clipboard', nombre: 'Requisiciones' },
-    ordenes_compra: { ico: 'bi-file-text', nombre: 'Órdenes de Compra' },
-    pago_proveedores: { ico: 'bi-wallet2', nombre: 'Pago a Proveedores' },
-    estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' }
-  };
-
-  let html = '';
-  visibles.forEach(key => {
-    const mod = todosLosModulos[key];
-    if (mod) {
-      html += `
-        <div class="modulo-card" onclick="navegarA('${key}')">
-          <span class="ico"><i class="${mod.ico}"></i></span>
-          <span class="nombre">${mod.nombre}</span>
-          <span class="estado">Activo</span>
-        </div>
-      `;
-    }
-  });
-
-  html += `
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-bank"></i></span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-scale"></i></span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-people"></i></span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-building"></i></span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-warehouse"></i></span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-gear"></i></span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-tools"></i></span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
-  `;
-
-  container.innerHTML = html;
+/* =====================================================================
+   IR A INICIO (desde sidebar)
+   ===================================================================== */
+function irAInicio() {
+  navegarA('inicio');
 }
 
 /* =====================================================================
-   RENDER DE TABLAS
+   RENDER DE TABLAS (con soporte para subtabs y calculados con allData)
    ===================================================================== */
 function money(n){
   if(n===null||n===undefined||n===""||isNaN(n)) return "";
@@ -939,7 +1013,7 @@ function money(n){
 function construirModuloHTML(modKey){
   const mod = MODULOS[modKey];
   if(!mod) return "";
-
+  
   if(mod.subtabs){
     let html = `
       <div class="module" id="mod-${modKey}" data-mod="${modKey}">
@@ -985,7 +1059,7 @@ function construirModuloHTML(modKey){
     html += `<div class="hint">Doble clic para editar · <kbd>Tab</kbd> siguiente celda · <kbd>Enter</kbd> confirmar</div></div>`;
     return html;
   }
-
+  
   const cols = mod.columnas.filter(c=>!c.hidden);
   let html = `
     <div class="module" id="mod-${modKey}" data-mod="${modKey}">
@@ -1019,14 +1093,14 @@ function construirModuloHTML(modKey){
 function renderModulo(modKey){
   const mod = MODULOS[modKey];
   if(!mod) return;
-
+  
   if(mod.subtabs){
     Object.keys(mod.subtabs).forEach(stKey=>{
       renderSubtab(modKey, stKey);
     });
     return;
   }
-
+  
   const cols = mod.columnas.filter(c=>!c.hidden);
   const tbody = document.getElementById("body-"+modKey);
   if(!tbody) return;
@@ -1223,7 +1297,7 @@ document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
 document.getElementById("mod-inicio").classList.remove("hidden");
 
 /* =====================================================================
-   IMPORTAR (Excel/CSV)
+   IMPORTAR (Excel/CSV) — con soporte para subtabs
    ===================================================================== */
 document.getElementById("btn-importar").addEventListener("click", ()=>{
   document.getElementById("file-importar").click();
@@ -1260,7 +1334,7 @@ function sugerirColumna(encabezado, cols){
 function abrirModalMapeo(){
   const mod = MODULOS[moduloActivo];
   if(!mod){ cerrarModalMapeo(); return; }
-
+  
   let cols = [];
   if(mod.subtabs){
     const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
@@ -1268,7 +1342,7 @@ function abrirModalMapeo(){
   } else {
     cols = mod.columnas;
   }
-
+  
   const cont = document.getElementById("modal-mapeo-body");
   cont.innerHTML = "";
   encabezadosArchivo.forEach((h, idx)=>{
@@ -1285,13 +1359,12 @@ function abrirModalMapeo(){
   });
   document.getElementById("modal-mapeo").classList.add("open");
 }
-
 function cerrarModalMapeo(){ document.getElementById("modal-mapeo").classList.remove("open"); }
 
 function confirmarMapeo(){
   const mod = MODULOS[moduloActivo];
   if(!mod){ cerrarModalMapeo(); return; }
-
+  
   let target;
   if(mod.subtabs){
     const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
@@ -1299,7 +1372,7 @@ function confirmarMapeo(){
   } else {
     target = mod;
   }
-
+  
   const selects = document.querySelectorAll("#modal-mapeo-body select");
   const mapeo = {};
   selects.forEach(s=>{ mapeo[s.dataset.idx] = s.value; });
@@ -1311,7 +1384,7 @@ function confirmarMapeo(){
     return obj;
   });
   target.datos.push(...nuevasFilas);
-
+  
   if(mod.subtabs){
     const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
     renderSubtab(moduloActivo, stKey);
@@ -1323,12 +1396,12 @@ function confirmarMapeo(){
 }
 
 /* =====================================================================
-   GUARDAR (con API + CSV)
+   GUARDAR — con soporte para subtabs
    ===================================================================== */
 function datosAcsv(modKey, stKey){
   const mod = MODULOS[modKey];
   if(!mod) return "";
-
+  
   let cols, datos;
   if(mod.subtabs){
     const key = stKey || subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
@@ -1339,7 +1412,7 @@ function datosAcsv(modKey, stKey){
     cols = mod.columnas;
     datos = mod.datos;
   }
-
+  
   const encabezado = cols.map(c=>c.label).join(",");
   const filas = datos.map(row=>{
     return cols.map(c=>{
@@ -1357,23 +1430,12 @@ async function guardarModuloActivo(){
   if(modKey === "inicio"){ alert("Selecciona un módulo de captura para guardar."); return; }
   const mod = MODULOS[modKey];
   if(!mod) return;
-
+  
   let stKey = null;
   if(mod.subtabs){
     stKey = subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
   }
-
-  let datosGuardar;
-  if(mod.subtabs && stKey) {
-    datosGuardar = mod.subtabs[stKey].datos;
-  } else {
-    datosGuardar = mod.datos;
-  }
-
-  // ==== GUARDAR EN API ====
-  await guardarDatosEnAPI(mod.endpoint || modKey, datosGuardar);
-
-  // ==== GUARDAR CSV ====
+  
   const csv = datosAcsv(modKey, stKey);
   const proyecto = document.getElementById("dato-proyecto").value || "sin-proyecto";
   const blob = new Blob([csv], {type:"text/csv"});
@@ -1384,8 +1446,11 @@ async function guardarModuloActivo(){
   formData.append("modulo", mod.endpoint||modKey);
   formData.append("proyecto", proyecto);
 
+  const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
+  const uploadUrl = `${API_URL}/subir`;
+
   try{
-    const res = await fetch(`${API_URL}/subir`, {
+    const res = await fetch(uploadUrl, {
       method:"POST", body: formData
     });
     const data = await res.json();
@@ -1399,13 +1464,13 @@ async function guardarModuloActivo(){
 function exportarCSV(){
   const modKey = moduloActivo;
   if(modKey === "inicio"){ alert("Selecciona un módulo de captura para exportar."); return; }
-
+  
   let stKey = null;
   const mod = MODULOS[modKey];
   if(mod && mod.subtabs){
     stKey = subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
   }
-
+  
   const csv = datosAcsv(modKey, stKey);
   const blob = new Blob([csv], {type:"text/csv"});
   const a = document.createElement("a");
@@ -1415,7 +1480,7 @@ function exportarCSV(){
 }
 
 /* =====================================================================
-   NAVEGACIÓN CON TECLADO
+   NAVEGACIÓN CON TECLADO EN CELDAS
    ===================================================================== */
 document.addEventListener("keydown",(e)=>{
   const active = document.activeElement;
