@@ -476,21 +476,34 @@
           return;
         }
 
+        // ============================================================
+        // UNIFICACIÓN DE VARIABLES localStorage BAJO obra360_*
+        // ============================================================
+        
+        // Token
+        localStorage.setItem('obra360_token', data.token);
+        
+        // Datos del cliente
+        localStorage.setItem('obra360_cliente_id', data.cliente_id);
+        localStorage.setItem('obra360_cliente_nombre', data.nombre);
+        localStorage.setItem('obra360_usuario', usuario);
+        localStorage.setItem('obra360_rol', data.rol);
+        
+        // Modelo de gestión
         if (data.modelo_gestion) {
-          localStorage.setItem('modelo_gestion', data.modelo_gestion);
+          localStorage.setItem('obra360_modelo_gestion', data.modelo_gestion);
         }
 
-        localStorage.setItem('caasa_admin_token', data.token);
-        localStorage.setItem('rol', data.rol);
-        localStorage.setItem('cliente_id', data.cliente_id);
-        localStorage.setItem('cliente_nombre', data.nombre);
-        localStorage.setItem('usuario', usuario);
-
+        // Datos del proyecto (si vienen en el login)
         if (data.proyecto_id) {
           localStorage.setItem('obra360_proyecto_id', data.proyecto_id);
           localStorage.setItem('obra360_proyecto_nombre', data.nombre_proyecto || '');
-          localStorage.setItem('obra360_cliente_id', data.cliente_id);
-          localStorage.setItem('obra360_token', data.token);
+        }
+
+        // ============================================================
+        // REDIRECCIÓN SEGÚN ROL (case-sensitive)
+        // ============================================================
+        if (data.proyecto_id) {
           window.location.href = 'captura.html';
           return;
         }
