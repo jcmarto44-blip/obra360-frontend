@@ -355,7 +355,8 @@
     // CONFIGURACIÓN
     // ============================================================
     const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
-    const TOKEN_KEY = 'caasa_admin_token';
+    // UNIFICADO: usamos obra360_token en lugar de caasa_admin_token
+    const TOKEN_KEY = 'obra360_token';
 
     let proyectoSeleccionadoId = null;
     let proyectoSeleccionadoNombre = null;
@@ -396,19 +397,18 @@
     }
 
     // ============================================================
-    // DATOS DEL CLIENTE
+    // DATOS DEL CLIENTE (UNIFICADOS bajo obra360_*)
     // ============================================================
     function getClienteId() {
-      const id = localStorage.getItem('cliente_id');
-      return id ? parseInt(id) : null;
+      return localStorage.getItem('obra360_cliente_id') || null;
     }
 
     function getClienteNombre() {
-      return localStorage.getItem('cliente_nombre') || 'Cliente';
+      return localStorage.getItem('obra360_cliente_nombre') || 'Cliente';
     }
 
     function getModeloGestion() {
-      return localStorage.getItem('modelo_gestion') || '';
+      return localStorage.getItem('obra360_modelo_gestion') || '';
     }
 
     // ============================================================
@@ -560,8 +560,9 @@
       document.getElementById('proyecto-seleccionado-nombre').textContent = nombre;
       document.getElementById('equipo-proyecto-label').textContent = `(${nombre})`;
 
-      localStorage.setItem('proyecto_id', id);
-      localStorage.setItem('proyecto_nombre', nombre);
+      // UNIFICADO: usamos obra360_* también para el proyecto seleccionado
+      localStorage.setItem('obra360_proyecto_id', id);
+      localStorage.setItem('obra360_proyecto_nombre', nombre);
 
       renderizarEquipo();
       renderizarProyectos();
@@ -729,7 +730,7 @@
     }
 
     // ============================================================
-    // IR A CAPTURA (con propagación de modelo_gestion)
+    // IR A CAPTURA (UNIFICADO - usa solo obra360_*)
     // ============================================================
     function irACaptura() {
       const token = obtenerToken();
@@ -747,12 +748,12 @@
       const clienteId = getClienteId();
       const modeloGestion = getModeloGestion();
 
+      // UNIFICADO: solo usamos obra360_*
       localStorage.setItem('obra360_proyecto_id', proyectoSeleccionadoId);
       localStorage.setItem('obra360_proyecto_nombre', proyectoSeleccionadoNombre);
       localStorage.setItem('obra360_cliente_id', clienteId);
       localStorage.setItem('obra360_token', token);
 
-      // ✅ PROPAGAR modelo_gestion A captura.html
       if (modeloGestion) {
         localStorage.setItem('obra360_modelo_gestion', modeloGestion);
       }
@@ -764,8 +765,9 @@
     // INICIALIZAR
     // ============================================================
     (async function init() {
-      const token = localStorage.getItem('caasa_admin_token');
-      const nombre = localStorage.getItem('cliente_nombre') || 'Cliente';
+      // UNIFICADO: usamos obra360_token para verificar sesión
+      const token = localStorage.getItem('obra360_token');
+      const nombre = getClienteNombre();
       const modeloGestion = getModeloGestion();
 
       if (!token) {
@@ -776,7 +778,6 @@
       document.getElementById('cliente-nombre-header').textContent = nombre;
       document.getElementById('user-info').textContent = '👤 ' + nombre;
 
-      // ✅ MOSTRAR modelo_gestion EN EL HEADER
       const badge = document.getElementById('modelo-gestion-badge');
       if (modeloGestion) {
         badge.textContent = modeloGestion;
