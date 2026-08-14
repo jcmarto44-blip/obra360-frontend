@@ -6,9 +6,6 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-<!-- ============================================================
-     CONTENT SECURITY POLICY (CSP) - BLOQUEA SCRIPTS NO AUTORIZADOS
-     ============================================================ -->
 <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline' 'unsafe-eval';
@@ -43,11 +40,12 @@
 html,body{height:100%;margin:0;}
 body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscuro);font-size:13px;}
 
-/* ============== PANTALLA DE ENTRADA ============== */
+/* ============== GATE ============== */
 #gate{
   position:fixed;inset:0;
   background:linear-gradient(160deg,#123a70,#1b4b8f 60%,#2e6fd9);
-  display:flex;align-items:center;justify-content:center;
+  display:none; /* ✅ OCULTO POR DEFECTO - SOLO COLABORADORES LO VEN */
+  align-items:center;justify-content:center;
   z-index:100;
 }
 #gate .box{
@@ -66,6 +64,9 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 }
 #gate button:hover{opacity:.92;}
 #gate .nota{font-size:10.5px;color:var(--texto-secundario);margin-top:10px;}
+#gate .gate-loading{display:none;text-align:center;color:var(--texto-secundario);font-size:12.5px;padding:10px 0;}
+#gate .gate-error{display:none;background:#fdecea;border:1px solid #f3b7b0;color:#a72e21;border-radius:4px;
+  padding:9px 12px;font-size:12px;margin-top:12px;}
 
 /* ============== HEADER ============== */
 .app-header{
@@ -277,16 +278,22 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <body>
 
 <!-- ================= GATE ================= -->
+<!-- ⚠️ ESTE GATE SOLO LO VEN LOS COLABORADORES (empleados, gerentes, super, residentes)
+     ADMIN y CLIENTE entran directo, no ven este Gate.
+     El CSS tiene display:none por defecto, y el JavaScript lo activa (display:flex)
+     SOLO para colaboradores (verif.tipo === "equipo") -->
 <div id="gate">
   <div class="box">
     <h2>Registro de Proyecto</h2>
-    <p>Indica el proyecto y la vista 3D para sincronizar tu avance con Revit y Speckle.</p>
-    <label>Nombre de Proyecto</label>
-    <input type="text" id="gate-proyecto" placeholder="Ej. Torre Alameda">
+    <p>Verificando tu acceso a este proyecto…</p>
+    <label>Proyecto</label>
+    <input type="text" id="gate-proyecto" readonly style="background:#f1f3f5;">
     <label>Vista 3D</label>
-    <input type="text" id="gate-vista" placeholder="Ej. Avance Semanal">
-    <button onclick="entrarApp()">Acceso</button>
-    <div class="nota">Estos datos identifican el proyecto en todos los archivos que subas desde aquí.</div>
+    <input type="text" id="gate-vista" readonly style="background:#f1f3f5;">
+    <button id="gate-btn-acceso" onclick="entrarApp()" disabled>Verificando…</button>
+    <div class="gate-loading" id="gate-loading" style="display:block;">Verificando proyecto…</div>
+    <div class="gate-error" id="gate-error"></div>
+    <div class="nota">Este proyecto fue asignado por tu administrador o por el cliente dueño de la obra. Si no es el correcto, cierra sesión y vuelve a entrar.</div>
   </div>
 </div>
 
@@ -450,18 +457,21 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 /* =====================================================================
-   MODELO DE GESTIÓN
+   MODELO DE GESTIÓN (UNIFICADO bajo obra360_*)
    ===================================================================== */
 function getModeloGestion() {
   let modelo = localStorage.getItem('obra360_modelo_gestion');
   if (!modelo) {
     modelo = localStorage.getItem('modelo_gestion');
+    if (modelo) {
+      localStorage.setItem('obra360_modelo_gestion', modelo);
+    }
   }
-  
-  // ✅ NORMALIZACIÓN: Si existe, convertir a mayúscula inicial
   if (modelo) {
     return modelo.charAt(0).toUpperCase() + modelo.slice(1).toLowerCase();
   }
+  return 'Desarrollador';
+}
 
 /* =====================================================================
    CERRAR SESIÓN Y SALIR
@@ -490,7 +500,6 @@ function filtrarSidebarPorModelo() {
       }
     }
   });
-
   const grupos = document.querySelectorAll('.grupo-body');
   grupos.forEach(grupo => {
     const itemsVisibles = grupo.querySelectorAll('.menu-item:not([style*="display: none"])');
@@ -523,7 +532,6 @@ function getModulosVisibles() {
 function renderizarModulosInicio() {
   const container = document.getElementById('modulos-grid-inicio');
   const visibles = getModulosVisibles();
-  
   const todosLosModulos = {
     costo_plan: { ico: 'bi-coin', nombre: 'Costo Plan' },
     presupuestal: { ico: 'bi-bar-chart', nombre: 'Control Presupuestal' },
@@ -536,7 +544,6 @@ function renderizarModulosInicio() {
     pago_proveedores: { ico: 'bi-wallet2', nombre: 'Pago a Proveedores' },
     estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' }
   };
-  
   let html = '';
   visibles.forEach(key => {
     const mod = todosLosModulos[key];
@@ -550,7 +557,6 @@ function renderizarModulosInicio() {
       `;
     }
   });
-  
   html += `
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-bank"></i></span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-scale"></i></span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
@@ -560,12 +566,11 @@ function renderizarModulosInicio() {
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-gear"></i></span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-tools"></i></span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
   `;
-  
   container.innerHTML = html;
 }
 
 /* =====================================================================
-   DATOS DE INICIO (guardados en localStorage)
+   DATOS DE INICIO (UNIFICADOS bajo obra360_inicio_*)
    ===================================================================== */
 function cargarDatosInicio(){
   const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
@@ -573,22 +578,25 @@ function cargarDatosInicio(){
   campos.forEach(c=>{
     const el = document.getElementById("dato-"+c);
     if(el){
-      const val = localStorage.getItem("inicio_"+c);
+      const val = localStorage.getItem("obra360_inicio_"+c);
       if(val) el.value = val;
     }
   });
 }
+
 function guardarDatosInicio(){
   const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
                   "inicio","fin","dias","avance","monto","ejercido","disponible"];
   campos.forEach(c=>{
     const el = document.getElementById("dato-"+c);
-    if(el) localStorage.setItem("inicio_"+c, el.value);
+    if(el) {
+      localStorage.setItem("obra360_inicio_"+c, el.value);
+    }
   });
   const proyecto = document.getElementById("dato-proyecto").value;
   document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
   document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
-  localStorage.setItem("obra360_proyecto", proyecto);
+  localStorage.setItem("obra360_proyecto_nombre", proyecto);
   alert("✅ Datos del proyecto guardados correctamente.");
 }
 
@@ -596,7 +604,6 @@ function guardarDatosInicio(){
    CONFIGURACIÓN DE MÓDULOS
    ===================================================================== */
 const MODULOS = {
-
   costo_plan: {
     label:"Costo Plan",
     endpoint:"costo_plan",
@@ -607,78 +614,7 @@ const MODULOS = {
           {key:"concepto", label:"CONCEPTO"},
           {key:"presupuesto", label:"PRESUPUESTO", tipo:"num"}
         ],
-        datos:[
-          {concepto:"EDIFICIO (CONSTRUCCION)", presupuesto:6583993.52},
-          {concepto:"TRÁMITES Y PERMISOS", presupuesto:0.00},
-          {concepto:"LICENCIAS DE CONSTRUCCIÓN", presupuesto:0.00},
-          {concepto:"CONTRATOS DE SERVICIOS", presupuesto:0.00},
-          {concepto:"ESTUDIOS Y DISEÑOS", presupuesto:380000.00},
-          {concepto:"ESTUDIOS PRELIMINARES", presupuesto:30000.00},
-          {concepto:"DISEÑOS E INGENIERÍAS", presupuesto:350000.00},
-          {concepto:"OBRAS PRELIMINARES Y PROVISIONALES", presupuesto:0.00},
-          {concepto:"OBRAS PRELIMINARES Y PROVISIONALES", presupuesto:0.00},
-          {concepto:"SERVICIOS", presupuesto:25000.00},
-          {concepto:"SERVICIOS", presupuesto:0.00},
-          {concepto:"CONTROL DE OBRA", presupuesto:221500.00},
-          {concepto:"CONTROL DE OBRA", presupuesto:0.00},
-          {concepto:"MEJORAS AL TERRENO (URBANIZACION)", presupuesto:279766.50},
-          {concepto:"TERRACERIAS", presupuesto:279766.50},
-          {concepto:"MUROS DE CONTENCIÓN", presupuesto:0.00},
-          {concepto:"INFRAESTRUCTURA DE SERVICIOS FUERA DEL PREDIO", presupuesto:0.00},
-          {concepto:"VIALIDADES", presupuesto:0.00},
-          {concepto:"OBRA NEGRA TIENDA (CAJÓN)", presupuesto:3503108.69},
-          {concepto:"CIMENTACIÓN", presupuesto:552646.09},
-          {concepto:"ESTRUCTURA METÁLICA", presupuesto:2255656.50},
-          {concepto:"ALBAÑILERÍA", presupuesto:316200.00},
-          {concepto:"LAMINACIÓN EN CUBIERTA Y MUROS", presupuesto:0.00},
-          {concepto:"LOSAS DE ENTREPISO Y AZOTEA", presupuesto:239616.00},
-          {concepto:"FIRMES", presupuesto:138990.10},
-          {concepto:"COMPLEMENTOS DE LA OBRA NEGRA DE TIENDA", presupuesto:712946.00},
-          {concepto:"CISTERNA", presupuesto:0.00},
-          {concepto:"HERRERIAS", presupuesto:600000.00},
-          {concepto:"LIMPIEZA", presupuesto:112946.00},
-          {concepto:"INSTALACIONES HIDROSANITARIAS VS INCENDIOS Y GAS", presupuesto:154000.00},
-          {concepto:"INSTALACIONES OCULTAS HIDROSANITARIAS", presupuesto:104000.00},
-          {concepto:"INSTALACIONES HIDRÁULICAS", presupuesto:0.00},
-          {concepto:"INSTALACIONES SANITARIAS", presupuesto:0.00},
-          {concepto:"INSTALACIONES CONTRA INCENDIOS", presupuesto:50000.00},
-          {concepto:"INSTALACIONES DE GAS", presupuesto:0.00},
-          {concepto:"INSTALACIONES ELÉCTRICAS", presupuesto:921764.61},
-          {concepto:"SUMINISTRO DE CABLE", presupuesto:250000.00},
-          {concepto:"SUMINISTRO DE LUMINARIAS Y LÁMPARAS", presupuesto:156000.00},
-          {concepto:"INSTALACIONES OCULTAS ELÉCTRICAS", presupuesto:24887.50},
-          {concepto:"INSTALACIONES ELÉCTRICAS BAJA TENSION", presupuesto:490877.11},
-          {concepto:"INSTALACIONES OCULTAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
-          {concepto:"INSTALACIONES OCULTAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
-          {concepto:"INSTALACIONES AÉREAS DE RED DE VOZ Y DATOS", presupuesto:0.00},
-          {concepto:"INSTALACIONES DE ACONDICIONAMIENTO AMBIENTAL", presupuesto:128707.72},
-          {concepto:"AIRE ACONDICIONADO", presupuesto:0.00},
-          {concepto:"AIRE LAVADO", presupuesto:0.00},
-          {concepto:"VENTILACION Y EXTRACCIÓN", presupuesto:128707.72},
-          {concepto:"ACABADOS", presupuesto:257200.00},
-          {concepto:"RECUBRIMIENTO EN MUROS", presupuesto:0.00},
-          {concepto:"RECUBRIMIENTO EN PISOS", presupuesto:0.00},
-          {concepto:"ALUMINIO Y VIDRIO", presupuesto:0.00},
-          {concepto:"MUROS FALSOS Y PLAFONES", presupuesto:225000.00},
-          {concepto:"PINTURA GENERAL", presupuesto:32200.00},
-          {concepto:"CARPINTERÍA", presupuesto:0.00},
-          {concepto:"DECORACIÓN", presupuesto:0.00},
-          {concepto:"AREAS EXTERIORES", presupuesto:0.00},
-          {concepto:"ACOMETIDAS EN EL INTERIOR DEL PREDIO", presupuesto:0.00},
-          {concepto:"ESTACIONAMIENTO", presupuesto:0.00},
-          {concepto:"PATIO DE MANIOBRAS", presupuesto:0.00},
-          {concepto:"BARDAS Y CERCOS", presupuesto:0.00},
-          {concepto:"TORRE EMBLEMA", presupuesto:0.00},
-          {concepto:"SOMBRA PEATONAL Y VEHICULARES", presupuesto:0.00},
-          {concepto:"PARADA DE AUTOBUSES", presupuesto:0.00},
-          {concepto:"EQUIPO EDIFICIO", presupuesto:0.00},
-          {concepto:"EQUIPO EDIFICIO", presupuesto:0.00},
-          {concepto:"EQUIPO ELECTRICO", presupuesto:0.00},
-          {concepto:"EQUIPO ACONDICIONAMIENTO AMBIENTAL", presupuesto:0.00},
-          {concepto:"LOGOTIPOS Y LEYENDAS", presupuesto:0.00},
-          {concepto:"EQUIPOS ESPECIALES", presupuesto:0.00},
-          {concepto:"SUMA CONSTRUCCION + EE", presupuesto:6583993.52}
-        ]
+        datos:[]
       },
       indicadores: {
         label:"Cuadro Informativo",
@@ -687,22 +623,10 @@ const MODULOS = {
           {key:"unidad", label:"UNIDAD"},
           {key:"monto", label:"MONTO", tipo:"num"}
         ],
-        datos:[
-          {concepto:"AREA DE CONSTRUCCION", unidad:"M2", monto:0.00},
-          {concepto:"AREA DE TERRENO", unidad:"M2", monto:0.00},
-          {concepto:"COSTO CAJON / M2", unidad:"M2", monto:3263492.69},
-          {concepto:"CIMENTACION", unidad:"M2", monto:552646.09},
-          {concepto:"ESTRUCTURA METALICA", unidad:"KG", monto:2255656.50},
-          {concepto:"MUROS DE BLOCK Y ALBANILERIAS", unidad:"M2", monto:316200.00},
-          {concepto:"CUBIERTA DE LAMINA", unidad:"M2", monto:0.00},
-          {concepto:"FIRMES DE CONCRETO", unidad:"M2", monto:138990.10},
-          {concepto:"COSTO CONSTRUCCION", unidad:"M2", monto:0.00},
-          {concepto:"COSTO URBANIZACION", unidad:"M2", monto:0.00}
-        ]
+        datos:[]
       }
     }
   },
-
   presupuestal: {
     label:"Control Presupuestal",
     endpoint:"control_presupuestal",
@@ -721,11 +645,8 @@ const MODULOS = {
       {key:"etapa", label:"Etapa"},
       {key:"duracion", label:"Duración", tipo:"num"},
     ],
-    datos:[
-      {id:"543430", nombre:"M_Zapata-Rectangular Z-1-01", inicio:"2026-03-09", fin:"2026-03-12", pct_programado:1, pct_real:0.9, pct_por_elemento:0.0979, pct_acumulado:0.1958, costo_por_elemento:176000, costo_etapa:192400, costo_real:192400, etapa:"Cim - 1.0", duracion:4},
-    ]
+    datos:[]
   },
-
   materiales: {
     label:"Materiales",
     endpoint:"materiales",
@@ -738,17 +659,8 @@ const MODULOS = {
       {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
       {key:"costo_total", label:"Costo Total", tipo:"num", calculado:(r)=> (Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
     ],
-    datos:[
-      {id:"MAT-001", categoria:"Terracerías", concepto:"Despalme", unidad:"m3", cantidad:1200, costo_unitario:85, costo_total:null},
-      {id:"MAT-002", categoria:"Obra Negra - Cimentación", concepto:"Acero", unidad:"kg", cantidad:18500, costo_unitario:27.5, costo_total:null},
-      {id:"MAT-003", categoria:"Obra Negra - Cimentación", concepto:"Cimbra", unidad:"m2", cantidad:320, costo_unitario:965, costo_total:null},
-      {id:"MAT-004", categoria:"Obra Negra - Cimentación", concepto:"Concreto", unidad:"m3", cantidad:180, costo_unitario:2800, costo_total:null},
-      {id:"MAT-005", categoria:"Obra Negra - Edificación", concepto:"Acero", unidad:"kg", cantidad:42000, costo_unitario:27.5, costo_total:null},
-      {id:"MAT-006", categoria:"Obra Negra - Edificación", concepto:"Cimbra", unidad:"m2", cantidad:860, costo_unitario:965, costo_total:null},
-      {id:"MAT-007", categoria:"Obra Negra - Edificación", concepto:"Concreto", unidad:"m3", cantidad:420, costo_unitario:2800, costo_total:null},
-    ]
+    datos:[]
   },
-
   mano_obra: {
     label:"Mano de Obra",
     endpoint:"mano_obra",
@@ -766,12 +678,8 @@ const MODULOS = {
       {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
       {key:"costo_total", label:"Costo Total", tipo:"num", calculado:(r)=> (Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
     ],
-    datos:[
-      {id:"MO-001", concepto:"Habilitado Acero de Refuerzo (KG)", unidad:"KG", cantidad:18500, costo_unitario:28, costo_total:null},
-      {id:"MO-002", concepto:"Concreto Vaciado en Elementos (M3)", unidad:"M3", cantidad:12, costo_unitario:3200, costo_total:null},
-    ]
+    datos:[]
   },
-
   calidad: {
     label:"Control de Calidad",
     endpoint:"calidad",
@@ -794,11 +702,8 @@ const MODULOS = {
       {key:"inspector", label:"Inspector"},
       {key:"observaciones", label:"Observaciones"},
     ],
-    datos:[
-      {id:"CAL-001", nombre:"Columna", clave:"W10X49", nivel:1, fase:"Montaje Columnas-C-1", id_inspeccion:"INS-000", id_proyecto:"NAVE-3N", elemento_inspeccionado:"W10X49", tipo_ensayo:"Líquidos Penetrantes", norma_aplicada:"ISO 3452-1", resultado:"Rechazado", valor_obtenido:"N/A", valor_especificado:"Sin discontinuidades", unidad:"N/A", fecha_prueba:"2026-04-10", inspector:"M. López", observaciones:"Grietas longitudinales en soldadura"},
-    ]
+    datos:[]
   },
-
   control_pedidos: {
     label:"Control de Pedidos",
     endpoint:"control_pedidos",
@@ -815,11 +720,8 @@ const MODULOS = {
       {key:"fecha_entrega", label:"Fecha Entrega", tipo:"fecha"},
       {key:"estatus", label:"Estatus", tipo:"select", opciones:["Pendiente","Enviado","Recibido"]},
     ],
-    datos:[
-      {id:"CP-001", no_pedido:"PED-001", proveedor:"Aceros del Bajío", concepto:"Varilla 3/8", cantidad:5000, unidad:"kg", costo_unitario:27.5, importe:null, fecha_pedido:"2026-06-01", fecha_entrega:"2026-06-15", estatus:"Pendiente"},
-    ]
+    datos:[]
   },
-
   requisiciones: {
     label:"Requisiciones",
     endpoint:"requisiciones",
@@ -834,12 +736,8 @@ const MODULOS = {
       {key:"contratista_asignado", label:"Contratista Asignado"},
       {key:"estado_compras", label:"Estado Compras", tipo:"select", opciones:["Pendiente","En Proceso","Cotizando","Aprobado","Rechazado","Comprado"]},
     ],
-    datos:[
-      {id:"REQ-001", no:"REQ-001", descripcion:"Varilla 3/8 para cimentación", solicitado:"J. Pérez", fecha_solicitud:"2026-06-01", elaboro_req:"M. Gómez", area_obra:"Cimentación", contratista_asignado:"Aceros del Bajío", estado_compras:"Cotizando"},
-      {id:"REQ-002", no:"REQ-002", descripcion:"Concreto premezclado 250 kg/cm²", solicitado:"L. Ramírez", fecha_solicitud:"2026-06-03", elaboro_req:"M. Gómez", area_obra:"Estructura", contratista_asignado:"Concretos del Centro", estado_compras:"Pendiente"},
-    ]
+    datos:[]
   },
-
   ordenes_compra: {
     label:"Órdenes de Compra",
     endpoint:"ordenes_compra",
@@ -857,11 +755,8 @@ const MODULOS = {
       {key:"saldo", label:"SALDO", tipo:"num"},
       {key:"observaciones", label:"OBSERVACIONES"}
     ],
-    datos:[
-      {id:"OC-001", orden_compra:"OC-1042", presup:0.00, pedido:"PED-001", empresa:"Aceros del Bajío", descripcion:"Varilla 3/8", responsable:"Ing. García", monto:0.00, factura:"FAC-001", monto_pagado:0.00, saldo:0.00, observaciones:""},
-    ]
+    datos:[]
   },
-
   pago_proveedores: {
     label:"Pago a Proveedores y Contratistas",
     endpoint:"pago_proveedores",
@@ -877,12 +772,8 @@ const MODULOS = {
       {key:"regimen_fiscal", label:"Régimen Fiscal", tipo:"select", opciones:["CIROC","RESICO"]},
       {key:"estatus_pago", label:"Estatus Pago", tipo:"select", opciones:["Pendiente","Pagado","Retenido"]},
     ],
-    datos:[
-      {id:"PP-001", proveedor:"Estructuras del Norte", no_proveedor:"PROV-001", pedido_contrato:"CT-0032", importe_pedido:1250000, importe_pagado:625000, concepto:"Estructura Metálica Nave 3", imss:"Vigente", regimen_fiscal:"RESICO", estatus_pago:"Pendiente"},
-      {id:"PP-002", proveedor:"Concretos del Centro", no_proveedor:"PROV-002", pedido_contrato:"CT-0045", importe_pedido:850000, importe_pagado:850000, concepto:"Concreto 250 kg/cm²", imss:"Vigente", regimen_fiscal:"CIROC", estatus_pago:"Pagado"},
-    ]
+    datos:[]
   },
-
   estimaciones: {
     label:"Estimaciones",
     endpoint:"estimaciones",
@@ -922,56 +813,7 @@ const MODULOS = {
         return (Number(row.monto_contratado) || 0) - (Number(row.ejercido) || 0);
       }},
     ],
-    datos:[
-      {
-        id:"EST-001",
-        estimacion_no:"E-001",
-        numero_factura:"FAC-001",
-        concepto:"Cimentación - Zapata Z-1",
-        monto_contratado:1450000,
-        monto_estimado:420000,
-        estimado_acumulado:null,
-        fondo_garantia:null,
-        f_garantia_acumulado:null,
-        cobrado_a_la_fecha:420000,
-        fecha_estimacion:"2026-06-30",
-        por_cobrar:null,
-        ejercido:410000,
-        disponible:null
-      },
-      {
-        id:"EST-002",
-        estimacion_no:"E-002",
-        numero_factura:"FAC-002",
-        concepto:"Estructura Metálica - Nave 3",
-        monto_contratado:1450000,
-        monto_estimado:580000,
-        estimado_acumulado:null,
-        fondo_garantia:null,
-        f_garantia_acumulado:null,
-        cobrado_a_la_fecha:580000,
-        fecha_estimacion:"2026-07-15",
-        por_cobrar:null,
-        ejercido:560000,
-        disponible:null
-      },
-      {
-        id:"EST-003",
-        estimacion_no:"E-003",
-        numero_factura:"FAC-003",
-        concepto:"Acabados - Pisos y Muros",
-        monto_contratado:1450000,
-        monto_estimado:320000,
-        estimado_acumulado:null,
-        fondo_garantia:null,
-        f_garantia_acumulado:null,
-        cobrado_a_la_fecha:320000,
-        fecha_estimacion:"2026-08-10",
-        por_cobrar:null,
-        ejercido:300000,
-        disponible:null
-      }
-    ]
+    datos:[]
   },
 };
 
@@ -981,42 +823,131 @@ let subtabActivo = {};
 /* =====================================================================
    GATE — Proyecto + Vista 3D
    ===================================================================== */
-function entrarApp(){
-  const proyecto = document.getElementById("gate-proyecto").value.trim();
-  const vista = document.getElementById("gate-vista").value.trim();
-  if(!proyecto || !vista){
-    alert("Indica el Nombre de Proyecto y la Vista 3D antes de continuar.");
+const GATE_API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
+
+function mostrarErrorGateFatal(msg){
+  document.getElementById("gate-loading").style.display = "none";
+  const err = document.getElementById("gate-error");
+  err.textContent = msg + " Vuelve a iniciar sesión.";
+  err.style.display = "block";
+  const btn = document.getElementById("gate-btn-acceso");
+  btn.textContent = "Volver al inicio";
+  btn.disabled = false;
+  btn.onclick = () => { window.location.href = "index.html"; };
+}
+
+async function validarSesionYProyecto(){
+  const token = localStorage.getItem("obra360_token");
+  if(!token){
+    mostrarErrorGateFatal("No se encontró una sesión activa.");
     return;
   }
-  localStorage.setItem("obra360_proyecto", proyecto);
-  localStorage.setItem("obra360_vista", vista);
+
+  let verif;
+  try{
+    const resp = await fetch(`${GATE_API_URL}/verificar_token`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if(!resp.ok){
+      mostrarErrorGateFatal("Tu sesión expiró o no es válida.");
+      return;
+    }
+    verif = await resp.json();
+  }catch(err){
+    mostrarErrorGateFatal("No se pudo conectar con el servidor para validar tu sesión.");
+    return;
+  }
+
+  // ============================================================
+  // COLABORADOR (equipo) → SÍ muestra el Gate
+  // ============================================================
+  if(verif.tipo === "equipo"){
+    const proyectoIdFinal = verif.proyecto_id;
+    const nombreProyectoFinal = verif.nombre_proyecto;
+
+    localStorage.setItem("obra360_proyecto_id", proyectoIdFinal);
+    localStorage.setItem("obra360_proyecto_nombre", nombreProyectoFinal);
+
+    document.getElementById("gate-proyecto").value = nombreProyectoFinal;
+    document.getElementById("gate-vista").value = localStorage.getItem("obra360_vista_3d") || "—";
+    document.getElementById("gate-loading").style.display = "none";
+    document.getElementById("gate-error").style.display = "none";
+
+    const btn = document.getElementById("gate-btn-acceso");
+    btn.textContent = "Acceso";
+    btn.disabled = false;
+    
+    // ✅ ACTIVAR EL GATE PARA COLABORADORES
+    document.getElementById("gate").style.display = "flex";
+    return;
+  }
+
+  // ============================================================
+  // ADMIN o CLIENTE → NO muestra el Gate (entra directo)
+  // ============================================================
+  const clienteId = verif.cliente && verif.cliente.id;
+  const proyectoIdGuardado = localStorage.getItem("obra360_proyecto_id");
+
+  if(!clienteId || !proyectoIdGuardado){
+    mostrarErrorGateFatal("No se encontró un proyecto seleccionado.");
+    return;
+  }
+
+  try{
+    const respProy = await fetch(`${GATE_API_URL}/clientes/${clienteId}/proyectos`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if(!respProy.ok){
+      mostrarErrorGateFatal("No se pudo verificar tus proyectos.");
+      return;
+    }
+    const proyectos = await respProy.json();
+    const encontrado = proyectos.find(p => String(p.id) === String(proyectoIdGuardado));
+    if(!encontrado){
+      mostrarErrorGateFatal("El proyecto seleccionado ya no está disponible o no te pertenece.");
+      return;
+    }
+
+    localStorage.setItem("obra360_proyecto_id", encontrado.id);
+    localStorage.setItem("obra360_proyecto_nombre", encontrado.nombre_proyecto);
+
+    // ✅ ADMIN Y CLIENTE ENTRAN DIRECTO (Gate permanece oculto)
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("tag-proyecto").textContent = "Proyecto: " + encontrado.nombre_proyecto;
+    document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + encontrado.nombre_proyecto;
+    const datoProyecto = document.getElementById("dato-proyecto");
+    if(datoProyecto) datoProyecto.value = encontrado.nombre_proyecto;
+  }catch(err){
+    mostrarErrorGateFatal("No se pudo conectar con el servidor para validar el proyecto.");
+  }
+}
+
+function entrarApp(){
+  const proyecto = document.getElementById("gate-proyecto").value.trim();
+  if(!proyecto){
+    return;
+  }
   document.getElementById("gate").style.display = "none";
   document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
   document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
-  document.getElementById("dato-proyecto").value = proyecto;
-  guardarDatosInicio();
+  const datoProyecto = document.getElementById("dato-proyecto");
+  if(datoProyecto) datoProyecto.value = proyecto;
+  localStorage.setItem("obra360_inicio_proyecto", proyecto);
 }
+
 (function(){
-  const p = localStorage.getItem("obra360_proyecto");
-  const v = localStorage.getItem("obra360_vista");
-  if(p && v){
-    document.getElementById("gate-proyecto").value = p;
-    document.getElementById("gate-vista").value = v;
-  }
+  validarSesionYProyecto();
   cargarDatosInicio();
   filtrarSidebarPorModelo();
   renderizarModulosInicio();
 })();
 
-/* =====================================================================
-   IR A INICIO (desde sidebar)
-   ===================================================================== */
 function irAInicio() {
   navegarA('inicio');
 }
 
 /* =====================================================================
-   RENDER DE TABLAS (con soporte para subtabs y calculados con allData)
+   RENDER DE TABLAS
    ===================================================================== */
 function money(n){
   if(n===null||n===undefined||n===""||isNaN(n)) return "";
@@ -1271,8 +1202,64 @@ Object.keys(MODULOS).forEach(modKey=>{
 });
 
 /* =====================================================================
-   NAVEGACIÓN
+   CARGA REAL DE DATOS GUARDADOS (Supabase Storage, vía /reporte)
    ===================================================================== */
+const moduloDataCargada = new Set();
+
+async function cargarModuloDesdeServidor(tab){
+  const mod = MODULOS[tab];
+  if(!mod || moduloDataCargada.has(tab)) return;
+  moduloDataCargada.add(tab);
+
+  const proyecto = localStorage.getItem("obra360_proyecto_nombre");
+  const token = localStorage.getItem("obra360_token");
+  if(!proyecto) return;
+
+  let cols, targetDatos, stKeyParaRender;
+  if(mod.subtabs){
+    stKeyParaRender = Object.keys(mod.subtabs)[0];
+    cols = mod.subtabs[stKeyParaRender].columnas;
+    targetDatos = mod.subtabs[stKeyParaRender].datos;
+  } else {
+    cols = mod.columnas;
+    targetDatos = mod.datos;
+  }
+
+  try{
+    const modParam = encodeURIComponent(mod.endpoint || tab);
+    const proyParam = encodeURIComponent(proyecto);
+    const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto=${proyParam}`, {
+      headers: token ? { "Authorization": `Bearer ${token}` } : {}
+    });
+    if(!resp.ok) return;
+    const data = await resp.json();
+    if(!data || !Array.isArray(data.data)) return;
+
+    const nuevasFilas = data.data.map(record => {
+      const row = {};
+      cols.forEach(c=>{
+        if(c.calculado) return;
+        const val = record[c.label];
+        row[c.key] = (c.tipo === "num")
+          ? (val === "" || val === undefined || val === null ? "" : Number(val))
+          : val;
+      });
+      return row;
+    });
+
+    targetDatos.length = 0;
+    targetDatos.push(...nuevasFilas);
+
+    if(mod.subtabs){
+      renderSubtab(tab, stKeyParaRender);
+    } else {
+      renderModulo(tab);
+    }
+  }catch(err){
+    console.error("No se pudo cargar datos guardados para " + tab + ":", err);
+  }
+}
+
 function navegarA(tab){
   document.querySelectorAll(".module").forEach(m=>m.classList.remove("active"));
   document.getElementById("mod-inicio").classList.add("hidden");
@@ -1292,6 +1279,7 @@ function navegarA(tab){
   document.querySelector(`.menu-item[data-tab="${tab}"]`)?.classList.add("active");
 
   moduloActivo = tab;
+  cargarModuloDesdeServidor(tab);
 }
 
 document.querySelectorAll(".grupo-toggle").forEach(t=>{
@@ -1310,7 +1298,7 @@ document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
 document.getElementById("mod-inicio").classList.remove("hidden");
 
 /* =====================================================================
-   IMPORTAR (Excel/CSV) — con soporte para subtabs
+   IMPORTAR (Excel/CSV)
    ===================================================================== */
 document.getElementById("btn-importar").addEventListener("click", ()=>{
   document.getElementById("file-importar").click();
@@ -1409,7 +1397,7 @@ function confirmarMapeo(){
 }
 
 /* =====================================================================
-   GUARDAR — con soporte para subtabs
+   GUARDAR
    ===================================================================== */
 function datosAcsv(modKey, stKey){
   const mod = MODULOS[modKey];
@@ -1450,7 +1438,7 @@ async function guardarModuloActivo(){
   }
   
   const csv = datosAcsv(modKey, stKey);
-  const proyecto = document.getElementById("dato-proyecto").value || "sin-proyecto";
+  const proyecto = localStorage.getItem("obra360_proyecto_nombre") || document.getElementById("dato-proyecto").value || "sin-proyecto";
   const blob = new Blob([csv], {type:"text/csv"});
   const nombreArchivo = (mod.endpoint||modKey) + ".csv";
 
