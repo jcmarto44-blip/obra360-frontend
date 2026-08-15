@@ -6,6 +6,9 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
+<!-- ============================================================
+     CONTENT SECURITY POLICY (CSP) - BLOQUEA SCRIPTS NO AUTORIZADOS
+     ============================================================ -->
 <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline' 'unsafe-eval';
@@ -40,13 +43,25 @@
 html,body{height:100%;margin:0;}
 body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscuro);font-size:13px;}
 
-/* ============== GATE ============== */
+/* ============== PANTALLA DE ENTRADA ============== */
 #gate{
   position:fixed;inset:0;
   background:linear-gradient(160deg,#123a70,#1b4b8f 60%,#2e6fd9);
-  display:none; /* ✅ OCULTO POR DEFECTO - SOLO COLABORADORES LO VEN */
-  align-items:center;justify-content:center;
+  display:none;align-items:center;justify-content:center;
   z-index:100;
+}
+#gate.visible{
+  display:flex;
+}
+/* Pantalla neutra de "cargando" mientras se valida quién eres.
+   Nunca dice "Registro de Proyecto" — eso es exclusivo del Gate real
+   para colaboradores/equipo. Admin y Cliente solo ven esto un instante. */
+#validando-sesion{
+  position:fixed;inset:0;
+  background:linear-gradient(160deg,#123a70,#1b4b8f 60%,#2e6fd9);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;
+  color:#fff;font-size:14px;
 }
 #gate .box{
   background:#fff;border-radius:8px;padding:34px 38px;width:420px;
@@ -277,11 +292,22 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 </head>
 <body>
 
-<!-- ================= GATE ================= -->
-<!-- ⚠️ ESTE GATE SOLO LO VEN LOS COLABORADORES (empleados, gerentes, super, residentes)
-     ADMIN y CLIENTE entran directo, no ven este Gate.
-     El CSS tiene display:none por defecto, y el JavaScript lo activa (display:flex)
-     SOLO para colaboradores (verif.tipo === "equipo") -->
+<!-- ================= PANTALLA NEUTRA DE VALIDACIÓN ================= -->
+<!-- Esto es lo único que TODOS ven al cargar (admin, cliente, equipo)
+     mientras se confirma la sesión contra el servidor. No es el Gate:
+     no dice "Registro de Proyecto", no tiene campos de proyecto. -->
+<div id="validando-sesion">
+  <div style="text-align:center;">
+    <div style="font-size:15px;font-weight:600;">Verificando tu sesión…</div>
+  </div>
+</div>
+
+<!-- ================= GATE (SOLO PARA COLABORADORES DE EQUIPO) ================= -->
+<!-- Este Gate YA NO acepta texto libre. El proyecto siempre lo resuelve
+     el backend (login de equipo). Solo se hace visible (clase "visible")
+     cuando /verificar_token confirma tipo === "equipo". Admin y Cliente
+     NUNCA ven este bloque — para ellos la pantalla de arriba simplemente
+     se oculta y entran directo. -->
 <div id="gate">
   <div class="box">
     <h2>Registro de Proyecto</h2>
@@ -291,7 +317,7 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
     <label>Vista 3D</label>
     <input type="text" id="gate-vista" readonly style="background:#f1f3f5;">
     <button id="gate-btn-acceso" onclick="entrarApp()" disabled>Verificando…</button>
-    <div class="gate-loading" id="gate-loading" style="display:block;">Verificando proyecto…</div>
+    <div class="gate-loading" id="gate-loading" style="display:none;">Verificando proyecto…</div>
     <div class="gate-error" id="gate-error"></div>
     <div class="nota">Este proyecto fue asignado por tu administrador o por el cliente dueño de la obra. Si no es el correcto, cierra sesión y vuelve a entrar.</div>
   </div>
@@ -407,7 +433,7 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
       <div class="panel-grid">
         <div class="card-datos">
           <h5>📋 Datos Generales</h5>
-          <div class="campo-row"><span class="label">Proyecto:</span><input class="valor" id="dato-proyecto" value="—" onchange="guardarDatosInicio()"></div>
+          <div class="campo-row"><span class="label">Proyecto:</span><input class="valor" id="dato-proyecto" value="—" readonly style="background:#f1f3f5;"></div>
           <div class="campo-row"><span class="label">Ubicación:</span><input class="valor" id="dato-ubicacion" value="—" onchange="guardarDatosInicio()"></div>
           <div class="campo-row"><span class="label">Gerente de Construcción:</span><input class="valor" id="dato-gerente_construccion" value="—" onchange="guardarDatosInicio()"></div>
           <div class="campo-row"><span class="label">Responsable de Obra:</span><input class="valor" id="dato-responsable_obra" value="—" onchange="guardarDatosInicio()"></div>
@@ -425,6 +451,13 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
           <div class="campo-row"><span class="label">Ejercido:</span><input class="valor" id="dato-ejercido" value="—" onchange="guardarDatosInicio()"></div>
           <div class="campo-row"><span class="label">Disponible:</span><input class="valor" id="dato-disponible" value="—" onchange="guardarDatosInicio()"></div>
           <button class="btn-guardar-inicio" onclick="guardarDatosInicio()">💾 Guardar Datos del Proyecto</button>
+        </div>
+        <div class="card-datos" id="card-equipo-asignado">
+          <h5>👷 Equipo Asignado a este Proyecto</h5>
+          <div id="equipo-asignado-lista" style="font-size:12.5px;color:var(--texto-secundario);">
+            Cargando equipo…
+          </div>
+          <div class="hint" style="margin-top:8px;">Esta lista viene directo de tu Portal (Gerente/Super/Residentes ya dados de alta). No se edita aquí — cualquier cambio se hace desde el Portal correspondiente.</div>
         </div>
       </div>
 
@@ -460,16 +493,23 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
    MODELO DE GESTIÓN (UNIFICADO bajo obra360_*)
    ===================================================================== */
 function getModeloGestion() {
+  // UNIFICADO: solo usamos obra360_modelo_gestion
   let modelo = localStorage.getItem('obra360_modelo_gestion');
+  
+  // Si no existe, intentar obtener de la variable antigua (migración)
   if (!modelo) {
     modelo = localStorage.getItem('modelo_gestion');
     if (modelo) {
+      // Migrar a la nueva clave
       localStorage.setItem('obra360_modelo_gestion', modelo);
     }
   }
+  
+  // Normalización: convertir a mayúscula inicial
   if (modelo) {
     return modelo.charAt(0).toUpperCase() + modelo.slice(1).toLowerCase();
   }
+  
   return 'Desarrollador';
 }
 
@@ -500,6 +540,7 @@ function filtrarSidebarPorModelo() {
       }
     }
   });
+
   const grupos = document.querySelectorAll('.grupo-body');
   grupos.forEach(grupo => {
     const itemsVisibles = grupo.querySelectorAll('.menu-item:not([style*="display: none"])');
@@ -532,6 +573,7 @@ function getModulosVisibles() {
 function renderizarModulosInicio() {
   const container = document.getElementById('modulos-grid-inicio');
   const visibles = getModulosVisibles();
+
   const todosLosModulos = {
     costo_plan: { ico: 'bi-coin', nombre: 'Costo Plan' },
     presupuestal: { ico: 'bi-bar-chart', nombre: 'Control Presupuestal' },
@@ -544,6 +586,7 @@ function renderizarModulosInicio() {
     pago_proveedores: { ico: 'bi-wallet2', nombre: 'Pago a Proveedores' },
     estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' }
   };
+
   let html = '';
   visibles.forEach(key => {
     const mod = todosLosModulos[key];
@@ -557,6 +600,7 @@ function renderizarModulosInicio() {
       `;
     }
   });
+
   html += `
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-bank"></i></span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-scale"></i></span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
@@ -566,44 +610,144 @@ function renderizarModulosInicio() {
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-gear"></i></span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
     <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-tools"></i></span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
   `;
+
   container.innerHTML = html;
 }
 
 /* =====================================================================
-   DATOS DE INICIO (UNIFICADOS bajo obra360_inicio_*)
+   DATOS DE INICIO — REALES, COMPARTIDOS EN SUPABASE
+   ---------------------------------------------------------------------
+   Ubicación, Duración y Orden de Inversión ya NO viven en localStorage
+   (eso era por-navegador: admin y cliente veían cosas distintas). Ahora
+   se guardan/leen como un renglón CSV vía el mismo mecanismo que ya
+   usan los demás módulos (modulo="general", que ya está en la lista
+   blanca de tu backend) — así, quien sea que entre al proyecto (admin
+   o cliente, desde cualquier equipo) ve exactamente lo mismo.
    ===================================================================== */
-function cargarDatosInicio(){
-  const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
-                  "inicio","fin","dias","avance","monto","ejercido","disponible"];
-  campos.forEach(c=>{
-    const el = document.getElementById("dato-"+c);
-    if(el){
-      const val = localStorage.getItem("obra360_inicio_"+c);
-      if(val) el.value = val;
+const DATOS_INICIO_API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
+const CAMPOS_DATOS_INICIO = ["ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
+                              "inicio","fin","dias","avance","monto","ejercido","disponible"];
+const LABELS_DATOS_INICIO = {
+  ubicacion:"Ubicación", gerente_construccion:"Gerente de Construcción", responsable_obra:"Responsable de Obra",
+  gerente_arquitectura:"Gerente de Arquitectura", responsable_compras:"Responsable de Compras",
+  inicio:"Fecha Inicio", fin:"Fecha Fin", dias:"Días Totales", avance:"% Avance",
+  monto:"Monto Total", ejercido:"Ejercido", disponible:"Disponible"
+};
+
+async function cargarDatosInicio(){
+  const proyecto = localStorage.getItem("obra360_proyecto_nombre");
+  const token = localStorage.getItem("obra360_token");
+  if(!proyecto) return;
+
+  try{
+    const resp = await fetch(`${DATOS_INICIO_API_URL}/reporte?modulo=general&proyecto=${encodeURIComponent(proyecto)}`, {
+      headers: token ? { "Authorization": `Bearer ${token}` } : {}
+    });
+    if(!resp.ok){
+      // Aún no se ha guardado nada para este proyecto: campos en blanco, no se inventa nada.
+      CAMPOS_DATOS_INICIO.forEach(c=>{
+        const el = document.getElementById("dato-"+c);
+        if(el) el.value = "—";
+      });
+      return;
     }
-  });
+    const data = await resp.json();
+    const fila = (data.data && data.data[0]) || {};
+    CAMPOS_DATOS_INICIO.forEach(c=>{
+      const el = document.getElementById("dato-"+c);
+      if(el) el.value = fila[LABELS_DATOS_INICIO[c]] || "—";
+    });
+  }catch(err){
+    console.error("No se pudieron cargar los Datos Generales:", err);
+  }
 }
 
-function guardarDatosInicio(){
-  const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
-                  "inicio","fin","dias","avance","monto","ejercido","disponible"];
-  campos.forEach(c=>{
+async function guardarDatosInicio(){
+  const proyecto = localStorage.getItem("obra360_proyecto_nombre");
+  if(!proyecto){
+    alert("❌ No se ha resuelto un proyecto todavía.");
+    return;
+  }
+
+  const fila = {};
+  CAMPOS_DATOS_INICIO.forEach(c=>{
     const el = document.getElementById("dato-"+c);
-    if(el) {
-      localStorage.setItem("obra360_inicio_"+c, el.value);
-    }
+    fila[LABELS_DATOS_INICIO[c]] = el ? el.value : "";
   });
-  const proyecto = document.getElementById("dato-proyecto").value;
-  document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
-  document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
-  localStorage.setItem("obra360_proyecto_nombre", proyecto);
-  alert("✅ Datos del proyecto guardados correctamente.");
+
+  const encabezado = Object.keys(fila).join(",");
+  const valores = Object.values(fila).map(v=>{
+    v = String(v ?? "").replace(/"/g,'""');
+    return /[,"\n]/.test(v) ? `"${v}"` : v;
+  }).join(",");
+  const csv = encabezado + "\n" + valores;
+
+  const blob = new Blob([csv], {type:"text/csv"});
+  const formData = new FormData();
+  formData.append("file", blob, "general.csv");
+  formData.append("modulo", "general");
+  formData.append("proyecto", proyecto);
+
+  try{
+    const res = await fetch(`${DATOS_INICIO_API_URL}/subir`, { method:"POST", body: formData });
+    const data = await res.json();
+    if(data.error){ alert("❌ Error al guardar: " + data.error); return; }
+    alert("✅ Datos del proyecto guardados correctamente (visibles para admin y cliente).");
+  }catch(err){
+    alert("❌ Error de conexión al guardar los Datos Generales.");
+  }
+}
+
+/* =====================================================================
+   EQUIPO ASIGNADO — REAL, en vivo desde /clientes/{cliente_id}/equipo
+   Nadie lo escribe a mano aquí: si el cliente da de alta o quita gente
+   en su Portal, se refleja automáticamente al volver a entrar.
+   ===================================================================== */
+async function cargarEquipoAsignado(){
+  const cont = document.getElementById("equipo-asignado-lista");
+  if(!cont) return;
+
+  const clienteId = localStorage.getItem("obra360_cliente_id");
+  const proyectoId = localStorage.getItem("obra360_proyecto_id");
+  const token = localStorage.getItem("obra360_token");
+
+  if(!clienteId || !proyectoId || !token){
+    cont.textContent = "No se pudo determinar el equipo de este proyecto.";
+    return;
+  }
+
+  try{
+    const resp = await fetch(`${DATOS_INICIO_API_URL}/clientes/${clienteId}/equipo`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if(!resp.ok){
+      cont.textContent = "No se pudo cargar el equipo asignado.";
+      return;
+    }
+    const todos = await resp.json();
+    const delProyecto = todos.filter(m => String(m.proyecto_id) === String(proyectoId));
+
+    if(delProyecto.length === 0){
+      cont.textContent = "Aún no hay colaboradores asignados a este proyecto.";
+      return;
+    }
+
+    cont.innerHTML = delProyecto.map(m => `
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eef0f2;">
+        <span style="font-weight:600;color:var(--texto-oscuro);">${m.rol}</span>
+        <span>${m.usuario}</span>
+      </div>
+    `).join("");
+  }catch(err){
+    cont.textContent = "No se pudo conectar con el servidor para cargar el equipo.";
+  }
 }
 
 /* =====================================================================
    CONFIGURACIÓN DE MÓDULOS
    ===================================================================== */
 const MODULOS = {
+
   costo_plan: {
     label:"Costo Plan",
     endpoint:"costo_plan",
@@ -627,6 +771,7 @@ const MODULOS = {
       }
     }
   },
+
   presupuestal: {
     label:"Control Presupuestal",
     endpoint:"control_presupuestal",
@@ -647,6 +792,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   materiales: {
     label:"Materiales",
     endpoint:"materiales",
@@ -661,6 +807,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   mano_obra: {
     label:"Mano de Obra",
     endpoint:"mano_obra",
@@ -680,6 +827,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   calidad: {
     label:"Control de Calidad",
     endpoint:"calidad",
@@ -704,6 +852,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   control_pedidos: {
     label:"Control de Pedidos",
     endpoint:"control_pedidos",
@@ -722,6 +871,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   requisiciones: {
     label:"Requisiciones",
     endpoint:"requisiciones",
@@ -738,6 +888,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   ordenes_compra: {
     label:"Órdenes de Compra",
     endpoint:"ordenes_compra",
@@ -757,6 +908,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   pago_proveedores: {
     label:"Pago a Proveedores y Contratistas",
     endpoint:"pago_proveedores",
@@ -774,6 +926,7 @@ const MODULOS = {
     ],
     datos:[]
   },
+
   estimaciones: {
     label:"Estimaciones",
     endpoint:"estimaciones",
@@ -821,11 +974,14 @@ let moduloActivo = "presupuestal";
 let subtabActivo = {};
 
 /* =====================================================================
-   GATE — Proyecto + Vista 3D
+   GATE — Proyecto + Vista 3D (UNIFICADO bajo obra360_*)
    ===================================================================== */
 const GATE_API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
 
 function mostrarErrorGateFatal(msg){
+  document.getElementById("validando-sesion").style.display = "none";
+  const gate = document.getElementById("gate");
+  gate.classList.add("visible");
   document.getElementById("gate-loading").style.display = "none";
   const err = document.getElementById("gate-error");
   err.textContent = msg + " Vuelve a iniciar sesión.";
@@ -836,6 +992,11 @@ function mostrarErrorGateFatal(msg){
   btn.onclick = () => { window.location.href = "index.html"; };
 }
 
+/**
+ * Confirma con el servidor (nunca solo con localStorage) a qué proyecto
+ * tiene acceso real el usuario logueado, y deja el botón "Acceso"
+ * habilitado únicamente si el servidor lo valida.
+ */
 async function validarSesionYProyecto(){
   const token = localStorage.getItem("obra360_token");
   if(!token){
@@ -858,16 +1019,23 @@ async function validarSesionYProyecto(){
     return;
   }
 
-  // ============================================================
-  // COLABORADOR (equipo) → SÍ muestra el Gate
-  // ============================================================
   if(verif.tipo === "equipo"){
+    // ============================================================
+    // COLABORADOR / EMPLEADO (Gerente, Superintendente, Residente...)
+    // Aquí SÍ se muestra el Gate. El proyecto lo dice el SERVIDOR
+    // (tabla equipo), nunca lo que haya en localStorage. Esto es lo
+    // que evita que un Superintendente asignado a "Playa Linda III"
+    // pueda escribir/forzar "Torre Máxima" y entrar ahí.
+    // ============================================================
     const proyectoIdFinal = verif.proyecto_id;
     const nombreProyectoFinal = verif.nombre_proyecto;
 
     localStorage.setItem("obra360_proyecto_id", proyectoIdFinal);
     localStorage.setItem("obra360_proyecto_nombre", nombreProyectoFinal);
+    if(verif.cliente && verif.cliente.id) localStorage.setItem("obra360_cliente_id", verif.cliente.id);
 
+    document.getElementById("validando-sesion").style.display = "none";
+    document.getElementById("gate").classList.add("visible"); // SOLO aquí se hace visible el Gate real
     document.getElementById("gate-proyecto").value = nombreProyectoFinal;
     document.getElementById("gate-vista").value = localStorage.getItem("obra360_vista_3d") || "—";
     document.getElementById("gate-loading").style.display = "none";
@@ -876,16 +1044,26 @@ async function validarSesionYProyecto(){
     const btn = document.getElementById("gate-btn-acceso");
     btn.textContent = "Acceso";
     btn.disabled = false;
-    
-    // ✅ ACTIVAR EL GATE PARA COLABORADORES
-    document.getElementById("gate").style.display = "flex";
+    // El Gate se queda visible aquí, esperando que el colaborador confirme con "Acceso".
     return;
   }
 
   // ============================================================
-  // ADMIN o CLIENTE → NO muestra el Gate (entra directo)
+  // ADMIN o CLIENTE (Constructora/Desarrollador)
+  // Ya eligieron su proyecto en su propio portal (selector de
+  // Portal_Administrador.html o Portal_Cliente.html). El Gate NO
+  // se les muestra — solo se re-confirma en silencio que el
+  // proyecto guardado sí les pertenece, y se entra directo.
+  //
+  // IMPORTANTE: cuando quien entra es el ADMIN, verif.cliente.id es
+  // el id de la fila "adminjc" en la tabla clientes — NO el id de la
+  // empresa (Constructora/Desarrollador) que eligió en su selector.
+  // Por eso se usa el cliente_id que dejó el selector en localStorage
+  // (obra360_cliente_id), que sí es el de la empresa correcta. Para
+  // un cliente real, ese valor de todos modos coincide con su propio
+  // id, así que esto funciona igual para ambos casos.
   // ============================================================
-  const clienteId = verif.cliente && verif.cliente.id;
+  const clienteId = localStorage.getItem("obra360_cliente_id") || (verif.cliente && verif.cliente.id);
   const proyectoIdGuardado = localStorage.getItem("obra360_proyecto_id");
 
   if(!clienteId || !proyectoIdGuardado){
@@ -910,13 +1088,16 @@ async function validarSesionYProyecto(){
 
     localStorage.setItem("obra360_proyecto_id", encontrado.id);
     localStorage.setItem("obra360_proyecto_nombre", encontrado.nombre_proyecto);
+    localStorage.setItem("obra360_cliente_id", clienteId);
 
-    // ✅ ADMIN Y CLIENTE ENTRAN DIRECTO (Gate permanece oculto)
-    document.getElementById("gate").style.display = "none";
+    // Entra directo: el Gate real NUNCA se hizo visible para admin/cliente.
+    // Solo se oculta la pantalla neutra de "Verificando tu sesión…".
+    document.getElementById("validando-sesion").style.display = "none";
     document.getElementById("tag-proyecto").textContent = "Proyecto: " + encontrado.nombre_proyecto;
     document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + encontrado.nombre_proyecto;
     const datoProyecto = document.getElementById("dato-proyecto");
     if(datoProyecto) datoProyecto.value = encontrado.nombre_proyecto;
+    cargarDatosInicio(); cargarEquipoAsignado(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora y equipo
   }catch(err){
     mostrarErrorGateFatal("No se pudo conectar con el servidor para validar el proyecto.");
   }
@@ -925,29 +1106,31 @@ async function validarSesionYProyecto(){
 function entrarApp(){
   const proyecto = document.getElementById("gate-proyecto").value.trim();
   if(!proyecto){
-    return;
+    return; // el botón solo se habilita cuando ya hay un proyecto validado por el servidor
   }
   document.getElementById("gate").style.display = "none";
   document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
   document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
   const datoProyecto = document.getElementById("dato-proyecto");
   if(datoProyecto) datoProyecto.value = proyecto;
-  localStorage.setItem("obra360_inicio_proyecto", proyecto);
+  cargarDatosInicio(); cargarEquipoAsignado(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora y equipo
 }
 
 (function(){
   validarSesionYProyecto();
-  cargarDatosInicio();
   filtrarSidebarPorModelo();
   renderizarModulosInicio();
 })();
 
+/* =====================================================================
+   IR A INICIO (desde sidebar)
+   ===================================================================== */
 function irAInicio() {
   navegarA('inicio');
 }
 
 /* =====================================================================
-   RENDER DE TABLAS
+   RENDER DE TABLAS (con soporte para subtabs y calculados con allData)
    ===================================================================== */
 function money(n){
   if(n===null||n===undefined||n===""||isNaN(n)) return "";
@@ -1202,7 +1385,19 @@ Object.keys(MODULOS).forEach(modKey=>{
 });
 
 /* =====================================================================
+   NAVEGACIÓN
+   ===================================================================== */
+/* =====================================================================
    CARGA REAL DE DATOS GUARDADOS (Supabase Storage, vía /reporte)
+   ---------------------------------------------------------------------
+   Cada módulo arranca vacío. La primera vez que el usuario entra a un
+   módulo en esta sesión, se pide al backend el último CSV real guardado
+   para ese módulo + proyecto. Si nunca se ha guardado nada, sigue vacío
+   (no se inventan datos).
+   NOTA: para módulos con subtabs (costo_plan), tu backend valida el
+   nombre de "modulo" contra una lista fija (MODULOS_VALIDOS) que no
+   distingue subtabs — por ahora solo se carga la primera subtab
+   automáticamente; la segunda se puede cargar manualmente si hace falta.
    ===================================================================== */
 const moduloDataCargada = new Set();
 
@@ -1231,7 +1426,7 @@ async function cargarModuloDesdeServidor(tab){
     const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto=${proyParam}`, {
       headers: token ? { "Authorization": `Bearer ${token}` } : {}
     });
-    if(!resp.ok) return;
+    if(!resp.ok) return; // 404: aún no hay nada guardado para este módulo/proyecto
     const data = await resp.json();
     if(!data || !Array.isArray(data.data)) return;
 
@@ -1298,7 +1493,7 @@ document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
 document.getElementById("mod-inicio").classList.remove("hidden");
 
 /* =====================================================================
-   IMPORTAR (Excel/CSV)
+   IMPORTAR (Excel/CSV) — con soporte para subtabs
    ===================================================================== */
 document.getElementById("btn-importar").addEventListener("click", ()=>{
   document.getElementById("file-importar").click();
@@ -1397,7 +1592,7 @@ function confirmarMapeo(){
 }
 
 /* =====================================================================
-   GUARDAR
+   GUARDAR — con soporte para subtabs
    ===================================================================== */
 function datosAcsv(modKey, stKey){
   const mod = MODULOS[modKey];
@@ -1438,6 +1633,7 @@ async function guardarModuloActivo(){
   }
   
   const csv = datosAcsv(modKey, stKey);
+  // UNIFICADO: usamos obra360_proyecto_nombre en lugar de dato-proyecto
   const proyecto = localStorage.getItem("obra360_proyecto_nombre") || document.getElementById("dato-proyecto").value || "sin-proyecto";
   const blob = new Blob([csv], {type:"text/csv"});
   const nombreArchivo = (mod.endpoint||modKey) + ".csv";
