@@ -1,1561 +1,807 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Registro de Proyecto — CAASA</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal del Cliente — CAASA</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-<!-- ============================================================
-     CONTENT SECURITY POLICY (CSP) - BLOQUEA SCRIPTS NO AUTORIZADOS
-     ============================================================ -->
-<meta http-equiv="Content-Security-Policy" content="
+  <!-- ============================================================
+       CONTENT SECURITY POLICY (CSP) - BLOQUEA SCRIPTS NO AUTORIZADOS
+       ============================================================ -->
+  <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
-    script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'unsafe-inline' 'unsafe-eval';
+    script-src 'self' https://cdn.jsdelivr.net https://formspree.io 'unsafe-inline' 'unsafe-eval';
     style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';
     img-src 'self' data: https://*.supabase.co;
-    connect-src 'self' https://analisis-reportes-obra-360-1.onrender.com https://*.supabase.co https://cdn.jsdelivr.net;
+    connect-src 'self' https://analisis-reportes-obra-360-1.onrender.com https://*.supabase.co https://formspree.io https://cdn.jsdelivr.net;
     font-src 'self' https://cdn.jsdelivr.net;
     frame-src 'none';
     object-src 'none';
     base-uri 'self';
     form-action 'self';
-">
+  ">
 
-<style>
-:root{
-  --marca-color-primario:#1b4b8f;
-  --marca-color-primario-dark:#123a70;
-  --marca-color-acento:#2e9e5b;
-  --azul-header:var(--marca-color-primario);
-  --azul-header-dark:var(--marca-color-primario-dark);
-  --gris-bg:#eef1f4;
-  --gris-toolbar:#f7f8fa;
-  --gris-borde:#d3d8de;
-  --gris-fila-alt:#f4f6f8;
-  --texto-oscuro:#1e2733;
-  --texto-secundario:#5b6773;
-  --azul-seleccion:#2e6fd9;
-  --verde-ok:#1e7d4b;
-  --font-ui:"Segoe UI","Inter",Arial,sans-serif;
-}
-*{box-sizing:border-box;}
-html,body{height:100%;margin:0;}
-body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscuro);font-size:13px;}
-
-/* ============== PANTALLA DE ENTRADA ============== */
-#gate{
-  position:fixed;inset:0;
-  background:linear-gradient(160deg,#123a70,#1b4b8f 60%,#2e6fd9);
-  display:flex;align-items:center;justify-content:center;
-  z-index:100;
-}
-#gate .box{
-  background:#fff;border-radius:8px;padding:34px 38px;width:420px;
-  box-shadow:0 20px 50px rgba(0,0,0,.3);
-}
-#gate h2{margin:0 0 4px;font-size:18px;color:var(--texto-oscuro);}
-#gate p{margin:0 0 20px;font-size:12.5px;color:var(--texto-secundario);}
-#gate label{display:block;font-size:12px;font-weight:600;margin:14px 0 5px;color:var(--texto-oscuro);}
-#gate input, #gate select{
-  width:100%;padding:9px 10px;border:1px solid var(--gris-borde);border-radius:4px;font-size:13px;
-}
-#gate button{
-  margin-top:22px;width:100%;padding:11px;border:none;border-radius:4px;
-  background:var(--marca-color-acento);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;
-}
-#gate button:hover{opacity:.92;}
-#gate .nota{font-size:10.5px;color:var(--texto-secundario);margin-top:10px;}
-#gate .gate-loading{display:none;text-align:center;color:var(--texto-secundario);font-size:12.5px;padding:10px 0;}
-#gate .gate-error{display:none;background:#fdecea;border:1px solid #f3b7b0;color:#a72e21;border-radius:4px;
-  padding:9px 12px;font-size:12px;margin-top:12px;}
-
-/* ============== HEADER ============== */
-.app-header{
-  background:linear-gradient(180deg,var(--azul-header),var(--azul-header-dark));
-  color:#fff;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;
-  box-shadow:0 2px 6px rgba(0,0,0,.15);
-}
-.app-header h1{font-size:17px;margin:0;font-weight:600;}
-.app-header .sub{font-size:11px;opacity:.85;margin-top:2px;}
-.header-actions{display:flex;gap:8px;align-items:center;}
-.header-actions button{
-  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);color:#fff;
-  padding:6px 12px;border-radius:3px;font-size:12px;cursor:pointer;
-}
-.header-actions button:hover{background:rgba(255,255,255,.22);}
-.header-actions .proyecto-tag{
-  font-size:11px;background:rgba(255,255,255,.15);padding:5px 10px;border-radius:12px;
-}
-.btn-modelo-reportes {
-  background: #17a2b8;
-  border: 1px solid #17a2b8;
-  color: #fff;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 3px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.btn-modelo-reportes:hover {
-  background: #138496;
-  border-color: #138496;
-}
-.btn-salir-header {
-  background: #dc3545;
-  border: 1px solid #dc3545;
-  color: #fff;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 3px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.btn-salir-header:hover {
-  background: #c82333;
-  border-color: #c82333;
-}
-
-/* ============== SHELL ============== */
-.app-shell{display:flex;height:calc(100vh - 58px);}
-.sidebar{width:260px;background:#f2f4f7;border-right:1px solid var(--gris-borde);overflow-y:auto;flex-shrink:0;}
-.sidebar .company{padding:10px 14px;font-size:11px;color:var(--texto-secundario);border-bottom:1px solid var(--gris-borde);}
-.sidebar .company b{display:block;font-size:12.5px;color:var(--texto-oscuro);}
-
-.area{padding:10px 14px 4px;font-size:10.5px;font-weight:700;letter-spacing:.4px;color:#8a96a3;text-transform:uppercase;}
-.area.bloqueada{color:#b7bfc7;cursor:default;user-select:none;}
-
-.menu-item{
-  display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:12.5px;color:var(--texto-oscuro);
-  cursor:pointer;border-left:3px solid transparent;user-select:none;
-}
-.menu-item:hover{background:#e4eaf3;}
-.menu-item.active{background:#d6e3f5;border-left:3px solid var(--azul-header);font-weight:600;color:var(--azul-header);}
-.menu-item .ico{width:20px;text-align:center;font-size:14px;flex-shrink:0;color:var(--texto-secundario);}
-.menu-item.active .ico{color:var(--azul-header);}
-.menu-item.disabled{color:#b7bfc7;cursor:default;}
-.menu-item.disabled:hover{background:transparent;}
-
-.submenu{padding-left:14px;}
-.submenu .menu-item{padding-left:24px;font-size:12px;}
-
-.grupo-toggle{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:12.5px;font-weight:600;
-  color:var(--texto-oscuro);cursor:pointer;}
-.grupo-toggle:hover{background:#e4eaf3;}
-.grupo-toggle .ico{color:var(--texto-secundario);}
-.grupo-body{display:none;}
-.grupo-body.open{display:block;}
-.chev{margin-left:auto;font-size:10px;color:var(--texto-secundario);}
-
-.content-area{flex:1;overflow-y:auto;background:var(--gris-bg);padding:0;}
-.welcome{padding:30px 35px;color:var(--texto-secundario);}
-.welcome h2{color:var(--texto-oscuro);font-size:17px;margin-bottom:6px;}
-.welcome.hidden{display:none;}
-
-/* ============== PANTALLA PRINCIPAL ============== */
-#mod-inicio .panel-grid{
-  display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:10px;
-}
-#mod-inicio .card-datos{
-  background:#fff;border-radius:6px;border:1px solid var(--gris-borde);padding:16px 20px;
-}
-#mod-inicio .card-datos h5{
-  font-size:13px;font-weight:700;color:var(--azul-header);border-bottom:1px solid var(--gris-borde);
-  padding-bottom:6px;margin-bottom:12px;
-}
-#mod-inicio .campo-row{
-  display:flex;margin-bottom:6px;font-size:12.5px;align-items:center;
-}
-#mod-inicio .campo-row .label{width:180px;font-weight:600;color:var(--texto-secundario);flex-shrink:0;}
-#mod-inicio .campo-row input.valor{
-  border:1px solid var(--gris-borde);border-radius:3px;padding:4px 8px;font-size:12px;
-  flex:1;background:#fafbfc;color:var(--texto-oscuro);
-}
-#mod-inicio .campo-row input.valor:focus{
-  border-color:var(--azul-seleccion);outline:none;background:#fff;
-}
-#mod-inicio .modulos-grid{
-  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:10px;
-}
-#mod-inicio .modulo-card{
-  background:#fff;border:1px solid var(--gris-borde);border-radius:6px;padding:14px 16px;text-align:center;
-  cursor:pointer;transition:all .2s;
-}
-#mod-inicio .modulo-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.08);border-color:var(--azul-seleccion);}
-#mod-inicio .modulo-card .ico{font-size:22px;display:block;margin-bottom:4px;color:var(--texto-secundario);}
-#mod-inicio .modulo-card .nombre{font-weight:600;font-size:12.5px;}
-#mod-inicio .modulo-card .estado{font-size:10px;color:var(--texto-secundario);}
-#mod-inicio .modulo-card.bloqueado{opacity:.5;cursor:default;}
-#mod-inicio .modulo-card.bloqueado:hover{box-shadow:none;border-color:var(--gris-borde);}
-#mod-inicio .btn-guardar-inicio{
-  margin-top:12px;padding:6px 18px;background:var(--marca-color-acento);
-  border:none;border-radius:4px;color:#fff;font-weight:600;font-size:12px;cursor:pointer;
-}
-#mod-inicio .btn-guardar-inicio:hover{opacity:.9;}
-
-/* ============== MODULO / TOOLBAR / TABLA ============== */
-.module{display:none;padding:14px 18px;}
-.module.active{display:block;}
-.module-title-row{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:8px;}
-.module-title{font-size:15px;font-weight:700;}
-.module-title .count{font-weight:400;font-size:11.5px;color:var(--texto-secundario);margin-left:8px;}
-
-.subtabs{display:flex;gap:2px;margin-bottom:10px;border-bottom:1px solid var(--gris-borde);flex-wrap:wrap;}
-.subtab{padding:7px 14px;font-size:12px;font-weight:600;color:var(--texto-secundario);cursor:pointer;
-  border-bottom:2px solid transparent;}
-.subtab.active{color:var(--azul-header);border-bottom:2px solid var(--azul-header);}
-
-.toolbar{
-  display:flex;align-items:center;gap:6px;background:var(--gris-toolbar);border:1px solid var(--gris-borde);
-  border-radius:4px;padding:6px 8px;margin-bottom:10px;flex-wrap:wrap;
-}
-.toolbar button{
-  background:#fff;border:1px solid var(--gris-borde);border-radius:3px;padding:5px 10px;font-size:12px;
-  color:var(--texto-oscuro);cursor:pointer;
-}
-.toolbar button:hover{background:#eef3fb;border-color:var(--azul-seleccion);}
-.toolbar .sep{width:1px;background:var(--gris-borde);align-self:stretch;margin:0 4px;}
-.toolbar input[type="text"]{border:1px solid var(--gris-borde);border-radius:3px;padding:5px 8px;font-size:12px;width:190px;}
-.toolbar .status{margin-left:auto;font-size:11.5px;color:var(--verde-ok);display:flex;align-items:center;gap:5px;}
-.toolbar .status .dot{width:7px;height:7px;border-radius:50%;background:var(--verde-ok);}
-
-.grid-wrap{border:1px solid var(--gris-borde);border-radius:4px;overflow:auto;max-height:55vh;background:#fff;}
-table.grid{border-collapse:collapse;width:100%;font-size:12.3px;}
-table.grid thead th{
-  position:sticky;top:0;background:#e7ebf0;border-bottom:2px solid var(--gris-borde);
-  border-right:1px solid var(--gris-borde);padding:7px 9px;text-align:left;font-weight:600;color:#3a4652;
-  white-space:nowrap;z-index:2;
-}
-table.grid tbody td{border-right:1px solid #e8ebee;border-bottom:1px solid #eef0f2;padding:0;white-space:nowrap;}
-table.grid tbody tr:nth-child(even){background:var(--gris-fila-alt);}
-table.grid tbody tr:hover{background:#eaf1fb;}
-td.cell{padding:6px 9px;outline:none;min-width:85px;}
-td.cell.num{text-align:right;font-variant-numeric:tabular-nums;}
-td.cell.readonly{background:#f1f3f5;color:var(--texto-secundario);}
-td.cell[contenteditable="true"]:focus{box-shadow:inset 0 0 0 2px var(--azul-seleccion);background:#fff;}
-td.cell select{width:100%;border:none;background:transparent;font-size:12.3px;}
-
-.grid-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 4px;font-size:11.5px;color:var(--texto-secundario);}
-.hint{font-size:11px;color:var(--texto-secundario);margin-top:8px;}
-kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;border-radius:3px;padding:1px 5px;font-size:10.5px;}
-
-.info-banner{
-  background:#eaf1fb;border:1px solid #b9d3f2;border-radius:4px;padding:9px 12px;margin-bottom:10px;
-  font-size:11.5px;color:#1c3f6e;
-}
-.info-banner b{color:var(--azul-header);}
-
-/* ============== MODAL DE MAPEO ============== */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(20,28,38,.45);z-index:50;align-items:center;justify-content:center;}
-.modal-overlay.open{display:flex;}
-.modal-box{background:#fff;width:640px;max-height:80vh;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.25);
-  display:flex;flex-direction:column;overflow:hidden;}
-.modal-head{background:var(--azul-header);color:#fff;padding:14px 18px;}
-.modal-head h3{margin:0;font-size:14.5px;}
-.modal-head p{margin:4px 0 0;font-size:11.5px;opacity:.85;}
-.modal-body{padding:14px 18px;overflow-y:auto;flex:1;}
-.map-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #eef0f2;font-size:12.5px;}
-.map-row .col-origen{flex:1;font-weight:600;}
-.map-row .col-origen small{display:block;font-weight:400;color:var(--texto-secundario);}
-.map-row select{flex:1;padding:5px 7px;border:1px solid var(--gris-borde);border-radius:3px;font-size:12px;}
-.modal-foot{padding:12px 18px;border-top:1px solid var(--gris-borde);display:flex;justify-content:flex-end;gap:8px;}
-.modal-foot button{padding:7px 14px;border-radius:3px;font-size:12.5px;cursor:pointer;}
-.btn-cancelar{background:#fff;border:1px solid var(--gris-borde);}
-.btn-confirmar{background:var(--marca-color-acento);border:1px solid var(--marca-color-acento);color:#fff;font-weight:600;}
-
-/* ============== RESPONSIVE ============== */
-@media(max-width:900px){
-  #mod-inicio .modulos-grid{grid-template-columns:repeat(2,1fr);}
-  #mod-inicio .panel-grid{grid-template-columns:1fr;}
-  .sidebar{width:200px;}
-}
-@media(max-width:600px){
-  .sidebar{width:0;overflow:hidden;padding:0;}
-  .app-header h1{font-size:14px;}
-  #mod-inicio .modulos-grid{grid-template-columns:1fr;}
-  .toolbar input[type="text"]{width:120px;}
-}
-</style>
+  <style>
+    :root {
+      --cliente-primary: #1b4b8f;
+      --cliente-success: #2e9e5b;
+      --cliente-danger: #dc3545;
+      --cliente-bg: #f4f6f9;
+    }
+    body {
+      background: var(--cliente-bg);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .cliente-header {
+      background: linear-gradient(135deg, var(--cliente-primary), #2a6bb0);
+      color: white;
+      padding: 1.2rem 2rem;
+      border-radius: 0 0 1.5rem 1.5rem;
+      box-shadow: 0 4px 20px rgba(27, 75, 143, 0.25);
+    }
+    .cliente-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin: 0;
+    }
+    .cliente-header small {
+      opacity: 0.8;
+      font-size: 0.9rem;
+      font-weight: 300;
+    }
+    .btn-salir {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.3);
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+      border: none;
+    }
+    .btn-salir:hover {
+      background: rgba(255,255,255,0.25);
+      color: white;
+    }
+    .btn-modelo-reportes {
+      background: #17a2b8;
+      border: none;
+      color: white;
+      padding: 0.4rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .btn-modelo-reportes:hover {
+      background: #138496;
+      color: white;
+    }
+    .estado-banner {
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+    .estado-activo {
+      background: #d4edda;
+      color: #155724;
+      border: 2px solid #28a745;
+    }
+    .estado-inactivo {
+      background: #f8d7da;
+      color: #721c24;
+      border: 2px solid #dc3545;
+    }
+    .card-cliente {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border: 1px solid #e9edf4;
+      overflow: hidden;
+    }
+    .card-cliente .card-header-custom {
+      padding: 1rem 1.25rem;
+      background: #fafbfc;
+      border-bottom: 1px solid #e9edf4;
+      font-weight: 700;
+      color: var(--cliente-primary);
+    }
+    .card-cliente .card-body-custom {
+      padding: 1.25rem;
+    }
+    .badge-proyecto {
+      background: #e8edf5;
+      color: var(--cliente-primary);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin: 0.2rem 0.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .badge-proyecto:hover {
+      background: var(--cliente-primary);
+      color: white;
+    }
+    .badge-proyecto-seleccionado {
+      background: var(--cliente-primary);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-block;
+      margin: 0.2rem 0.2rem;
+      cursor: pointer;
+      border: 2px solid var(--cliente-primary);
+    }
+    .equipo-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f0f2f5;
+      flex-wrap: wrap;
+    }
+    .equipo-row .rol {
+      font-weight: 600;
+      font-size: 0.9rem;
+      min-width: 180px;
+      color: #1a2634;
+    }
+    .equipo-row input {
+      border: 1px solid #dce2eb;
+      border-radius: 6px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.85rem;
+      flex: 1;
+      min-width: 120px;
+    }
+    .equipo-row input:focus {
+      border-color: var(--cliente-primary);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(27, 75, 143, 0.1);
+    }
+    .equipo-row .btn-sm-custom {
+      font-size: 0.7rem;
+      padding: 0.2rem 0.6rem;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: white;
+      border-radius: 1.5rem;
+      border: 2px dashed #dce2eb;
+    }
+    .empty-state i {
+      font-size: 3rem;
+      color: #bcc9d6;
+    }
+    .empty-state h5 {
+      color: #3d4a5a;
+      margin-top: 1rem;
+    }
+    .btn-captura {
+      background: var(--cliente-success);
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 0.7rem 2rem;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .btn-captura:hover {
+      background: #258a4e;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(46, 158, 91, 0.3);
+    }
+    .btn-captura:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    .toast-custom {
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      border-left: 5px solid var(--cliente-success);
+      margin-bottom: 10px;
+      min-width: 280px;
+      animation: slideIn 0.3s ease;
+    }
+    .toast-custom.error {
+      border-left-color: var(--cliente-danger);
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .proyecto-seleccionado-info {
+      background: var(--cliente-primary);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+    .badge-modelo {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    @media (max-width: 768px) {
+      .cliente-header { padding: 1rem; }
+      .cliente-header h1 { font-size: 1.2rem; }
+      .equipo-row .rol { min-width: 120px; }
+      .equipo-row input { min-width: 80px; }
+      .toast-custom { min-width: auto; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ================= GATE ================= -->
-<!-- Este Gate YA NO acepta texto libre. El proyecto siempre lo resuelve
-     el backend (login de equipo, o selector de Portal_Cliente/Portal_Administrador).
-     Aquí solo se RE-VALIDA contra el servidor antes de dejar pasar. -->
-<div id="gate">
-  <div class="box">
-    <h2>Registro de Proyecto</h2>
-    <p>Verificando tu acceso a este proyecto…</p>
-    <label>Proyecto</label>
-    <input type="text" id="gate-proyecto" readonly style="background:#f1f3f5;">
-    <label>Vista 3D</label>
-    <input type="text" id="gate-vista" readonly style="background:#f1f3f5;">
-    <button id="gate-btn-acceso" onclick="entrarApp()" disabled>Verificando…</button>
-    <div class="gate-loading" id="gate-loading" style="display:block;">Verificando proyecto…</div>
-    <div class="gate-error" id="gate-error"></div>
-    <div class="nota">Este proyecto fue asignado por tu administrador o por el cliente dueño de la obra. Si no es el correcto, cierra sesión y vuelve a entrar.</div>
-  </div>
-</div>
-
-<!-- ================= HEADER ================= -->
-<div class="app-header">
-  <div>
-    <h1>Captura de Obra</h1>
-    <div class="sub">CAASA — Análisis y Reportes de Obra 360</div>
-  </div>
-  <div class="header-actions">
-    <span class="proyecto-tag" id="tag-proyecto">Proyecto: —</span>
-    <button id="btn-importar">Importar</button>
-    <button onclick="exportarCSV()">Exportar</button>
-    <button class="btn-modelo-reportes" onclick="window.location.href='Modelo_y_Reportes.html'">
-      <i class="bi bi-eye"></i> Modelo y Reportes
-    </button>
-    <button class="btn-salir-header" onclick="cerrarSesionYSalir()">
-      <i class="bi bi-box-arrow-right"></i> Salir
-    </button>
-    <button style="background:var(--marca-color-acento);border-color:var(--marca-color-acento)" onclick="guardarModuloActivo()">Guardar</button>
-  </div>
-</div>
-<input type="file" id="file-importar" accept=".xlsx,.xls,.csv" style="display:none">
-
-<div class="app-shell">
-  <!-- ================= SIDEBAR ================= -->
-  <div class="sidebar" id="sidebar">
-    <div class="company"><b>CAASA · Obra 360</b><span id="cfg-proyecto-sidebar" style="display:block;font-size:11px;">Proyecto: —</span></div>
-
-    <div class="menu-item active" data-tab="inicio"><span class="ico"><i class="bi bi-house"></i></span> Inicio</div>
-
-    <div class="area">Construcción</div>
-
-    <!-- ===== PLANEACIÓN ===== -->
-    <div class="grupo-toggle open" data-grupo="planeacion">
-      <span class="ico"><i class="bi bi-folder"></i></span> Planeación de Proyecto <span class="chev">▾</span>
+  <!-- HEADER -->
+  <div class="cliente-header d-flex flex-wrap justify-content-between align-items-center">
+    <div>
+      <h1>
+        <i class="bi bi-building me-2"></i>
+        <span id="cliente-nombre-header">Cliente</span>
+        <span id="modelo-gestion-badge" class="badge-modelo">—</span>
+      </h1>
+      <small>Portal del Cliente — Gestión de Proyectos y Equipo</small>
     </div>
-    <div class="grupo-body open submenu" id="grupo-planeacion">
+    <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
+      <span id="user-info" class="text-white-50" style="font-size:0.85rem;"></span>
+      <button class="btn-modelo-reportes" onclick="window.location.href='Modelo_y_Reportes.html'">
+        <i class="bi bi-eye me-1"></i>Ver Modelo y Reportes
+      </button>
+      <button class="btn-salir" onclick="cerrarSesion()">
+        <i class="bi bi-box-arrow-left me-1"></i>Salir
+      </button>
+    </div>
+  </div>
 
-      <!-- Costo Plan: SOLO para Desarrollador -->
-      <div class="menu-item" data-tab="costo_plan" data-visible-para="Desarrollador">
-        <span class="ico"><i class="bi bi-coin"></i></span> Costo Plan
-      </div>
+  <!-- TOAST -->
+  <div class="toast-container" id="toast-container"></div>
 
-      <!-- PARA TODOS (Desarrollador y Constructora) -->
-      <div class="menu-item" data-tab="presupuestal" data-visible-para="Desarrollador,Constructora">
-        <span class="ico"><i class="bi bi-bar-chart"></i></span> Control Presupuestal
-      </div>
+  <!-- CONTENIDO -->
+  <div class="container-fluid px-4 py-4">
 
-      <div class="menu-item" data-tab="materiales" data-visible-para="Desarrollador,Constructora">
-        <span class="ico"><i class="bi bi-box-seam"></i></span> Materiales
-      </div>
-
-      <div class="menu-item" data-tab="mano_obra" data-visible-para="Desarrollador,Constructora">
-        <span class="ico"><i class="bi bi-person-workspace"></i></span> Mano de Obra
-      </div>
-
-      <!-- Calidad: SOLO para Desarrollador -->
-      <div class="menu-item" data-tab="calidad" data-visible-para="Desarrollador">
-        <span class="ico"><i class="bi bi-check-circle"></i></span> Calidad
-      </div>
-
-      <!-- ===== COMPRAS (padre con sub-índices) ===== -->
-      <div class="grupo-toggle open" data-grupo="compras">
-        <span class="ico"><i class="bi bi-cart"></i></span> Compras <span class="chev">▾</span>
-      </div>
-      <div class="grupo-body open submenu" id="grupo-compras">
-        <!-- Control de Pedidos: SOLO para Constructora -->
-        <div class="menu-item" data-tab="control_pedidos" data-visible-para="Constructora">
-          <span class="ico"><i class="bi bi-box"></i></span> Control de Pedidos
-        </div>
-
-        <!-- PARA TODOS (Desarrollador y Constructora) -->
-        <div class="menu-item" data-tab="requisiciones" data-visible-para="Desarrollador,Constructora">
-          <span class="ico"><i class="bi bi-clipboard"></i></span> Requisiciones
-        </div>
-
-        <!-- Órdenes de Compra: SOLO para Desarrollador -->
-        <div class="menu-item" data-tab="ordenes_compra" data-visible-para="Desarrollador">
-          <span class="ico"><i class="bi bi-file-text"></i></span> Órdenes de Compra
-        </div>
-
-        <!-- PARA TODOS (Desarrollador y Constructora) -->
-        <div class="menu-item" data-tab="pago_proveedores" data-visible-para="Desarrollador,Constructora">
-          <span class="ico"><i class="bi bi-wallet2"></i></span> Pago a Proveedores
-        </div>
-
-        <div class="menu-item" data-tab="estimaciones" data-visible-para="Desarrollador,Constructora">
-          <span class="ico"><i class="bi bi-graph-up"></i></span> Estimaciones
-        </div>
-      </div>
-
+    <!-- BANNER DE ESTADO -->
+    <div id="estado-banner" class="estado-banner estado-activo">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>Cuenta Activa</span>
     </div>
 
-    <div class="area">Finanzas</div>
-    <div class="area">Legal</div>
-    <div class="area">Recursos Humanos</div>
-    <div class="area">Inmobiliaria</div>
-    <div class="area">CEDIS</div>
-    <div class="area">Operaciones</div>
-    <div class="area">Mantenimiento</div>
-  </div>
-
-  <!-- ================= CONTENIDO ================= -->
-  <div class="content-area">
-    <!-- INICIO -->
-    <div class="welcome" id="mod-inicio">
-      <h2>Panel de Control del Proyecto</h2>
-      <p>Resumen general y acceso rápido a todos los módulos de captura.</p>
-
-      <div class="panel-grid">
-        <div class="card-datos">
-          <h5>📋 Datos Generales</h5>
-          <div class="campo-row"><span class="label">Proyecto:</span><input class="valor" id="dato-proyecto" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Ubicación:</span><input class="valor" id="dato-ubicacion" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Gerente de Construcción:</span><input class="valor" id="dato-gerente_construccion" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Responsable de Obra:</span><input class="valor" id="dato-responsable_obra" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Gerente de Arquitectura:</span><input class="valor" id="dato-gerente_arquitectura" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Responsable de Compras:</span><input class="valor" id="dato-responsable_compras" value="—" onchange="guardarDatosInicio()"></div>
-        </div>
-        <div class="card-datos">
-          <h5>⏱ Duración del Proyecto</h5>
-          <div class="campo-row"><span class="label">Inicio:</span><input class="valor" id="dato-inicio" type="date" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Fin:</span><input class="valor" id="dato-fin" type="date" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Días Totales:</span><input class="valor" id="dato-dias" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">% Avance:</span><input class="valor" id="dato-avance" value="—" onchange="guardarDatosInicio()"></div>
-          <h5 style="margin-top:14px;">💰 Orden de Inversión</h5>
-          <div class="campo-row"><span class="label">Monto Total:</span><input class="valor" id="dato-monto" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Ejercido:</span><input class="valor" id="dato-ejercido" value="—" onchange="guardarDatosInicio()"></div>
-          <div class="campo-row"><span class="label">Disponible:</span><input class="valor" id="dato-disponible" value="—" onchange="guardarDatosInicio()"></div>
-          <button class="btn-guardar-inicio" onclick="guardarDatosInicio()">💾 Guardar Datos del Proyecto</button>
-        </div>
+    <!-- PROYECTOS DEL CLIENTE CON SELECCIÓN -->
+    <div class="card-cliente mb-4">
+      <div class="card-header-custom">
+        <i class="bi bi-folder me-2"></i>Mis Proyectos
+        <span class="text-muted" style="font-size:0.8rem;font-weight:400;">
+          <i class="bi bi-info-circle"></i> Haz clic en un proyecto para seleccionarlo
+        </span>
       </div>
-
-      <h5 style="margin:20px 0 10px;font-size:14px;">📌 Módulos del Sistema</h5>
-      <div class="modulos-grid" id="modulos-grid-inicio">
-        <!-- Los módulos se renderizan dinámicamente según modelo_gestion -->
+      <div class="card-body-custom" id="proyectos-container">
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Cargando proyectos...</p>
+        </div>
       </div>
     </div>
 
-    <!-- CONTENEDOR DE MÓDULOS DINÁMICOS -->
-    <div id="modulos-container"></div>
-  </div>
-</div>
-
-<!-- ================= MODAL DE MAPEO ================= -->
-<div class="modal-overlay" id="modal-mapeo">
-  <div class="modal-box">
-    <div class="modal-head">
-      <h3>Mapear columnas del archivo importado</h3>
-      <p>Indica a qué columna del sistema corresponde cada columna encontrada en tu archivo.</p>
+    <!-- PROYECTO SELECCIONADO (info) -->
+    <div id="proyecto-seleccionado-info" style="display:none;" class="text-center mb-3">
+      <span class="proyecto-seleccionado-info">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        Proyecto seleccionado: <span id="proyecto-seleccionado-nombre">—</span>
+      </span>
     </div>
-    <div class="modal-body" id="modal-mapeo-body"></div>
-    <div class="modal-foot">
-      <button class="btn-cancelar" onclick="cerrarModalMapeo()">Cancelar</button>
-      <button class="btn-confirmar" onclick="confirmarMapeo()">Importar con este mapeo</button>
-    </div>
-  </div>
-</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script>
-/* =====================================================================
-   MODELO DE GESTIÓN (UNIFICADO bajo obra360_*)
-   ===================================================================== */
-function getModeloGestion() {
-  // UNIFICADO: solo usamos obra360_modelo_gestion
-  let modelo = localStorage.getItem('obra360_modelo_gestion');
-  
-  // Si no existe, intentar obtener de la variable antigua (migración)
-  if (!modelo) {
-    modelo = localStorage.getItem('modelo_gestion');
-    if (modelo) {
-      // Migrar a la nueva clave
-      localStorage.setItem('obra360_modelo_gestion', modelo);
-    }
-  }
-  
-  // Normalización: convertir a mayúscula inicial
-  if (modelo) {
-    return modelo.charAt(0).toUpperCase() + modelo.slice(1).toLowerCase();
-  }
-  
-  return 'Desarrollador';
-}
-
-/* =====================================================================
-   CERRAR SESIÓN Y SALIR
-   ===================================================================== */
-function cerrarSesionYSalir() {
-  if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-    localStorage.clear();
-    window.location.href = 'index.html';
-  }
-}
-
-/* =====================================================================
-   FILTRAR SIDEBAR SEGÚN MODELO DE GESTIÓN
-   ===================================================================== */
-function filtrarSidebarPorModelo() {
-  const modelo = getModeloGestion();
-  const items = document.querySelectorAll('.menu-item[data-visible-para]');
-  items.forEach(item => {
-    const visiblePara = item.getAttribute('data-visible-para');
-    if (visiblePara) {
-      const visibles = visiblePara.split(',').map(s => s.trim());
-      if (visibles.includes(modelo)) {
-        item.style.display = 'flex';
-      } else {
-        item.style.display = 'none';
-      }
-    }
-  });
-
-  const grupos = document.querySelectorAll('.grupo-body');
-  grupos.forEach(grupo => {
-    const itemsVisibles = grupo.querySelectorAll('.menu-item:not([style*="display: none"])');
-    if (itemsVisibles.length === 0) {
-      grupo.style.display = 'none';
-      const padre = grupo.closest('.grupo-toggle');
-      if (padre) padre.style.display = 'none';
-    } else {
-      grupo.style.display = '';
-      const padre = grupo.closest('.grupo-toggle');
-      if (padre) padre.style.display = '';
-    }
-  });
-}
-
-/* =====================================================================
-   FILTRAR MÓDULOS DEL INICIO SEGÚN MODELO DE GESTIÓN
-   ===================================================================== */
-function getModulosVisibles() {
-  const modelo = getModeloGestion();
-  const comunes = ['presupuestal', 'materiales', 'mano_obra', 'requisiciones', 'pago_proveedores', 'estimaciones'];
-  const especificos = {
-    'Desarrollador': ['costo_plan', 'calidad', 'ordenes_compra'],
-    'Constructora': ['control_pedidos']
-  };
-  const extra = especificos[modelo] || [];
-  return [...comunes, ...extra];
-}
-
-function renderizarModulosInicio() {
-  const container = document.getElementById('modulos-grid-inicio');
-  const visibles = getModulosVisibles();
-
-  const todosLosModulos = {
-    costo_plan: { ico: 'bi-coin', nombre: 'Costo Plan' },
-    presupuestal: { ico: 'bi-bar-chart', nombre: 'Control Presupuestal' },
-    materiales: { ico: 'bi-box-seam', nombre: 'Materiales' },
-    mano_obra: { ico: 'bi-person-workspace', nombre: 'Mano de Obra' },
-    calidad: { ico: 'bi-check-circle', nombre: 'Calidad' },
-    control_pedidos: { ico: 'bi-box', nombre: 'Control de Pedidos' },
-    requisiciones: { ico: 'bi-clipboard', nombre: 'Requisiciones' },
-    ordenes_compra: { ico: 'bi-file-text', nombre: 'Órdenes de Compra' },
-    pago_proveedores: { ico: 'bi-wallet2', nombre: 'Pago a Proveedores' },
-    estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' }
-  };
-
-  let html = '';
-  visibles.forEach(key => {
-    const mod = todosLosModulos[key];
-    if (mod) {
-      html += `
-        <div class="modulo-card" onclick="navegarA('${key}')">
-          <span class="ico"><i class="${mod.ico}"></i></span>
-          <span class="nombre">${mod.nombre}</span>
-          <span class="estado">Activo</span>
+    <!-- EQUIPO DE TRABAJO (del proyecto seleccionado) -->
+    <div class="card-cliente mb-4" id="equipo-card">
+      <div class="card-header-custom">
+        <i class="bi bi-people me-2"></i>Habilitar Equipo de Trabajo
+        <span id="equipo-proyecto-label" class="text-muted" style="font-size:0.8rem;font-weight:400;">
+          (Selecciona un proyecto primero)
+        </span>
+      </div>
+      <div class="card-body-custom" id="equipo-body">
+        <div class="empty-state">
+          <i class="bi bi-folder-x"></i>
+          <h5>Selecciona un proyecto</h5>
+          <p>Haz clic en uno de tus proyectos para habilitar su equipo de trabajo.</p>
         </div>
-      `;
-    }
-  });
+      </div>
+    </div>
 
-  html += `
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-bank"></i></span><span class="nombre">Finanzas</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-scale"></i></span><span class="nombre">Legal</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-people"></i></span><span class="nombre">Recursos Humanos</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-building"></i></span><span class="nombre">Inmobiliaria</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-warehouse"></i></span><span class="nombre">CEDIS</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-gear"></i></span><span class="nombre">Operaciones</span><span class="estado">Próximamente</span></div>
-    <div class="modulo-card bloqueado"><span class="ico"><i class="bi bi-tools"></i></span><span class="nombre">Mantenimiento</span><span class="estado">Próximamente</span></div>
-  `;
+    <!-- BOTÓN ACCESO A CAPTURA -->
+    <div class="text-center mt-4">
+      <button class="btn-captura" id="btn-captura" onclick="irACaptura()">
+        <i class="bi bi-table me-2"></i>Acceder a Captura de Obra
+      </button>
+    </div>
 
-  container.innerHTML = html;
-}
+    <div class="mt-4 pt-2 text-center text-muted border-top" style="font-size:0.8rem;">
+      <i class="bi bi-database me-1"></i> Datos conectados a la API en Render.
+    </div>
+  </div>
 
-/* =====================================================================
-   DATOS DE INICIO (UNIFICADOS bajo obra360_inicio_*)
-   ===================================================================== */
-function cargarDatosInicio(){
-  const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
-                  "inicio","fin","dias","avance","monto","ejercido","disponible"];
-  campos.forEach(c=>{
-    const el = document.getElementById("dato-"+c);
-    if(el){
-      // UNIFICADO: usamos obra360_inicio_* en lugar de inicio_*
-      const val = localStorage.getItem("obra360_inicio_"+c);
-      if(val) el.value = val;
-    }
-  });
-}
-
-function guardarDatosInicio(){
-  const campos = ["proyecto","ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
-                  "inicio","fin","dias","avance","monto","ejercido","disponible"];
-  campos.forEach(c=>{
-    const el = document.getElementById("dato-"+c);
-    if(el) {
-      // UNIFICADO: usamos obra360_inicio_* en lugar de inicio_*
-      localStorage.setItem("obra360_inicio_"+c, el.value);
-    }
-  });
-  const proyecto = document.getElementById("dato-proyecto").value;
-  document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
-  document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
-  // UNIFICADO: usamos obra360_proyecto_nombre en lugar de obra360_proyecto
-  localStorage.setItem("obra360_proyecto_nombre", proyecto);
-  alert("✅ Datos del proyecto guardados correctamente.");
-}
-
-/* =====================================================================
-   CONFIGURACIÓN DE MÓDULOS
-   ===================================================================== */
-const MODULOS = {
-
-  costo_plan: {
-    label:"Costo Plan",
-    endpoint:"costo_plan",
-    subtabs: {
-      partidas: {
-        label:"Partidas",
-        columnas:[
-          {key:"concepto", label:"CONCEPTO"},
-          {key:"presupuesto", label:"PRESUPUESTO", tipo:"num"}
-        ],
-        datos:[]
-      },
-      indicadores: {
-        label:"Cuadro Informativo",
-        columnas:[
-          {key:"concepto", label:"CONCEPTO"},
-          {key:"unidad", label:"UNIDAD"},
-          {key:"monto", label:"MONTO", tipo:"num"}
-        ],
-        datos:[]
-      }
-    }
-  },
-
-  presupuestal: {
-    label:"Control Presupuestal",
-    endpoint:"control_presupuestal",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"nombre", label:"Nombre / Familia / Elemento"},
-      {key:"inicio", label:"Inicio", tipo:"fecha"},
-      {key:"fin", label:"Fin", tipo:"fecha"},
-      {key:"pct_programado", label:"% Programado", tipo:"num"},
-      {key:"pct_real", label:"% Real", tipo:"num"},
-      {key:"pct_por_elemento", label:"% por Elemento", tipo:"num"},
-      {key:"pct_acumulado", label:"% Acumulado", tipo:"num"},
-      {key:"costo_por_elemento", label:"Costo por Elemento", tipo:"num"},
-      {key:"costo_etapa", label:"Costo Etapa", tipo:"num"},
-      {key:"costo_real", label:"Costo Real", tipo:"num"},
-      {key:"etapa", label:"Etapa"},
-      {key:"duracion", label:"Duración", tipo:"num"},
-    ],
-    datos:[]
-  },
-
-  materiales: {
-    label:"Materiales",
-    endpoint:"materiales",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"categoria", label:"Categoría", tipo:"select", opciones:["Terracerías","Obra Negra - Cimentación","Obra Negra - Edificación"]},
-      {key:"concepto", label:"Concepto"},
-      {key:"unidad", label:"Unidad", tipo:"select", opciones:["m3","m2","kg","ton","pza","ml"]},
-      {key:"cantidad", label:"Cantidad", tipo:"num"},
-      {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
-      {key:"costo_total", label:"Costo Total", tipo:"num", calculado:(r)=> (Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
-    ],
-    datos:[]
-  },
-
-  mano_obra: {
-    label:"Mano de Obra",
-    endpoint:"mano_obra",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"concepto", label:"Concepto", tipo:"select", opciones:[
-        "Habilitado Acero de Refuerzo (KG)","Cimbra Zapatas/Pedestales/Dados/CT/Pilas (M2)",
-        "Concreto Vaciado en Elementos (M3)","Muros de Block (M2)","Firmes (M2/M3)",
-        "Losas Entrepiso Maciza/Casetón/Losacero (M2/M3)","Aplanados Exteriores (M2)",
-        "Aplanados Interiores (M2)","Estructura Metálica Fabricación (KG)",
-        "Montaje Estructura Metálica (KG)","Recubrimiento Pintura Estructura Metálica",
-        "Control de Calidad Estructura Metálica"]},
-      {key:"unidad", label:"Unidad", tipo:"select", opciones:["KG","M2","M3","ML","PZA","TON"]},
-      {key:"cantidad", label:"Cantidad", tipo:"num"},
-      {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
-      {key:"costo_total", label:"Costo Total", tipo:"num", calculado:(r)=> (Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
-    ],
-    datos:[]
-  },
-
-  calidad: {
-    label:"Control de Calidad",
-    endpoint:"calidad",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"nombre", label:"Nombre"},
-      {key:"clave", label:"Clave"},
-      {key:"nivel", label:"Nivel"},
-      {key:"fase", label:"Fase"},
-      {key:"id_inspeccion", label:"ID_Inspección"},
-      {key:"id_proyecto", label:"ID_Proyecto"},
-      {key:"elemento_inspeccionado", label:"Elemento_Inspeccionado"},
-      {key:"tipo_ensayo", label:"Tipo_Ensayo"},
-      {key:"norma_aplicada", label:"Norma_Aplicada"},
-      {key:"resultado", label:"Resultado", tipo:"select", opciones:["Aprobado","Rechazado"]},
-      {key:"valor_obtenido", label:"Valor_Obtenido"},
-      {key:"valor_especificado", label:"Valor_Especificado"},
-      {key:"unidad", label:"Unidad"},
-      {key:"fecha_prueba", label:"Fecha_Prueba", tipo:"fecha"},
-      {key:"inspector", label:"Inspector"},
-      {key:"observaciones", label:"Observaciones"},
-    ],
-    datos:[]
-  },
-
-  control_pedidos: {
-    label:"Control de Pedidos",
-    endpoint:"control_pedidos",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"no_pedido", label:"No. Pedido"},
-      {key:"proveedor", label:"Proveedor"},
-      {key:"concepto", label:"Concepto"},
-      {key:"cantidad", label:"Cantidad", tipo:"num"},
-      {key:"unidad", label:"Unidad", tipo:"select", opciones:["pza","kg","m3","m2","ml","ton"]},
-      {key:"costo_unitario", label:"Costo Unitario", tipo:"num"},
-      {key:"importe", label:"Importe", tipo:"num", calculado:(r)=>(Number(r.cantidad)||0)*(Number(r.costo_unitario)||0)},
-      {key:"fecha_pedido", label:"Fecha Pedido", tipo:"fecha"},
-      {key:"fecha_entrega", label:"Fecha Entrega", tipo:"fecha"},
-      {key:"estatus", label:"Estatus", tipo:"select", opciones:["Pendiente","Enviado","Recibido"]},
-    ],
-    datos:[]
-  },
-
-  requisiciones: {
-    label:"Requisiciones",
-    endpoint:"requisiciones",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"no", label:"Nº"},
-      {key:"descripcion", label:"Descripción"},
-      {key:"solicitado", label:"Solicitado"},
-      {key:"fecha_solicitud", label:"Fecha Solicitud", tipo:"fecha"},
-      {key:"elaboro_req", label:"Elaboró Req."},
-      {key:"area_obra", label:"Área de Obra"},
-      {key:"contratista_asignado", label:"Contratista Asignado"},
-      {key:"estado_compras", label:"Estado Compras", tipo:"select", opciones:["Pendiente","En Proceso","Cotizando","Aprobado","Rechazado","Comprado"]},
-    ],
-    datos:[]
-  },
-
-  ordenes_compra: {
-    label:"Órdenes de Compra",
-    endpoint:"ordenes_compra",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"orden_compra", label:"ORDEN DE COMPRA"},
-      {key:"presup", label:"PRESUP.", tipo:"num"},
-      {key:"pedido", label:"PEDIDO"},
-      {key:"empresa", label:"EMPRESA"},
-      {key:"descripcion", label:"DESCRIPCIÓN"},
-      {key:"responsable", label:"RESPONSABLE"},
-      {key:"monto", label:"MONTO", tipo:"num"},
-      {key:"factura", label:"FACTURA"},
-      {key:"monto_pagado", label:"MONTO PAGADO", tipo:"num"},
-      {key:"saldo", label:"SALDO", tipo:"num"},
-      {key:"observaciones", label:"OBSERVACIONES"}
-    ],
-    datos:[]
-  },
-
-  pago_proveedores: {
-    label:"Pago a Proveedores y Contratistas",
-    endpoint:"pago_proveedores",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"proveedor", label:"Proveedor / Contratista"},
-      {key:"no_proveedor", label:"N° Proveedor"},
-      {key:"pedido_contrato", label:"Pedido/Contrato"},
-      {key:"importe_pedido", label:"Importe Pedido (sin IVA)", tipo:"num"},
-      {key:"importe_pagado", label:"Importe Pagado (a la fecha)", tipo:"num"},
-      {key:"concepto", label:"Concepto"},
-      {key:"imss", label:"IMSS (Vigencia)", tipo:"select", opciones:["Vigente","No Vigente"]},
-      {key:"regimen_fiscal", label:"Régimen Fiscal", tipo:"select", opciones:["CIROC","RESICO"]},
-      {key:"estatus_pago", label:"Estatus Pago", tipo:"select", opciones:["Pendiente","Pagado","Retenido"]},
-    ],
-    datos:[]
-  },
-
-  estimaciones: {
-    label:"Estimaciones",
-    endpoint:"estimaciones",
-    columnas:[
-      {key:"id", label:"ID", hidden:true},
-      {key:"estimacion_no", label:"Estimación #"},
-      {key:"numero_factura", label:"Número de Factura"},
-      {key:"concepto", label:"Concepto"},
-      {key:"monto_contratado", label:"Monto Contratado", tipo:"num"},
-      {key:"monto_estimado", label:"Monto Estimado antes de IVA", tipo:"num"},
-      {key:"estimado_acumulado", label:"Estimado Acumulado", tipo:"num", calculado: (row, allData) => {
-        const idx = allData.indexOf(row);
-        let sum = 0;
-        for(let i=0; i<=idx; i++){
-          sum += Number(allData[i].monto_estimado) || 0;
-        }
-        return sum;
-      }},
-      {key:"fondo_garantia", label:"Fondo de Garantía (5%)", tipo:"num", calculado: (row) => {
-        return (Number(row.monto_estimado) || 0) * 0.05;
-      }},
-      {key:"f_garantia_acumulado", label:"F. Garantía Acumulado", tipo:"num", calculado: (row, allData) => {
-        const idx = allData.indexOf(row);
-        let sum = 0;
-        for(let i=0; i<=idx; i++){
-          sum += (Number(allData[i].monto_estimado) || 0) * 0.05;
-        }
-        return sum;
-      }},
-      {key:"cobrado_a_la_fecha", label:"Cobrado a la Fecha", tipo:"num"},
-      {key:"fecha_estimacion", label:"Fecha de Estimación", tipo:"fecha"},
-      {key:"por_cobrar", label:"Por Cobrar", tipo:"num", calculado: (row) => {
-        return (Number(row.monto_contratado) || 0) - (Number(row.cobrado_a_la_fecha) || 0);
-      }},
-      {key:"ejercido", label:"Ejercido", tipo:"num"},
-      {key:"disponible", label:"Disponible", tipo:"num", calculado: (row) => {
-        return (Number(row.monto_contratado) || 0) - (Number(row.ejercido) || 0);
-      }},
-    ],
-    datos:[]
-  },
-};
-
-let moduloActivo = "presupuestal";
-let subtabActivo = {};
-
-/* =====================================================================
-   GATE — Proyecto + Vista 3D (UNIFICADO bajo obra360_*)
-   ===================================================================== */
-const GATE_API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
-
-function mostrarErrorGateFatal(msg){
-  document.getElementById("gate-loading").style.display = "none";
-  const err = document.getElementById("gate-error");
-  err.textContent = msg + " Vuelve a iniciar sesión.";
-  err.style.display = "block";
-  const btn = document.getElementById("gate-btn-acceso");
-  btn.textContent = "Volver al inicio";
-  btn.disabled = false;
-  btn.onclick = () => { window.location.href = "index.html"; };
-}
-
-/**
- * Confirma con el servidor (nunca solo con localStorage) a qué proyecto
- * tiene acceso real el usuario logueado, y deja el botón "Acceso"
- * habilitado únicamente si el servidor lo valida.
- */
-async function validarSesionYProyecto(){
-  const token = localStorage.getItem("obra360_token");
-  if(!token){
-    mostrarErrorGateFatal("No se encontró una sesión activa.");
-    return;
-  }
-
-  let verif;
-  try{
-    const resp = await fetch(`${GATE_API_URL}/verificar_token`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    if(!resp.ok){
-      mostrarErrorGateFatal("Tu sesión expiró o no es válida.");
-      return;
-    }
-    verif = await resp.json();
-  }catch(err){
-    mostrarErrorGateFatal("No se pudo conectar con el servidor para validar tu sesión.");
-    return;
-  }
-
-  if(verif.tipo === "equipo"){
+  <script>
     // ============================================================
-    // COLABORADOR / EMPLEADO (Gerente, Superintendente, Residente...)
-    // Aquí SÍ se muestra el Gate. El proyecto lo dice el SERVIDOR
-    // (tabla equipo), nunca lo que haya en localStorage. Esto es lo
-    // que evita que un Superintendente asignado a "Playa Linda III"
-    // pueda escribir/forzar "Torre Máxima" y entrar ahí.
+    // CONFIGURACIÓN
     // ============================================================
-    const proyectoIdFinal = verif.proyecto_id;
-    const nombreProyectoFinal = verif.nombre_proyecto;
+    const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
+    // UNIFICADO: usamos obra360_token en lugar de caasa_admin_token
+    const TOKEN_KEY = 'obra360_token';
 
-    localStorage.setItem("obra360_proyecto_id", proyectoIdFinal);
-    localStorage.setItem("obra360_proyecto_nombre", nombreProyectoFinal);
+    let proyectoSeleccionadoId = null;
+    let proyectoSeleccionadoNombre = null;
 
-    document.getElementById("gate-proyecto").value = nombreProyectoFinal;
-    document.getElementById("gate-vista").value = localStorage.getItem("obra360_vista_3d") || "—";
-    document.getElementById("gate-loading").style.display = "none";
-    document.getElementById("gate-error").style.display = "none";
-
-    const btn = document.getElementById("gate-btn-acceso");
-    btn.textContent = "Acceso";
-    btn.disabled = false;
-    // El Gate se queda visible aquí, esperando que el colaborador confirme con "Acceso".
-    return;
-  }
-
-  // ============================================================
-  // ADMIN o CLIENTE (Constructora/Desarrollador)
-  // Ya eligieron su proyecto en su propio portal (selector de
-  // Portal_Administrador.html o Portal_Cliente.html). El Gate NO
-  // se les muestra — solo se re-confirma en silencio que el
-  // proyecto guardado sí les pertenece, y se entra directo.
-  // ============================================================
-  const clienteId = verif.cliente && verif.cliente.id;
-  const proyectoIdGuardado = localStorage.getItem("obra360_proyecto_id");
-
-  if(!clienteId || !proyectoIdGuardado){
-    mostrarErrorGateFatal("No se encontró un proyecto seleccionado.");
-    return;
-  }
-
-  try{
-    const respProy = await fetch(`${GATE_API_URL}/clientes/${clienteId}/proyectos`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    if(!respProy.ok){
-      mostrarErrorGateFatal("No se pudo verificar tus proyectos.");
-      return;
-    }
-    const proyectos = await respProy.json();
-    const encontrado = proyectos.find(p => String(p.id) === String(proyectoIdGuardado));
-    if(!encontrado){
-      mostrarErrorGateFatal("El proyecto seleccionado ya no está disponible o no te pertenece.");
-      return;
+    // ============================================================
+    // TOAST NOTIFICATIONS
+    // ============================================================
+    function mostrarToast(mensaje, tipo = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast-custom ${tipo === 'error' ? 'error' : ''}`;
+      const icono = tipo === 'error' ? '❌' : '✅';
+      toast.innerHTML = `${icono} ${mensaje}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
     }
 
-    localStorage.setItem("obra360_proyecto_id", encontrado.id);
-    localStorage.setItem("obra360_proyecto_nombre", encontrado.nombre_proyecto);
+    // ============================================================
+    // FUNCIONES DE AUTENTICACIÓN
+    // ============================================================
+    function obtenerToken() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
 
-    // Entra directo: el Gate nunca se muestra para admin/cliente.
-    document.getElementById("gate").style.display = "none";
-    document.getElementById("tag-proyecto").textContent = "Proyecto: " + encontrado.nombre_proyecto;
-    document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + encontrado.nombre_proyecto;
-    const datoProyecto = document.getElementById("dato-proyecto");
-    if(datoProyecto) datoProyecto.value = encontrado.nombre_proyecto;
-  }catch(err){
-    mostrarErrorGateFatal("No se pudo conectar con el servidor para validar el proyecto.");
-  }
-}
+    function eliminarToken() {
+      localStorage.removeItem(TOKEN_KEY);
+    }
 
-function entrarApp(){
-  const proyecto = document.getElementById("gate-proyecto").value.trim();
-  if(!proyecto){
-    return; // el botón solo se habilita cuando ya hay un proyecto validado por el servidor
-  }
-  document.getElementById("gate").style.display = "none";
-  document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
-  document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
-  const datoProyecto = document.getElementById("dato-proyecto");
-  if(datoProyecto) datoProyecto.value = proyecto;
-  localStorage.setItem("obra360_inicio_proyecto", proyecto); // sin alert, solo al entrar
-}
-
-(function(){
-  validarSesionYProyecto();
-  cargarDatosInicio();
-  filtrarSidebarPorModelo();
-  renderizarModulosInicio();
-})();
-
-/* =====================================================================
-   IR A INICIO (desde sidebar)
-   ===================================================================== */
-function irAInicio() {
-  navegarA('inicio');
-}
-
-/* =====================================================================
-   RENDER DE TABLAS (con soporte para subtabs y calculados con allData)
-   ===================================================================== */
-function money(n){
-  if(n===null||n===undefined||n===""||isNaN(n)) return "";
-  return Number(n).toLocaleString("es-MX",{maximumFractionDigits:2});
-}
-
-function construirModuloHTML(modKey){
-  const mod = MODULOS[modKey];
-  if(!mod) return "";
-  
-  if(mod.subtabs){
-    let html = `
-      <div class="module" id="mod-${modKey}" data-mod="${modKey}">
-        <div class="module-title-row">
-          <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
-        </div>
-        <div class="info-banner">
-          Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
-        </div>
-        <div class="subtabs">
-    `;
-    Object.keys(mod.subtabs).forEach((stKey, idx)=>{
-      const st = mod.subtabs[stKey];
-      const active = idx===0 ? "active" : "";
-      html += `<div class="subtab ${active}" data-sub="${stKey}" onclick="cambiarSubtab('${modKey}','${stKey}')">${st.label}</div>`;
-    });
-    html += `</div>`;
-    Object.keys(mod.subtabs).forEach((stKey, idx)=>{
-      const st = mod.subtabs[stKey];
-      const active = idx===0 ? "active" : "";
-      const cols = st.columnas.filter(c=>!c.hidden);
-      html += `
-        <div class="subtab-content ${active}" id="sub-${modKey}-${stKey}">
-          <div class="toolbar">
-            <button onclick="agregarFilaSubtab('${modKey}','${stKey}')">➕ Nueva fila</button>
-            <button onclick="eliminarUltimaFilaSubtab('${modKey}','${stKey}')">🗑 Eliminar última fila</button>
-            <div class="sep"></div>
-            <input type="text" placeholder="Buscar..." oninput="filtrarTablaSubtab('${modKey}','${stKey}', this.value)">
-            <div class="status"><span class="dot"></span> Listo</div>
-          </div>
-          <div class="grid-wrap">
-            <table class="grid" id="grid-${modKey}-${stKey}">
-              <thead><tr>${cols.map(c=>`<th${c.tipo==='num'?' class="num"':''}>${c.label}</th>`).join("")}</tr></thead>
-              <tbody id="body-${modKey}-${stKey}"></tbody>
-            </table>
-          </div>
-          <div class="grid-footer">
-            <span>Mostrando <span id="visible-${modKey}-${stKey}">0</span> registros</span>
-          </div>
-        </div>
-      `;
-    });
-    html += `<div class="hint">Doble clic para editar · <kbd>Tab</kbd> siguiente celda · <kbd>Enter</kbd> confirmar</div></div>`;
-    return html;
-  }
-  
-  const cols = mod.columnas.filter(c=>!c.hidden);
-  let html = `
-    <div class="module" id="mod-${modKey}" data-mod="${modKey}">
-      <div class="module-title-row">
-        <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
-      </div>
-      <div class="info-banner">
-        Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
-      </div>
-      <div class="toolbar">
-        <button onclick="agregarFila('${modKey}')">➕ Nueva fila</button>
-        <button onclick="eliminarUltimaFila('${modKey}')">🗑 Eliminar última fila</button>
-        <div class="sep"></div>
-        <input type="text" placeholder="Buscar..." oninput="filtrarTabla('grid-${modKey}', this.value)">
-        <div class="status"><span class="dot"></span> Listo</div>
-      </div>
-      <div class="grid-wrap">
-        <table class="grid" id="grid-${modKey}">
-          <thead><tr>${cols.map(c=>`<th${c.tipo==='num'?' class="num"':''}>${c.label}</th>`).join("")}</tr></thead>
-          <tbody id="body-${modKey}"></tbody>
-        </table>
-      </div>
-      <div class="grid-footer">
-        <span>Mostrando <span id="visible-${modKey}">0</span> registros</span>
-      </div>
-      <div class="hint">Doble clic para editar · <kbd>Tab</kbd> siguiente celda · <kbd>Enter</kbd> confirmar</div>
-    </div>`;
-  return html;
-}
-
-function renderModulo(modKey){
-  const mod = MODULOS[modKey];
-  if(!mod) return;
-  
-  if(mod.subtabs){
-    Object.keys(mod.subtabs).forEach(stKey=>{
-      renderSubtab(modKey, stKey);
-    });
-    return;
-  }
-  
-  const cols = mod.columnas.filter(c=>!c.hidden);
-  const tbody = document.getElementById("body-"+modKey);
-  if(!tbody) return;
-  tbody.innerHTML = "";
-  const allData = mod.datos;
-  allData.forEach((row, ridx)=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = cols.map(c=>{
-      let val = row[c.key];
-      if(c.calculado) val = c.calculado(row, allData);
-      const display = c.tipo==="num" ? money(val) : (val ?? "");
-      if(c.tipo==="select"){
-        return `<td class="cell"><select onchange="actualizarCelda('${modKey}',${ridx},'${c.key}',this.value)">
-          ${c.opciones.map(o=>`<option value="${o}" ${o===val?"selected":""}>${o||"—"}</option>`).join("")}
-        </select></td>`;
+    function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
       }
-      if(c.calculado){
-        return `<td class="cell num readonly">${display}</td>`;
+    }
+
+    // ============================================================
+    // DATOS DEL CLIENTE (UNIFICADOS bajo obra360_*)
+    // ============================================================
+    function getClienteId() {
+      return localStorage.getItem('obra360_cliente_id') || null;
+    }
+
+    function getClienteNombre() {
+      return localStorage.getItem('obra360_cliente_nombre') || 'Cliente';
+    }
+
+    function getModeloGestion() {
+      return localStorage.getItem('obra360_modelo_gestion') || '';
+    }
+
+    // ============================================================
+    // PETICIONES A LA API
+    // ============================================================
+    async function apiFetch(endpoint, options = {}) {
+      const token = obtenerToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
       }
-      return `<td class="cell${c.tipo==='num'?' num':''}" contenteditable="true"
-                onblur="actualizarCelda('${modKey}',${ridx},'${c.key}',this.textContent)">${display}</td>`;
-    }).join("");
-    tbody.appendChild(tr);
-  });
-  const countEl = document.getElementById("count-"+modKey);
-  if(countEl) countEl.textContent = mod.datos.length + " registros";
-  const visibleEl = document.getElementById("visible-"+modKey);
-  if(visibleEl) visibleEl.textContent = mod.datos.length;
-}
 
-function renderSubtab(modKey, stKey){
-  const mod = MODULOS[modKey];
-  if(!mod || !mod.subtabs || !mod.subtabs[stKey]) return;
-  const st = mod.subtabs[stKey];
-  const cols = st.columnas.filter(c=>!c.hidden);
-  const tbody = document.getElementById(`body-${modKey}-${stKey}`);
-  if(!tbody) return;
-  tbody.innerHTML = "";
-  const allData = st.datos;
-  allData.forEach((row, ridx)=>{
-    const tr = document.createElement("tr");
-    tr.innerHTML = cols.map(c=>{
-      let val = row[c.key];
-      if(c.calculado) val = c.calculado(row, allData);
-      const display = c.tipo==="num" ? money(val) : (val ?? "");
-      if(c.tipo==="select"){
-        return `<td class="cell"><select onchange="actualizarCeldaSubtab('${modKey}','${stKey}',${ridx},'${c.key}',this.value)">
-          ${c.opciones.map(o=>`<option value="${o}" ${o===val?"selected":""}>${o||"—"}</option>`).join("")}
-        </select></td>`;
-      }
-      if(c.calculado){
-        return `<td class="cell num readonly">${display}</td>`;
-      }
-      return `<td class="cell${c.tipo==='num'?' num':''}" contenteditable="true"
-                onblur="actualizarCeldaSubtab('${modKey}','${stKey}',${ridx},'${c.key}',this.textContent)">${display}</td>`;
-    }).join("");
-    tbody.appendChild(tr);
-  });
-  const countEl = document.getElementById(`count-${modKey}`);
-  if(countEl){
-    const total = Object.values(mod.subtabs).reduce((sum, st)=>sum + st.datos.length, 0);
-    countEl.textContent = total + " registros";
-  }
-  const visibleEl = document.getElementById(`visible-${modKey}-${stKey}`);
-  if(visibleEl) visibleEl.textContent = st.datos.length;
-}
-
-function actualizarCelda(modKey, ridx, key, val){
-  MODULOS[modKey].datos[ridx][key] = val;
-  renderModulo(modKey);
-}
-
-function actualizarCeldaSubtab(modKey, stKey, ridx, key, val){
-  MODULOS[modKey].subtabs[stKey].datos[ridx][key] = val;
-  renderSubtab(modKey, stKey);
-}
-
-function agregarFila(modKey){
-  const cols = MODULOS[modKey].columnas;
-  const nueva = {};
-  cols.forEach(c=>{ if(!c.calculado) nueva[c.key] = ""; });
-  MODULOS[modKey].datos.push(nueva);
-  renderModulo(modKey);
-}
-
-function agregarFilaSubtab(modKey, stKey){
-  const cols = MODULOS[modKey].subtabs[stKey].columnas;
-  const nueva = {};
-  cols.forEach(c=>{ if(!c.calculado) nueva[c.key] = ""; });
-  MODULOS[modKey].subtabs[stKey].datos.push(nueva);
-  renderSubtab(modKey, stKey);
-}
-
-function eliminarUltimaFila(modKey){
-  MODULOS[modKey].datos.pop();
-  renderModulo(modKey);
-}
-
-function eliminarUltimaFilaSubtab(modKey, stKey){
-  MODULOS[modKey].subtabs[stKey].datos.pop();
-  renderSubtab(modKey, stKey);
-}
-
-function filtrarTabla(tableId, texto){
-  const rows = document.querySelectorAll("#"+tableId+" tbody tr");
-  const q = texto.toLowerCase();
-  let visible = 0;
-  rows.forEach(r=>{
-    const match = r.textContent.toLowerCase().includes(q);
-    r.style.display = match ? "" : "none";
-    if(match) visible++;
-  });
-  const visibleEl = document.getElementById("visible-"+tableId.replace("grid-",""));
-  if(visibleEl) visibleEl.textContent = visible;
-}
-
-function filtrarTablaSubtab(modKey, stKey, texto){
-  const rows = document.querySelectorAll(`#grid-${modKey}-${stKey} tbody tr`);
-  const q = texto.toLowerCase();
-  let visible = 0;
-  rows.forEach(r=>{
-    const match = r.textContent.toLowerCase().includes(q);
-    r.style.display = match ? "" : "none";
-    if(match) visible++;
-  });
-  const visibleEl = document.getElementById(`visible-${modKey}-${stKey}`);
-  if(visibleEl) visibleEl.textContent = visible;
-}
-
-function cambiarSubtab(modKey, stKey){
-  const mod = MODULOS[modKey];
-  if(!mod || !mod.subtabs) return;
-  Object.keys(mod.subtabs).forEach(key=>{
-    const el = document.getElementById(`sub-${modKey}-${key}`);
-    if(el) el.classList.toggle("active", key===stKey);
-    const tab = document.querySelector(`#mod-${modKey} .subtab[data-sub="${key}"]`);
-    if(tab) tab.classList.toggle("active", key===stKey);
-  });
-  subtabActivo[modKey] = stKey;
-}
-
-/* =====================================================================
-   CONSTRUCCIÓN INICIAL DE TODOS LOS MÓDULOS
-   ===================================================================== */
-const cont = document.getElementById("modulos-container");
-Object.keys(MODULOS).forEach(modKey=>{
-  cont.insertAdjacentHTML("beforeend", construirModuloHTML(modKey));
-  if(MODULOS[modKey].subtabs){
-    Object.keys(MODULOS[modKey].subtabs).forEach(stKey=>{
-      renderSubtab(modKey, stKey);
-    });
-  } else {
-    renderModulo(modKey);
-  }
-});
-
-/* =====================================================================
-   NAVEGACIÓN
-   ===================================================================== */
-/* =====================================================================
-   CARGA REAL DE DATOS GUARDADOS (Supabase Storage, vía /reporte)
-   ---------------------------------------------------------------------
-   Cada módulo arranca vacío. La primera vez que el usuario entra a un
-   módulo en esta sesión, se pide al backend el último CSV real guardado
-   para ese módulo + proyecto. Si nunca se ha guardado nada, sigue vacío
-   (no se inventan datos).
-   NOTA: para módulos con subtabs (costo_plan), tu backend valida el
-   nombre de "modulo" contra una lista fija (MODULOS_VALIDOS) que no
-   distingue subtabs — por ahora solo se carga la primera subtab
-   automáticamente; la segunda se puede cargar manualmente si hace falta.
-   ===================================================================== */
-const moduloDataCargada = new Set();
-
-async function cargarModuloDesdeServidor(tab){
-  const mod = MODULOS[tab];
-  if(!mod || moduloDataCargada.has(tab)) return;
-  moduloDataCargada.add(tab);
-
-  const proyecto = localStorage.getItem("obra360_proyecto_nombre");
-  const token = localStorage.getItem("obra360_token");
-  if(!proyecto) return;
-
-  let cols, targetDatos, stKeyParaRender;
-  if(mod.subtabs){
-    stKeyParaRender = Object.keys(mod.subtabs)[0];
-    cols = mod.subtabs[stKeyParaRender].columnas;
-    targetDatos = mod.subtabs[stKeyParaRender].datos;
-  } else {
-    cols = mod.columnas;
-    targetDatos = mod.datos;
-  }
-
-  try{
-    const modParam = encodeURIComponent(mod.endpoint || tab);
-    const proyParam = encodeURIComponent(proyecto);
-    const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto=${proyParam}`, {
-      headers: token ? { "Authorization": `Bearer ${token}` } : {}
-    });
-    if(!resp.ok) return; // 404: aún no hay nada guardado para este módulo/proyecto
-    const data = await resp.json();
-    if(!data || !Array.isArray(data.data)) return;
-
-    const nuevasFilas = data.data.map(record => {
-      const row = {};
-      cols.forEach(c=>{
-        if(c.calculado) return;
-        const val = record[c.label];
-        row[c.key] = (c.tipo === "num")
-          ? (val === "" || val === undefined || val === null ? "" : Number(val))
-          : val;
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers
       });
-      return row;
-    });
 
-    targetDatos.length = 0;
-    targetDatos.push(...nuevasFilas);
+      if (response.status === 401 || response.status === 403) {
+        eliminarToken();
+        window.location.href = 'index.html';
+        throw new Error('Sesión expirada');
+      }
 
-    if(mod.subtabs){
-      renderSubtab(tab, stKeyParaRender);
-    } else {
-      renderModulo(tab);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error ${response.status}`);
+      }
+
+      return response.json();
     }
-  }catch(err){
-    console.error("No se pudo cargar datos guardados para " + tab + ":", err);
-  }
-}
 
-function navegarA(tab){
-  document.querySelectorAll(".module").forEach(m=>m.classList.remove("active"));
-  document.getElementById("mod-inicio").classList.add("hidden");
+    // ============================================================
+    // OBTENER PROYECTOS
+    // ============================================================
+    async function obtenerProyectos(clienteId) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/proyectos`);
+      } catch (error) {
+        console.error('Error obteniendo proyectos:', error);
+        return [];
+      }
+    }
 
-  if(tab === "inicio"){
-    document.getElementById("mod-inicio").classList.remove("hidden");
-    document.querySelectorAll(".menu-item[data-tab]").forEach(i=>i.classList.remove("active"));
-    document.querySelector('.menu-item[data-tab="inicio"]')?.classList.add("active");
-    moduloActivo = "inicio";
-    return;
-  }
+    // ============================================================
+    // OBTENER EQUIPO
+    // ============================================================
+    async function obtenerEquipo(clienteId, proyectoId) {
+      try {
+        const equipo = await apiFetch(`/clientes/${clienteId}/equipo`);
+        return equipo.filter(m => m.proyecto_id === proyectoId);
+      } catch (error) {
+        console.error('Error obteniendo equipo:', error);
+        return [];
+      }
+    }
 
-  const modEl = document.getElementById("mod-"+tab);
-  if(modEl) modEl.classList.add("active");
+    // ============================================================
+    // CREAR MIEMBRO DE EQUIPO
+    // ============================================================
+    async function crearEquipo(clienteId, proyectoId, rol, usuario, password) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/equipo`, {
+          method: 'POST',
+          body: JSON.stringify({
+            proyecto_id: proyectoId,
+            rol: rol,
+            usuario: usuario,
+            password: password
+          })
+        });
+      } catch (error) {
+        console.error('Error creando equipo:', error);
+        throw error;
+      }
+    }
 
-  document.querySelectorAll(".menu-item[data-tab]").forEach(i=>i.classList.remove("active"));
-  document.querySelector(`.menu-item[data-tab="${tab}"]`)?.classList.add("active");
+    // ============================================================
+    // RENDERIZAR PROYECTOS
+    // ============================================================
+    async function renderizarProyectos() {
+      const container = document.getElementById('proyectos-container');
+      const clienteId = getClienteId();
 
-  moduloActivo = tab;
-  cargarModuloDesdeServidor(tab);
-}
+      if (!clienteId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>No se encontró información del cliente</h5>
+            <p>Inicia sesión nuevamente.</p>
+          </div>
+        `;
+        return;
+      }
 
-document.querySelectorAll(".grupo-toggle").forEach(t=>{
-  t.addEventListener("click", ()=>{
-    const body = document.getElementById("grupo-"+t.dataset.grupo);
-    if(body) body.classList.toggle("open");
-  });
-});
+      try {
+        const proyectos = await obtenerProyectos(clienteId);
 
-document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
-  item.addEventListener("click", ()=>{
-    navegarA(item.dataset.tab);
-  });
-});
+        if (!proyectos || proyectos.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="bi bi-folder-x"></i>
+              <h5>No tienes proyectos asignados</h5>
+              <p>Contacta al administrador para que te asigne proyectos.</p>
+            </div>
+          `;
+          return;
+        }
 
-document.getElementById("mod-inicio").classList.remove("hidden");
+        let html = '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">';
+        proyectos.forEach(p => {
+          const seleccionado = (proyectoSeleccionadoId === p.id) ? 'badge-proyecto-seleccionado' : 'badge-proyecto';
+          const icono = (proyectoSeleccionadoId === p.id) ? 'check-circle-fill' : 'folder2-open';
+          html += `<span class="${seleccionado}" onclick="seleccionarProyecto(${p.id}, '${p.nombre_proyecto}')">
+            <i class="bi bi-${icono} me-1"></i>${p.nombre_proyecto}
+          </span>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
 
-/* =====================================================================
-   IMPORTAR (Excel/CSV) — con soporte para subtabs
-   ===================================================================== */
-document.getElementById("btn-importar").addEventListener("click", ()=>{
-  document.getElementById("file-importar").click();
-});
+        if (proyectos.length > 0 && proyectoSeleccionadoId === null) {
+          seleccionarProyecto(proyectos[0].id, proyectos[0].nombre_proyecto);
+        }
 
-let filasArchivo = [], encabezadosArchivo = [];
+      } catch (error) {
+        container.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar proyectos</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+            <button class="btn btn-primary mt-3" onclick="renderizarProyectos()">Reintentar</button>
+          </div>
+        `;
+        mostrarToast('Error al cargar proyectos: ' + error.message, 'error');
+      }
+    }
 
-document.getElementById("file-importar").addEventListener("change", (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (evt)=>{
-    const wb = XLSX.read(evt.target.result, {type:"binary"});
-    const hoja = wb.Sheets[wb.SheetNames[0]];
-    const filas = XLSX.utils.sheet_to_json(hoja, {header:1, defval:""});
-    if(filas.length<1){ alert("El archivo no tiene datos."); return; }
-    encabezadosArchivo = filas[0];
-    filasArchivo = filas.slice(1);
-    abrirModalMapeo();
-  };
-  reader.readAsBinaryString(file);
-  e.target.value = "";
-});
+    // ============================================================
+    // SELECCIONAR PROYECTO
+    // ============================================================
+    function seleccionarProyecto(id, nombre) {
+      proyectoSeleccionadoId = id;
+      proyectoSeleccionadoNombre = nombre;
 
-function sugerirColumna(encabezado, cols){
-  const norm=(s)=>s.toString().toLowerCase().trim();
-  const h = norm(encabezado);
-  let m = cols.find(c=>norm(c.label)===h || norm(c.key)===h);
-  if(m) return m.key;
-  m = cols.find(c=> h.includes(norm(c.label).slice(0,4)));
-  return m ? m.key : "(Ignorar columna)";
-}
+      document.getElementById('proyecto-seleccionado-info').style.display = 'block';
+      document.getElementById('proyecto-seleccionado-nombre').textContent = nombre;
+      document.getElementById('equipo-proyecto-label').textContent = `(${nombre})`;
 
-function abrirModalMapeo(){
-  const mod = MODULOS[moduloActivo];
-  if(!mod){ cerrarModalMapeo(); return; }
-  
-  let cols = [];
-  if(mod.subtabs){
-    const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
-    cols = mod.subtabs[stKey].columnas;
-  } else {
-    cols = mod.columnas;
-  }
-  
-  const cont = document.getElementById("modal-mapeo-body");
-  cont.innerHTML = "";
-  encabezadosArchivo.forEach((h, idx)=>{
-    const sugerida = sugerirColumna(h, cols);
-    cont.insertAdjacentHTML("beforeend", `
-      <div class="map-row">
-        <div class="col-origen">${h||"(columna "+(idx+1)+")"}<small>Columna del archivo</small></div>
-        <span>→</span>
-        <select data-idx="${idx}">
-          ${cols.map(c=>`<option value="${c.key}" ${c.key===sugerida?"selected":""}>${c.label}</option>`).join("")}
-          <option value="(Ignorar columna)">(Ignorar columna)</option>
-        </select>
-      </div>`);
-  });
-  document.getElementById("modal-mapeo").classList.add("open");
-}
-function cerrarModalMapeo(){ document.getElementById("modal-mapeo").classList.remove("open"); }
+      // UNIFICADO: usamos obra360_* también para el proyecto seleccionado
+      localStorage.setItem('obra360_proyecto_id', id);
+      localStorage.setItem('obra360_proyecto_nombre', nombre);
 
-function confirmarMapeo(){
-  const mod = MODULOS[moduloActivo];
-  if(!mod){ cerrarModalMapeo(); return; }
-  
-  let target;
-  if(mod.subtabs){
-    const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
-    target = mod.subtabs[stKey];
-  } else {
-    target = mod;
-  }
-  
-  const selects = document.querySelectorAll("#modal-mapeo-body select");
-  const mapeo = {};
-  selects.forEach(s=>{ mapeo[s.dataset.idx] = s.value; });
-  const nuevasFilas = filasArchivo.filter(f=>f.some(v=>v!=="")).map(fila=>{
-    const obj = {};
-    Object.keys(mapeo).forEach(idx=>{
-      if(mapeo[idx]!=="(Ignorar columna)") obj[mapeo[idx]] = fila[idx];
-    });
-    return obj;
-  });
-  target.datos.push(...nuevasFilas);
-  
-  if(mod.subtabs){
-    const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
-    renderSubtab(moduloActivo, stKey);
-  } else {
-    renderModulo(moduloActivo);
-  }
-  cerrarModalMapeo();
-  alert(nuevasFilas.length+" filas importadas a "+mod.label+".");
-}
+      renderizarEquipo();
+      renderizarProyectos();
+    }
 
-/* =====================================================================
-   GUARDAR — con soporte para subtabs
-   ===================================================================== */
-function datosAcsv(modKey, stKey){
-  const mod = MODULOS[modKey];
-  if(!mod) return "";
-  
-  let cols, datos;
-  if(mod.subtabs){
-    const key = stKey || subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
-    const st = mod.subtabs[key];
-    cols = st.columnas;
-    datos = st.datos;
-  } else {
-    cols = mod.columnas;
-    datos = mod.datos;
-  }
-  
-  const encabezado = cols.map(c=>c.label).join(",");
-  const filas = datos.map(row=>{
-    return cols.map(c=>{
-      let v = c.calculado ? c.calculado(row, datos) : row[c.key];
-      v = (v===undefined||v===null) ? "" : v;
-      v = String(v).replace(/"/g,'""');
-      return /[,"\n]/.test(v) ? `"${v}"` : v;
-    }).join(",");
-  });
-  return [encabezado, ...filas].join("\n");
-}
+    // ============================================================
+    // RENDERIZAR EQUIPO
+    // ============================================================
+    async function renderizarEquipo() {
+      const container = document.getElementById('equipo-body');
+      const clienteId = getClienteId();
 
-async function guardarModuloActivo(){
-  const modKey = moduloActivo;
-  if(modKey === "inicio"){ alert("Selecciona un módulo de captura para guardar."); return; }
-  const mod = MODULOS[modKey];
-  if(!mod) return;
-  
-  let stKey = null;
-  if(mod.subtabs){
-    stKey = subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
-  }
-  
-  const csv = datosAcsv(modKey, stKey);
-  // UNIFICADO: usamos obra360_proyecto_nombre en lugar de dato-proyecto
-  const proyecto = localStorage.getItem("obra360_proyecto_nombre") || document.getElementById("dato-proyecto").value || "sin-proyecto";
-  const blob = new Blob([csv], {type:"text/csv"});
-  const nombreArchivo = (mod.endpoint||modKey) + ".csv";
+      if (!proyectoSeleccionadoId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-folder-x"></i>
+            <h5>Selecciona un proyecto</h5>
+            <p>Haz clic en uno de tus proyectos para habilitar su equipo de trabajo.</p>
+          </div>
+        `;
+        return;
+      }
 
-  const formData = new FormData();
-  formData.append("file", blob, nombreArchivo);
-  formData.append("modulo", mod.endpoint||modKey);
-  formData.append("proyecto", proyecto);
+      try {
+        const equipo = await obtenerEquipo(clienteId, proyectoSeleccionadoId);
+        const rolesExistentes = {};
+        equipo.forEach(m => { rolesExistentes[m.rol] = m; });
 
-  const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
-  const uploadUrl = `${API_URL}/subir`;
+        const roles = [
+          { id: 'gerente', label: 'Gerente de Construcción' },
+          { id: 'super', label: 'Superintendente de Construcción' },
+          { id: 'civil', label: 'Residente de Obra Civil' },
+          { id: 'instalaciones', label: 'Residente de Instalaciones' },
+          { id: 'admin', label: 'Residente de Administración' }
+        ];
 
-  try{
-    const res = await fetch(uploadUrl, {
-      method:"POST", body: formData
-    });
-    const data = await res.json();
-    if(data.error){ alert("Error al guardar: "+data.error); return; }
-    alert("✅ Guardado correctamente: "+nombreArchivo);
-  }catch(err){
-    alert("❌ Error de conexión al guardar. Revisa tu conexión o intenta de nuevo.");
-  }
-}
+        let html = `
+          <p class="text-muted" style="font-size:0.9rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Crea usuarios y contraseñas para cada rol en el proyecto <strong>${proyectoSeleccionadoNombre}</strong>.
+          </p>
+        `;
 
-function exportarCSV(){
-  const modKey = moduloActivo;
-  if(modKey === "inicio"){ alert("Selecciona un módulo de captura para exportar."); return; }
-  
-  let stKey = null;
-  const mod = MODULOS[modKey];
-  if(mod && mod.subtabs){
-    stKey = subtabActivo[modKey] || Object.keys(mod.subtabs)[0];
-  }
-  
-  const csv = datosAcsv(modKey, stKey);
-  const blob = new Blob([csv], {type:"text/csv"});
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = (MODULOS[modKey].endpoint||modKey)+".csv";
-  a.click();
-}
+        roles.forEach(rol => {
+          const existe = rolesExistentes[rol.label];
+          const usuarioValue = existe ? existe.usuario : '';
+          const statusDisplay = existe ? 'inline' : 'none';
 
-/* =====================================================================
-   NAVEGACIÓN CON TECLADO EN CELDAS
-   ===================================================================== */
-document.addEventListener("keydown",(e)=>{
-  const active = document.activeElement;
-  if(!active || !active.classList || !active.classList.contains("cell")) return;
-  const row = active.parentElement;
-  const cellIndex = Array.from(row.children).indexOf(active);
-  const editables = Array.from(row.children).filter(td=>td.isContentEditable);
-  if(e.key==="Tab"){
-    e.preventDefault();
-    const idx = editables.indexOf(active);
-    const next = e.shiftKey ? editables[idx-1] : editables[idx+1];
-    if(next) next.focus();
-  }
-  if(e.key==="Enter"){
-    e.preventDefault();
-    const nextRow = row.nextElementSibling;
-    if(nextRow){ const t = nextRow.children[cellIndex]; if(t && t.isContentEditable) t.focus(); }
-    active.blur();
-  }
-  if(e.key==="Escape"){ active.blur(); }
-});
-</script>
+          html += `
+            <div class="equipo-row">
+              <span class="rol"><i class="bi bi-person-badge me-1"></i>${rol.label}</span>
+              <input type="text" id="usr-${rol.id}" placeholder="Usuario" class="form-control form-control-sm" value="${usuarioValue}" ${existe ? 'disabled' : ''}>
+              <input type="text" id="pass-${rol.id}" placeholder="Contraseña" class="form-control form-control-sm" ${existe ? 'disabled' : ''}>
+              ${existe 
+                ? `<button class="btn btn-sm btn-danger btn-sm-custom" onclick="eliminarMiembroEquipo(${existe.id})">
+                    <i class="bi bi-trash3"></i> Eliminar
+                  </button>`
+                : `<button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarEquipo('${rol.id}', '${rol.label}')">
+                    <i class="bi bi-check2"></i> Guardar
+                  </button>`
+              }
+              <span id="status-${rol.id}" class="text-success" style="font-size:0.8rem;display:${statusDisplay};">✅</span>
+            </div>
+          `;
+        });
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        container.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar equipo</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+          </div>
+        `;
+        mostrarToast('Error al cargar equipo: ' + error.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // GUARDAR EQUIPO
+    // ============================================================
+    async function guardarEquipo(rolId, rolLabel) {
+      const usuario = document.getElementById(`usr-${rolId}`).value.trim();
+      const password = document.getElementById(`pass-${rolId}`).value.trim();
+      const clienteId = getClienteId();
+
+      if (!usuario || !password) {
+        mostrarToast('⚠️ Completa usuario y contraseña para ' + rolLabel, 'error');
+        return;
+      }
+
+      if (!clienteId || !proyectoSeleccionadoId) {
+        mostrarToast('⚠️ No se encontró cliente o proyecto. Reintenta.', 'error');
+        return;
+      }
+
+      try {
+        await crearEquipo(clienteId, proyectoSeleccionadoId, rolLabel, usuario, password);
+        mostrarToast(`✅ ${rolLabel} habilitado correctamente para ${proyectoSeleccionadoNombre}`);
+        renderizarEquipo();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // ELIMINAR MIEMBRO DE EQUIPO
+    // ============================================================
+    async function eliminarMiembroEquipo(equipoId) {
+      if (!confirm('¿Eliminar este miembro del equipo?')) return;
+      const clienteId = getClienteId();
+
+      try {
+        await apiFetch(`/clientes/${clienteId}/equipo/${equipoId}`, {
+          method: 'DELETE'
+        });
+        mostrarToast('✅ Miembro eliminado correctamente');
+        renderizarEquipo();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    // ============================================================
+    // RENDERIZAR ESTADO
+    // ============================================================
+    async function renderizarEstado() {
+      const banner = document.getElementById('estado-banner');
+      const btnCaptura = document.getElementById('btn-captura');
+      const clienteId = getClienteId();
+
+      if (!clienteId) {
+        banner.className = 'estado-banner estado-inactivo';
+        banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>No se pudo verificar estado</span>`;
+        btnCaptura.disabled = true;
+        btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
+        return;
+      }
+
+      try {
+        const response = await apiFetch('/verificar_token');
+        if (response && response.cliente) {
+          const activo = response.cliente.activo;
+          if (activo) {
+            banner.className = 'estado-banner estado-activo';
+            banner.innerHTML = `<i class="bi bi-check-circle-fill"></i><span>Cuenta Activa</span>`;
+            btnCaptura.disabled = false;
+            btnCaptura.innerHTML = `<i class="bi bi-table me-2"></i>Acceder a Captura de Obra`;
+          } else {
+            banner.className = 'estado-banner estado-inactivo';
+            banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Cuenta Inactiva</span>`;
+            btnCaptura.disabled = true;
+            btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado (cuenta inactiva)`;
+          }
+        }
+      } catch (error) {
+        console.error('Error verificando estado:', error);
+        banner.className = 'estado-banner estado-inactivo';
+        banner.innerHTML = `<i class="bi bi-x-circle-fill"></i><span>Error de verificación</span>`;
+        btnCaptura.disabled = true;
+        btnCaptura.innerHTML = `<i class="bi bi-lock me-2"></i>Acceso bloqueado`;
+      }
+    }
+
+    // ============================================================
+    // IR A CAPTURA (UNIFICADO - usa solo obra360_*)
+    // ============================================================
+    function irACaptura() {
+      const token = obtenerToken();
+      if (!token) {
+        mostrarToast('⛔ Sesión expirada. Inicia sesión nuevamente.', 'error');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      if (!proyectoSeleccionadoId) {
+        mostrarToast('⚠️ Selecciona un proyecto primero.', 'error');
+        return;
+      }
+
+      const clienteId = getClienteId();
+      const modeloGestion = getModeloGestion();
+
+      // UNIFICADO: solo usamos obra360_*
+      localStorage.setItem('obra360_proyecto_id', proyectoSeleccionadoId);
+      localStorage.setItem('obra360_proyecto_nombre', proyectoSeleccionadoNombre);
+      localStorage.setItem('obra360_cliente_id', clienteId);
+      localStorage.setItem('obra360_token', token);
+
+      if (modeloGestion) {
+        localStorage.setItem('obra360_modelo_gestion', modeloGestion);
+      }
+
+      window.location.href = 'captura.html';
+    }
+
+    // ============================================================
+    // INICIALIZAR
+    // ============================================================
+    (async function init() {
+      // UNIFICADO: usamos obra360_token para verificar sesión
+      const token = localStorage.getItem('obra360_token');
+      const nombre = getClienteNombre();
+      const modeloGestion = getModeloGestion();
+
+      if (!token) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      document.getElementById('cliente-nombre-header').textContent = nombre;
+      document.getElementById('user-info').textContent = '👤 ' + nombre;
+
+      const badge = document.getElementById('modelo-gestion-badge');
+      if (modeloGestion) {
+        badge.textContent = modeloGestion;
+        badge.style.display = 'inline';
+      } else {
+        badge.style.display = 'none';
+      }
+
+      try {
+        await renderizarEstado();
+        await renderizarProyectos();
+      } catch (error) {
+        console.error('Error al inicializar:', error);
+        document.getElementById('proyectos-container').innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar datos</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+            <button class="btn btn-primary mt-3" onclick="location.reload()">Reintentar</button>
+          </div>
+        `;
+      }
+    })();
+  </script>
+
 </body>
 </html>
