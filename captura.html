@@ -414,6 +414,11 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
     </div>
 
+    <div class="area" id="area-documentos">Documentos</div>
+    <div class="menu-item" data-tab="planos">
+      <span class="ico"><i class="bi bi-file-earmark-pdf"></i></span> Planos del Proyecto
+    </div>
+
     <div class="area">Finanzas</div>
     <div class="area">Legal</div>
     <div class="area">Recursos Humanos</div>
@@ -452,13 +457,6 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
           <div class="campo-row"><span class="label">Disponible:</span><input class="valor" id="dato-disponible" value="—" onchange="guardarDatosInicio()"></div>
           <button class="btn-guardar-inicio" onclick="guardarDatosInicio()">💾 Guardar Datos del Proyecto</button>
         </div>
-        <div class="card-datos" id="card-equipo-asignado">
-          <h5>👷 Equipo Asignado a este Proyecto</h5>
-          <div id="equipo-asignado-lista" style="font-size:12.5px;color:var(--texto-secundario);">
-            Cargando equipo…
-          </div>
-          <div class="hint" style="margin-top:8px;">Esta lista viene directo de tu Portal (Gerente/Super/Residentes ya dados de alta). No se edita aquí — cualquier cambio se hace desde el Portal correspondiente.</div>
-        </div>
       </div>
 
       <h5 style="margin:20px 0 10px;font-size:14px;">📌 Módulos del Sistema</h5>
@@ -469,6 +467,60 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
     <!-- CONTENEDOR DE MÓDULOS DINÁMICOS -->
     <div id="modulos-container"></div>
+
+    <!-- ================= MÓDULO: PLANOS DEL PROYECTO ================= -->
+    <div class="module" id="mod-planos" data-mod="planos">
+      <div class="module-title-row">
+        <div class="module-title">📐 Planos del Proyecto</div>
+      </div>
+      <div class="info-banner" id="planos-info-banner">
+        Solo el despacho/bufete asignado puede subir planos. Cualquiera puede ver y descargar.
+      </div>
+
+      <!-- Zona de subida: SOLO visible si hay sesión de despacho -->
+      <div id="planos-zona-subida" style="display:none;margin-bottom:16px;padding:14px;background:#fff;border:1px solid var(--gris-borde);border-radius:6px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Importar planos (PDF)</div>
+        <input type="file" id="planos-input-archivos" accept=".pdf" multiple style="font-size:12.5px;">
+        <div class="hint" style="margin-top:6px;">Puedes seleccionar varios PDF a la vez. Se detectará automáticamente la clave de cada uno (ej. "AR-01 A"), y podrás corregirla antes de confirmar.</div>
+      </div>
+
+      <div class="subtabs">
+        <div class="subtab active" data-sub="actual" onclick="cambiarSubtabPlanos('actual')">Actual</div>
+        <div class="subtab" data-sub="historico" onclick="cambiarSubtabPlanos('historico')">Histórico</div>
+      </div>
+
+      <div id="planos-tab-actual" class="subtab-content active">
+        <div class="grid-wrap">
+          <table class="grid">
+            <thead><tr><th>Clave</th><th>Archivo</th><th>Despacho</th><th>Fecha</th><th>Acción</th></tr></thead>
+            <tbody id="planos-body-actual"><tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="planos-tab-historico" class="subtab-content" style="display:none;">
+        <div class="grid-wrap">
+          <table class="grid">
+            <thead><tr><th>Clave</th><th>Archivo</th><th>Despacho</th><th>Fecha</th><th>Acción</th></tr></thead>
+            <tbody id="planos-body-historico"><tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: CONFIRMAR LOTE DE PLANOS ANTES DE SUBIR ================= -->
+<div class="modal-overlay" id="modal-planos-confirmar">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>Confirma la clave de cada plano</h3>
+      <p>Se detectó automáticamente la clave de cada archivo. Corrígela si hace falta antes de subir.</p>
+    </div>
+    <div class="modal-body" id="modal-planos-confirmar-body"></div>
+    <div class="modal-foot">
+      <button class="btn-cancelar" onclick="cerrarModalPlanos()">Cancelar</button>
+      <button class="btn-confirmar" onclick="confirmarSubidaPlanos()">Confirmar y Subir</button>
+    </div>
   </div>
 </div>
 
@@ -695,51 +747,6 @@ async function guardarDatosInicio(){
     alert("✅ Datos del proyecto guardados correctamente (visibles para admin y cliente).");
   }catch(err){
     alert("❌ Error de conexión al guardar los Datos Generales.");
-  }
-}
-
-/* =====================================================================
-   EQUIPO ASIGNADO — REAL, en vivo desde /clientes/{cliente_id}/equipo
-   Nadie lo escribe a mano aquí: si el cliente da de alta o quita gente
-   en su Portal, se refleja automáticamente al volver a entrar.
-   ===================================================================== */
-async function cargarEquipoAsignado(){
-  const cont = document.getElementById("equipo-asignado-lista");
-  if(!cont) return;
-
-  const clienteId = localStorage.getItem("obra360_cliente_id");
-  const proyectoId = localStorage.getItem("obra360_proyecto_id");
-  const token = localStorage.getItem("obra360_token");
-
-  if(!clienteId || !proyectoId || !token){
-    cont.textContent = "No se pudo determinar el equipo de este proyecto.";
-    return;
-  }
-
-  try{
-    const resp = await fetch(`${DATOS_INICIO_API_URL}/clientes/${clienteId}/equipo`, {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
-    if(!resp.ok){
-      cont.textContent = "No se pudo cargar el equipo asignado.";
-      return;
-    }
-    const todos = await resp.json();
-    const delProyecto = todos.filter(m => String(m.proyecto_id) === String(proyectoId));
-
-    if(delProyecto.length === 0){
-      cont.textContent = "Aún no hay colaboradores asignados a este proyecto.";
-      return;
-    }
-
-    cont.innerHTML = delProyecto.map(m => `
-      <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #eef0f2;">
-        <span style="font-weight:600;color:var(--texto-oscuro);">${m.rol}</span>
-        <span>${m.usuario}</span>
-      </div>
-    `).join("");
-  }catch(err){
-    cont.textContent = "No se pudo conectar con el servidor para cargar el equipo.";
   }
 }
 
@@ -998,6 +1005,36 @@ function mostrarErrorGateFatal(msg){
  * habilitado únicamente si el servidor lo valida.
  */
 async function validarSesionYProyecto(){
+  // ============================================================
+  // DESPACHO / BUFETE: flujo aparte, totalmente distinto.
+  // No usa /verificar_token (esa ruta no conoce despachos). No pasa
+  // por el Gate. Y no ve nada de la app salvo "Planos del Proyecto"
+  // — nada de módulos financieros, nada de Datos Generales.
+  // ============================================================
+  const tokenDespacho = localStorage.getItem("obra360_despacho_token");
+  if(tokenDespacho){
+    const proyectoId = localStorage.getItem("obra360_proyecto_id");
+    const proyectoNombre = localStorage.getItem("obra360_proyecto_nombre");
+    if(!proyectoId){
+      mostrarErrorGateFatal("Tu despacho no tiene un proyecto asignado.");
+      return;
+    }
+    document.getElementById("validando-sesion").style.display = "none";
+    document.getElementById("tag-proyecto").textContent = "Proyecto: " + (proyectoNombre || "—");
+    document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + (proyectoNombre || "—");
+
+    // Restringe el sidebar: un despacho solo ve "Planos del Proyecto"
+    document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
+      if(item.dataset.tab !== "planos") item.style.display = "none";
+    });
+    document.querySelectorAll(".grupo-toggle, .area").forEach(el=>{
+      if(el.id !== "area-documentos") el.style.display = "none";
+    });
+
+    navegarA("planos");
+    return;
+  }
+
   const token = localStorage.getItem("obra360_token");
   if(!token){
     mostrarErrorGateFatal("No se encontró una sesión activa.");
@@ -1097,7 +1134,7 @@ async function validarSesionYProyecto(){
     document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + encontrado.nombre_proyecto;
     const datoProyecto = document.getElementById("dato-proyecto");
     if(datoProyecto) datoProyecto.value = encontrado.nombre_proyecto;
-    cargarDatosInicio(); cargarEquipoAsignado(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora y equipo
+    cargarDatosInicio(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora
   }catch(err){
     mostrarErrorGateFatal("No se pudo conectar con el servidor para validar el proyecto.");
   }
@@ -1113,7 +1150,7 @@ function entrarApp(){
   document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
   const datoProyecto = document.getElementById("dato-proyecto");
   if(datoProyecto) datoProyecto.value = proyecto;
-  cargarDatosInicio(); cargarEquipoAsignado(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora y equipo
+  cargarDatosInicio(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora
 }
 
 (function(){
@@ -1474,6 +1511,12 @@ function navegarA(tab){
   document.querySelector(`.menu-item[data-tab="${tab}"]`)?.classList.add("active");
 
   moduloActivo = tab;
+
+  if(tab === "planos"){
+    cargarPlanos();
+    return;
+  }
+
   cargarModuloDesdeServidor(tab);
 }
 
@@ -1699,6 +1742,184 @@ document.addEventListener("keydown",(e)=>{
   }
   if(e.key==="Escape"){ active.blur(); }
 });
+
+/* =====================================================================
+   MÓDULO: PLANOS DEL PROYECTO
+   ---------------------------------------------------------------------
+   - Ver/descargar: cualquiera con acceso al proyecto (admin, cliente,
+     equipo, despacho asignado).
+   - Subir: EXCLUSIVAMENTE el despacho asignado a este proyecto.
+   - Nunca se borra nada: si el despacho se equivoca, vuelve a subir la
+     versión correcta; el error se queda en Histórico para siempre.
+   ===================================================================== */
+let planosCache = [];
+let planosLote = []; // [{file, clave_base, sufijo}] pendiente de confirmar
+
+function getTokenParaPlanos(){
+  // Si hay sesión de despacho, se usa esa (permite subir).
+  // Si no, se usa la sesión normal (admin/cliente/equipo, solo ver).
+  return localStorage.getItem("obra360_despacho_token") || localStorage.getItem("obra360_token");
+}
+
+async function cargarPlanos(){
+  const proyectoId = localStorage.getItem("obra360_proyecto_id");
+  const token = getTokenParaPlanos();
+  const esDespacho = !!localStorage.getItem("obra360_despacho_token");
+
+  document.getElementById("planos-zona-subida").style.display = esDespacho ? "block" : "none";
+
+  const tbodyActual = document.getElementById("planos-body-actual");
+  const tbodyHistorico = document.getElementById("planos-body-historico");
+  tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr>`;
+  tbodyHistorico.innerHTML = `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr>`;
+
+  if(!proyectoId || !token){
+    tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:#a72e21;">No se encontró proyecto o sesión activa.</td></tr>`;
+    tbodyHistorico.innerHTML = "";
+    return;
+  }
+
+  try{
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/planos`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if(!resp.ok){
+      tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:#a72e21;">No se pudo cargar los planos de este proyecto.</td></tr>`;
+      tbodyHistorico.innerHTML = "";
+      return;
+    }
+    planosCache = await resp.json();
+    renderizarPlanos();
+  }catch(err){
+    tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:#a72e21;">Error de conexión al cargar planos.</td></tr>`;
+    tbodyHistorico.innerHTML = "";
+  }
+}
+
+function filaPlano(p){
+  const fecha = (p.fecha_subida || "").split(".")[0].replace("T"," ");
+  return `<tr>
+    <td class="cell">${p.clave_base}-${p.sufijo}</td>
+    <td class="cell">${p.nombre_archivo}</td>
+    <td class="cell">${p.despacho}</td>
+    <td class="cell">${fecha}</td>
+    <td class="cell"><a href="${p.url}" target="_blank" rel="noopener"><button>⬇ Descargar</button></a></td>
+  </tr>`;
+}
+
+function renderizarPlanos(){
+  const actuales = planosCache.filter(p => p.estado === "actualizacion");
+  const historicos = planosCache.filter(p => p.estado === "historico");
+
+  const tbodyActual = document.getElementById("planos-body-actual");
+  const tbodyHistorico = document.getElementById("planos-body-historico");
+
+  tbodyActual.innerHTML = actuales.length
+    ? actuales.map(filaPlano).join("")
+    : `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Aún no hay planos subidos para este proyecto.</td></tr>`;
+
+  tbodyHistorico.innerHTML = historicos.length
+    ? historicos.map(filaPlano).join("")
+    : `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Sin versiones anteriores todavía.</td></tr>`;
+}
+
+function cambiarSubtabPlanos(cual){
+  document.querySelectorAll('#mod-planos .subtab').forEach(t=>{
+    t.classList.toggle("active", t.dataset.sub === cual);
+  });
+  document.getElementById("planos-tab-actual").style.display = cual === "actual" ? "" : "none";
+  document.getElementById("planos-tab-historico").style.display = cual === "historico" ? "" : "none";
+}
+
+/**
+ * Detecta clave_base + sufijo a partir del nombre del archivo.
+ * "AR-01 A.pdf"  -> clave_base "AR-01", sufijo "A"
+ * "AR-01-1.pdf"  -> clave_base "AR-01", sufijo "1"
+ * Heurística simple: el último "token" separado por espacio/guión es
+ * el sufijo; el resto es la clave. Siempre editable antes de confirmar.
+ */
+function detectarClaveDesdeNombre(filename){
+  const sinExt = filename.replace(/\.pdf$/i, "").trim();
+  const partes = sinExt.split(/[\s\-_]+/).filter(Boolean);
+  if(partes.length <= 1){
+    return { clave_base: sinExt || "PLANO", sufijo: "1" };
+  }
+  const sufijo = partes[partes.length - 1];
+  const clave_base = partes.slice(0, -1).join("-");
+  return { clave_base, sufijo };
+}
+
+document.getElementById("planos-input-archivos")?.addEventListener("change", (e)=>{
+  const archivos = Array.from(e.target.files || []);
+  if(archivos.length === 0) return;
+
+  planosLote = archivos.map(file=>{
+    const detectado = detectarClaveDesdeNombre(file.name);
+    return { file, clave_base: detectado.clave_base, sufijo: detectado.sufijo };
+  });
+
+  abrirModalPlanos();
+  e.target.value = "";
+});
+
+function abrirModalPlanos(){
+  const cont = document.getElementById("modal-planos-confirmar-body");
+  cont.innerHTML = planosLote.map((item, idx)=>`
+    <div class="map-row">
+      <div class="col-origen">${item.file.name}<small>${(item.file.size/1024).toFixed(0)} KB</small></div>
+      <span>→</span>
+      <input type="text" data-idx="${idx}" data-campo="clave_base" value="${item.clave_base}" style="width:110px;padding:5px 7px;border:1px solid var(--gris-borde);border-radius:3px;font-size:12px;" placeholder="Clave (ej. AR-01)">
+      <input type="text" data-idx="${idx}" data-campo="sufijo" value="${item.sufijo}" style="width:60px;padding:5px 7px;border:1px solid var(--gris-borde);border-radius:3px;font-size:12px;" placeholder="Sufijo">
+    </div>
+  `).join("");
+  document.getElementById("modal-planos-confirmar").classList.add("open");
+}
+
+function cerrarModalPlanos(){
+  document.getElementById("modal-planos-confirmar").classList.remove("open");
+  planosLote = [];
+}
+
+async function confirmarSubidaPlanos(){
+  // Toma los valores editados (por si el despacho corrigió algo) antes de subir
+  document.querySelectorAll('#modal-planos-confirmar-body input').forEach(inp=>{
+    const idx = Number(inp.dataset.idx);
+    const campo = inp.dataset.campo;
+    if(planosLote[idx]) planosLote[idx][campo] = inp.value.trim();
+  });
+
+  const proyectoId = localStorage.getItem("obra360_proyecto_id");
+  const token = localStorage.getItem("obra360_despacho_token");
+  if(!proyectoId || !token){
+    alert("❌ No se encontró sesión de despacho o proyecto.");
+    return;
+  }
+
+  let exitos = 0, errores = 0;
+  for(const item of planosLote){
+    if(!item.clave_base || !item.sufijo) { errores++; continue; }
+    try{
+      const formData = new FormData();
+      formData.append("file", item.file, item.file.name);
+      formData.append("clave_base", item.clave_base);
+      formData.append("sufijo", item.sufijo);
+
+      const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/planos`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData
+      });
+      if(resp.ok) exitos++; else errores++;
+    }catch(err){
+      errores++;
+    }
+  }
+
+  cerrarModalPlanos();
+  alert(`✅ ${exitos} plano(s) subido(s) correctamente.` + (errores ? ` ⚠️ ${errores} con error.` : ""));
+  cargarPlanos();
+}
+
 </script>
 </body>
 </html>
