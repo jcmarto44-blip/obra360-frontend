@@ -253,12 +253,62 @@
       margin-left: 0.5rem;
       border: 1px solid rgba(255,255,255,0.3);
     }
+    /* ============== DESPACHOS ============== */
+    .despacho-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 0;
+      border-bottom: 1px solid #f0f2f5;
+      flex-wrap: wrap;
+    }
+    .despacho-row .despacho-info {
+      flex: 1;
+      min-width: 200px;
+    }
+    .despacho-row .despacho-nombre {
+      font-weight: 700;
+      color: #1a2634;
+      font-size: 0.9rem;
+    }
+    .despacho-row .despacho-especialidad {
+      color: var(--cliente-primary);
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .despacho-row .despacho-usuario {
+      color: #6c7a8a;
+      font-size: 0.78rem;
+    }
+    .form-despacho-nuevo {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 2px dashed #e9edf4;
+    }
+    .form-despacho-nuevo input {
+      border: 1px solid #dce2eb;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.85rem;
+    }
+    .form-despacho-nuevo input:focus {
+      border-color: var(--cliente-primary);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(27, 75, 143, 0.1);
+    }
+    @media (max-width: 900px) {
+      .form-despacho-nuevo { grid-template-columns: 1fr 1fr; }
+    }
     @media (max-width: 768px) {
       .cliente-header { padding: 1rem; }
       .cliente-header h1 { font-size: 1.2rem; }
       .equipo-row .rol { min-width: 120px; }
       .equipo-row input { min-width: 80px; }
       .toast-custom { min-width: auto; }
+      .form-despacho-nuevo { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -334,6 +384,23 @@
           <i class="bi bi-folder-x"></i>
           <h5>Selecciona un proyecto</h5>
           <p>Haz clic en uno de tus proyectos para habilitar su equipo de trabajo.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- DESPACHOS / BUFETES (del proyecto seleccionado) -->
+    <div class="card-cliente mb-4" id="despachos-card">
+      <div class="card-header-custom">
+        <i class="bi bi-easel3 me-2"></i>Despachos / Bufetes (Planos del Proyecto)
+        <span id="despachos-proyecto-label" class="text-muted" style="font-size:0.8rem;font-weight:400;">
+          (Selecciona un proyecto primero)
+        </span>
+      </div>
+      <div class="card-body-custom" id="despachos-body">
+        <div class="empty-state">
+          <i class="bi bi-folder-x"></i>
+          <h5>Selecciona un proyecto</h5>
+          <p>Haz clic en uno de tus proyectos para dar de alta sus despachos/bufetes.</p>
         </div>
       </div>
     </div>
@@ -490,6 +557,152 @@
     }
 
     // ============================================================
+    // DESPACHOS / BUFETES
+    // ------------------------------------------------------------
+    // Mismo patrón que colaboradores: un despacho (mismo "usuario")
+    // se puede repetir en varios proyectos del mismo cliente — no se
+    // duplica la fila, solo se agrega una asignación nueva.
+    // La especialidad es texto libre, la decide el cliente.
+    // ============================================================
+    async function obtenerDespachos(clienteId, proyectoId) {
+      try {
+        const todos = await apiFetch(`/clientes/${clienteId}/despachos`);
+        return todos.filter(d => d.proyecto_id === proyectoId);
+      } catch (error) {
+        console.error('Error obteniendo despachos:', error);
+        return [];
+      }
+    }
+
+    async function crearDespacho(clienteId, proyectoId, nombre, especialidad, usuario, password) {
+      return await apiFetch(`/clientes/${clienteId}/despachos`, {
+        method: 'POST',
+        body: JSON.stringify({
+          proyecto_id: proyectoId,
+          nombre: nombre,
+          especialidad: especialidad,
+          usuario: usuario,
+          password: password
+        })
+      });
+    }
+
+    async function quitarDespachoDeProyecto(clienteId, despachoId, proyectoId) {
+      return await apiFetch(`/clientes/${clienteId}/despachos/${despachoId}/proyectos/${proyectoId}`, {
+        method: 'DELETE'
+      });
+    }
+
+    async function renderizarDespachos() {
+      const container = document.getElementById('despachos-body');
+      const clienteId = getClienteId();
+
+      if (!proyectoSeleccionadoId) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="bi bi-folder-x"></i>
+            <h5>Selecciona un proyecto</h5>
+            <p>Haz clic en uno de tus proyectos para dar de alta sus despachos/bufetes.</p>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const despachos = await obtenerDespachos(clienteId, proyectoSeleccionadoId);
+
+        let html = `
+          <p class="text-muted" style="font-size:0.9rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Cada despacho solo podrá importar sus planos (PDF) para <strong>${proyectoSeleccionadoNombre}</strong>. No pueden ver ni tocar el resto de la captura.
+          </p>
+        `;
+
+        if (despachos.length === 0) {
+          html += `<p class="text-muted text-center" style="font-size:0.85rem;padding:1rem 0;">Aún no hay despachos asignados a este proyecto.</p>`;
+        } else {
+          despachos.forEach(d => {
+            html += `
+              <div class="despacho-row">
+                <div class="despacho-info">
+                  <div class="despacho-nombre"><i class="bi bi-building-gear me-1"></i>${d.nombre}</div>
+                  <div class="despacho-especialidad">${d.especialidad}</div>
+                  <div class="despacho-usuario">Usuario: ${d.usuario}</div>
+                </div>
+                <button class="btn btn-sm btn-danger btn-sm-custom" onclick="eliminarDespacho(${d.despacho_id})">
+                  <i class="bi bi-trash3"></i> Quitar de este proyecto
+                </button>
+              </div>
+            `;
+          });
+        }
+
+        html += `
+          <div class="form-despacho-nuevo">
+            <input type="text" id="despacho-nombre" placeholder="Nombre del despacho">
+            <input type="text" id="despacho-especialidad" placeholder="Especialidad (ej. Estructural)">
+            <input type="text" id="despacho-usuario" placeholder="Usuario">
+            <input type="text" id="despacho-password" placeholder="Contraseña">
+            <button class="btn btn-sm btn-success btn-sm-custom" onclick="guardarDespachoNuevo()">
+              <i class="bi bi-plus-circle"></i> Agregar
+            </button>
+          </div>
+        `;
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        container.innerHTML = `
+          <div class="empty-state text-danger">
+            <i class="bi bi-exclamation-triangle"></i>
+            <h5>Error al cargar despachos</h5>
+            <p>${error.message || 'No se pudo conectar con la API'}</p>
+          </div>
+        `;
+        mostrarToast('Error al cargar despachos: ' + error.message, 'error');
+      }
+    }
+
+    async function guardarDespachoNuevo() {
+      const nombre = document.getElementById('despacho-nombre').value.trim();
+      const especialidad = document.getElementById('despacho-especialidad').value.trim();
+      const usuario = document.getElementById('despacho-usuario').value.trim();
+      const password = document.getElementById('despacho-password').value.trim();
+      const clienteId = getClienteId();
+
+      if (!nombre || !especialidad || !usuario || !password) {
+        mostrarToast('⚠️ Completa nombre, especialidad, usuario y contraseña del despacho', 'error');
+        return;
+      }
+
+      if (!clienteId || !proyectoSeleccionadoId) {
+        mostrarToast('⚠️ No se encontró cliente o proyecto. Reintenta.', 'error');
+        return;
+      }
+
+      try {
+        await crearDespacho(clienteId, proyectoSeleccionadoId, nombre, especialidad, usuario, password);
+        mostrarToast(`✅ Despacho ${nombre} asignado correctamente a ${proyectoSeleccionadoNombre}`);
+        renderizarDespachos();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function eliminarDespacho(despachoId) {
+      if (!confirm('¿Quitar este despacho de este proyecto? (El despacho no se elimina, solo se le retira el acceso a este proyecto)')) return;
+      const clienteId = getClienteId();
+
+      try {
+        await quitarDespachoDeProyecto(clienteId, despachoId, proyectoSeleccionadoId);
+        mostrarToast('✅ Despacho retirado del proyecto correctamente');
+        renderizarDespachos();
+      } catch (error) {
+        mostrarToast('❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    // ============================================================
     // RENDERIZAR PROYECTOS
     // ============================================================
     async function renderizarProyectos() {
@@ -559,12 +772,14 @@
       document.getElementById('proyecto-seleccionado-info').style.display = 'block';
       document.getElementById('proyecto-seleccionado-nombre').textContent = nombre;
       document.getElementById('equipo-proyecto-label').textContent = `(${nombre})`;
+      document.getElementById('despachos-proyecto-label').textContent = `(${nombre})`;
 
       // UNIFICADO: usamos obra360_* también para el proyecto seleccionado
       localStorage.setItem('obra360_proyecto_id', id);
       localStorage.setItem('obra360_proyecto_nombre', nombre);
 
       renderizarEquipo();
+      renderizarDespachos();
       renderizarProyectos();
     }
 
