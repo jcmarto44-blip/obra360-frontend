@@ -463,6 +463,9 @@
       mensajeEl.style.display = 'none';
 
       try {
+        // ============================================================
+        // 1. INTENTAR LOGIN NORMAL (clientes / admins)
+        // ============================================================
         const response = await fetch(`${API_URL}/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -470,49 +473,79 @@
         });
         const data = await response.json();
 
-        if (!data.success) {
-          mensajeEl.textContent = '❌ ' + data.mensaje;
-          mensajeEl.style.display = 'block';
+        if (data.success) {
+          // ============================================================
+          // UNIFICACIÓN DE VARIABLES localStorage BAJO obra360_*
+          // ============================================================
+          
+          // Token
+          localStorage.setItem('obra360_token', data.token);
+          
+          // Datos del cliente
+          localStorage.setItem('obra360_cliente_id', data.cliente_id);
+          localStorage.setItem('obra360_cliente_nombre', data.nombre);
+          localStorage.setItem('obra360_usuario', usuario);
+          localStorage.setItem('obra360_rol', data.rol);
+          
+          // Modelo de gestión
+          if (data.modelo_gestion) {
+            localStorage.setItem('obra360_modelo_gestion', data.modelo_gestion);
+          }
+
+          // Datos del proyecto (si vienen en el login)
+          if (data.proyecto_id) {
+            localStorage.setItem('obra360_proyecto_id', data.proyecto_id);
+            localStorage.setItem('obra360_proyecto_nombre', data.nombre_proyecto || '');
+          }
+
+          // ============================================================
+          // REDIRECCIÓN SEGÚN ROL
+          // ============================================================
+          if (data.proyecto_id) {
+            window.location.href = 'captura.html';
+            return;
+          }
+
+          if (data.rol === 'admin') {
+            window.location.href = 'Portal_Administrador.html';
+          } else {
+            window.location.href = 'Portal_Cliente.html';
+          }
           return;
         }
 
         // ============================================================
-        // UNIFICACIÓN DE VARIABLES localStorage BAJO obra360_*
+        // 2. SI /login FALLA, PROBAR COMO DESPACHO/BUFETE
         // ============================================================
-        
-        // Token
-        localStorage.setItem('obra360_token', data.token);
-        
-        // Datos del cliente
-        localStorage.setItem('obra360_cliente_id', data.cliente_id);
-        localStorage.setItem('obra360_cliente_nombre', data.nombre);
-        localStorage.setItem('obra360_usuario', usuario);
-        localStorage.setItem('obra360_rol', data.rol);
-        
-        // Modelo de gestión
-        if (data.modelo_gestion) {
-          localStorage.setItem('obra360_modelo_gestion', data.modelo_gestion);
-        }
+        const respDespacho = await fetch(`${API_URL}/despacho/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ usuario, password })
+        });
+        const dataDespacho = await respDespacho.json();
 
-        // Datos del proyecto (si vienen en el login)
-        if (data.proyecto_id) {
-          localStorage.setItem('obra360_proyecto_id', data.proyecto_id);
-          localStorage.setItem('obra360_proyecto_nombre', data.nombre_proyecto || '');
-        }
+        if (dataDespacho.success) {
+          localStorage.setItem('obra360_despacho_token', dataDespacho.token);
+          localStorage.setItem('obra360_despacho_id', dataDespacho.despacho_id);
+          localStorage.setItem('obra360_cliente_id', dataDespacho.cliente_id);
+          localStorage.setItem('obra360_usuario', dataDespacho.usuario);
+          localStorage.setItem('obra360_despacho_proyectos', JSON.stringify(dataDespacho.proyectos || []));
 
-        // ============================================================
-        // REDIRECCIÓN SEGÚN ROL (case-sensitive)
-        // ============================================================
-        if (data.proyecto_id) {
+          if (dataDespacho.proyectos && dataDespacho.proyectos.length > 0) {
+            localStorage.setItem('obra360_proyecto_id', dataDespacho.proyectos[0].proyecto_id);
+            localStorage.setItem('obra360_proyecto_nombre', dataDespacho.proyectos[0].nombre_proyecto);
+          }
+
           window.location.href = 'captura.html';
           return;
         }
 
-        if (data.rol === 'admin') {
-          window.location.href = 'Portal_Administrador.html';
-        } else {
-          window.location.href = 'Portal_Cliente.html';
-        }
+        // ============================================================
+        // 3. SI TODO FALLA, MOSTRAR ERROR
+        // ============================================================
+        mensajeEl.textContent = '❌ Usuario o contraseña incorrectos';
+        mensajeEl.style.display = 'block';
+
       } catch (error) {
         mensajeEl.textContent = '❌ Error de conexión con el servidor';
         mensajeEl.style.display = 'block';
