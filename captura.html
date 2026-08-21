@@ -53,9 +53,6 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 #gate.visible{
   display:flex;
 }
-/* Pantalla neutra de "cargando" mientras se valida quién eres.
-   Nunca dice "Registro de Proyecto" — eso es exclusivo del Gate real
-   para colaboradores/equipo. Admin y Cliente solo ven esto un instante. */
 #validando-sesion{
   position:fixed;inset:0;
   background:linear-gradient(160deg,#123a70,#1b4b8f 60%,#2e6fd9);
@@ -276,6 +273,19 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 .btn-cancelar{background:#fff;border:1px solid var(--gris-borde);}
 .btn-confirmar{background:var(--marca-color-acento);border:1px solid var(--marca-color-acento);color:#fff;font-weight:600;}
 
+/* ============== FOTOGRÁFICO ============== */
+.fotografico-subida{
+  margin-bottom:16px;padding:14px;background:#fff;border:1px solid var(--gris-borde);border-radius:6px;
+}
+.fotografico-subida .titulo{font-weight:700;font-size:13px;margin-bottom:8px;}
+.fotografico-subida input[type="file"]{font-size:12.5px;}
+.btn-fotografico-guardar{
+  display:none;margin-top:10px;background:var(--marca-color-acento);border:none;color:#fff;
+  padding:7px 16px;border-radius:4px;font-weight:600;cursor:pointer;font-size:12.5px;
+}
+.btn-fotografico-guardar:hover{opacity:.9;}
+.btn-fotografico-guardar:disabled{opacity:.6;cursor:default;}
+
 /* ============== RESPONSIVE ============== */
 @media(max-width:900px){
   #mod-inicio .modulos-grid{grid-template-columns:repeat(2,1fr);}
@@ -293,9 +303,6 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <body>
 
 <!-- ================= PANTALLA NEUTRA DE VALIDACIÓN ================= -->
-<!-- Esto es lo único que TODOS ven al cargar (admin, cliente, equipo)
-     mientras se confirma la sesión contra el servidor. No es el Gate:
-     no dice "Registro de Proyecto", no tiene campos de proyecto. -->
 <div id="validando-sesion">
   <div style="text-align:center;">
     <div style="font-size:15px;font-weight:600;">Verificando tu sesión…</div>
@@ -303,11 +310,6 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 </div>
 
 <!-- ================= GATE (SOLO PARA COLABORADORES DE EQUIPO) ================= -->
-<!-- Este Gate YA NO acepta texto libre. El proyecto siempre lo resuelve
-     el backend (login de equipo). Solo se hace visible (clase "visible")
-     cuando /verificar_token confirma tipo === "equipo". Admin y Cliente
-     NUNCA ven este bloque — para ellos la pantalla de arriba simplemente
-     se oculta y entran directo. -->
 <div id="gate">
   <div class="box">
     <h2>Registro de Proyecto</h2>
@@ -419,6 +421,11 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
       <span class="ico"><i class="bi bi-file-earmark-pdf"></i></span> Planos del Proyecto
     </div>
 
+    <!-- ===== MÓDULO FOTOGRÁFICO ===== -->
+    <div class="menu-item" data-tab="fotografico">
+      <span class="ico"><i class="bi bi-camera"></i></span> Fotográfico
+    </div>
+
     <div class="area">Finanzas</div>
     <div class="area">Legal</div>
     <div class="area">Recursos Humanos</div>
@@ -506,6 +513,36 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
         </div>
       </div>
     </div>
+
+    <!-- ================= MÓDULO: FOTOGRÁFICO ================= -->
+    <div class="module" id="mod-fotografico" data-mod="fotografico">
+      <div class="module-title-row">
+        <div class="module-title">📷 Fotográfico <span class="count" id="fotografico-count">0 registros</span></div>
+      </div>
+      <div class="info-banner">
+        Ciclo de captura: martes a viernes. El módulo se reinicia automáticamente cada martes;
+        el histórico completo de todo el proyecto se conserva en Supabase para siempre.
+      </div>
+
+      <!-- Zona de subida: visible para cualquier colaborador de equipo (todos los roles autorizados) -->
+      <div id="fotografico-zona-subida" class="fotografico-subida" style="display:none;">
+        <div class="titulo">Importar fotos (JPEG / PNG)</div>
+        <input type="file" id="fotografico-input-archivos" accept=".jpg,.jpeg,.png" multiple>
+        <div class="hint" style="margin-top:6px;">
+          Puedes seleccionar varias imágenes a la vez desde tu equipo. El colaborador que queda
+          registrado es tu rol de sesión actual — no se escribe a mano.
+        </div>
+        <div id="fotografico-pendientes"></div>
+        <button id="fotografico-btn-guardar" class="btn-fotografico-guardar" onclick="guardarFotografico()">💾 Guardar</button>
+      </div>
+
+      <div class="grid-wrap">
+        <table class="grid">
+          <thead><tr><th>Número</th><th>Colaborador</th><th>Subido correctamente</th></tr></thead>
+          <tbody id="fotografico-body"><tr><td colspan="3" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -545,19 +582,15 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
    MODELO DE GESTIÓN (UNIFICADO bajo obra360_*)
    ===================================================================== */
 function getModeloGestion() {
-  // UNIFICADO: solo usamos obra360_modelo_gestion
   let modelo = localStorage.getItem('obra360_modelo_gestion');
   
-  // Si no existe, intentar obtener de la variable antigua (migración)
   if (!modelo) {
     modelo = localStorage.getItem('modelo_gestion');
     if (modelo) {
-      // Migrar a la nueva clave
       localStorage.setItem('obra360_modelo_gestion', modelo);
     }
   }
   
-  // Normalización: convertir a mayúscula inicial
   if (modelo) {
     return modelo.charAt(0).toUpperCase() + modelo.slice(1).toLowerCase();
   }
@@ -668,13 +701,6 @@ function renderizarModulosInicio() {
 
 /* =====================================================================
    DATOS DE INICIO — REALES, COMPARTIDOS EN SUPABASE
-   ---------------------------------------------------------------------
-   Ubicación, Duración y Orden de Inversión ya NO viven en localStorage
-   (eso era por-navegador: admin y cliente veían cosas distintas). Ahora
-   se guardan/leen como un renglón CSV vía el mismo mecanismo que ya
-   usan los demás módulos (modulo="general", que ya está en la lista
-   blanca de tu backend) — así, quien sea que entre al proyecto (admin
-   o cliente, desde cualquier equipo) ve exactamente lo mismo.
    ===================================================================== */
 const DATOS_INICIO_API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
 const CAMPOS_DATOS_INICIO = ["ubicacion","gerente_construccion","responsable_obra","gerente_arquitectura","responsable_compras",
@@ -696,7 +722,6 @@ async function cargarDatosInicio(){
       headers: token ? { "Authorization": `Bearer ${token}` } : {}
     });
     if(!resp.ok){
-      // Aún no se ha guardado nada para este proyecto: campos en blanco, no se inventa nada.
       CAMPOS_DATOS_INICIO.forEach(c=>{
         const el = document.getElementById("dato-"+c);
         if(el) el.value = "—";
@@ -902,7 +927,7 @@ const MODULOS = {
     columnas:[
       {key:"id", label:"ID", hidden:true},
       {key:"orden_compra", label:"ORDEN DE COMPRA"},
-      {key:"presup", label:"PRESUP.", tipo:"num"},
+      {key:"presup", label:"PRESUP."},
       {key:"pedido", label:"PEDIDO"},
       {key:"empresa", label:"EMPRESA"},
       {key:"descripcion", label:"DESCRIPCIÓN"},
@@ -999,18 +1024,7 @@ function mostrarErrorGateFatal(msg){
   btn.onclick = () => { window.location.href = "index.html"; };
 }
 
-/**
- * Confirma con el servidor (nunca solo con localStorage) a qué proyecto
- * tiene acceso real el usuario logueado, y deja el botón "Acceso"
- * habilitado únicamente si el servidor lo valida.
- */
 async function validarSesionYProyecto(){
-  // ============================================================
-  // DESPACHO / BUFETE: flujo aparte, totalmente distinto.
-  // No usa /verificar_token (esa ruta no conoce despachos). No pasa
-  // por el Gate. Y no ve nada de la app salvo "Planos del Proyecto"
-  // — nada de módulos financieros, nada de Datos Generales.
-  // ============================================================
   const tokenDespacho = localStorage.getItem("obra360_despacho_token");
   if(tokenDespacho){
     const proyectoId = localStorage.getItem("obra360_proyecto_id");
@@ -1023,7 +1037,7 @@ async function validarSesionYProyecto(){
     document.getElementById("tag-proyecto").textContent = "Proyecto: " + (proyectoNombre || "—");
     document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + (proyectoNombre || "—");
 
-    // Restringe el sidebar: un despacho solo ve "Planos del Proyecto"
+    // Restringe el sidebar: un despacho solo ve "Planos del Proyecto" (NUNCA Fotográfico)
     document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
       if(item.dataset.tab !== "planos") item.style.display = "none";
     });
@@ -1057,13 +1071,6 @@ async function validarSesionYProyecto(){
   }
 
   if(verif.tipo === "equipo"){
-    // ============================================================
-    // COLABORADOR / EMPLEADO (Gerente, Superintendente, Residente...)
-    // Aquí SÍ se muestra el Gate. El proyecto lo dice el SERVIDOR
-    // (tabla equipo), nunca lo que haya en localStorage. Esto es lo
-    // que evita que un Superintendente asignado a "Playa Linda III"
-    // pueda escribir/forzar "Torre Máxima" y entrar ahí.
-    // ============================================================
     const proyectoIdFinal = verif.proyecto_id;
     const nombreProyectoFinal = verif.nombre_proyecto;
 
@@ -1072,7 +1079,7 @@ async function validarSesionYProyecto(){
     if(verif.cliente && verif.cliente.id) localStorage.setItem("obra360_cliente_id", verif.cliente.id);
 
     document.getElementById("validando-sesion").style.display = "none";
-    document.getElementById("gate").classList.add("visible"); // SOLO aquí se hace visible el Gate real
+    document.getElementById("gate").classList.add("visible");
     document.getElementById("gate-proyecto").value = nombreProyectoFinal;
     document.getElementById("gate-vista").value = localStorage.getItem("obra360_vista_3d") || "—";
     document.getElementById("gate-loading").style.display = "none";
@@ -1081,25 +1088,9 @@ async function validarSesionYProyecto(){
     const btn = document.getElementById("gate-btn-acceso");
     btn.textContent = "Acceso";
     btn.disabled = false;
-    // El Gate se queda visible aquí, esperando que el colaborador confirme con "Acceso".
     return;
   }
 
-  // ============================================================
-  // ADMIN o CLIENTE (Constructora/Desarrollador)
-  // Ya eligieron su proyecto en su propio portal (selector de
-  // Portal_Administrador.html o Portal_Cliente.html). El Gate NO
-  // se les muestra — solo se re-confirma en silencio que el
-  // proyecto guardado sí les pertenece, y se entra directo.
-  //
-  // IMPORTANTE: cuando quien entra es el ADMIN, verif.cliente.id es
-  // el id de la fila "adminjc" en la tabla clientes — NO el id de la
-  // empresa (Constructora/Desarrollador) que eligió en su selector.
-  // Por eso se usa el cliente_id que dejó el selector en localStorage
-  // (obra360_cliente_id), que sí es el de la empresa correcta. Para
-  // un cliente real, ese valor de todos modos coincide con su propio
-  // id, así que esto funciona igual para ambos casos.
-  // ============================================================
   const clienteId = localStorage.getItem("obra360_cliente_id") || (verif.cliente && verif.cliente.id);
   const proyectoIdGuardado = localStorage.getItem("obra360_proyecto_id");
 
@@ -1127,14 +1118,12 @@ async function validarSesionYProyecto(){
     localStorage.setItem("obra360_proyecto_nombre", encontrado.nombre_proyecto);
     localStorage.setItem("obra360_cliente_id", clienteId);
 
-    // Entra directo: el Gate real NUNCA se hizo visible para admin/cliente.
-    // Solo se oculta la pantalla neutra de "Verificando tu sesión…".
     document.getElementById("validando-sesion").style.display = "none";
     document.getElementById("tag-proyecto").textContent = "Proyecto: " + encontrado.nombre_proyecto;
     document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + encontrado.nombre_proyecto;
     const datoProyecto = document.getElementById("dato-proyecto");
     if(datoProyecto) datoProyecto.value = encontrado.nombre_proyecto;
-    cargarDatosInicio(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora
+    cargarDatosInicio();
   }catch(err){
     mostrarErrorGateFatal("No se pudo conectar con el servidor para validar el proyecto.");
   }
@@ -1143,14 +1132,14 @@ async function validarSesionYProyecto(){
 function entrarApp(){
   const proyecto = document.getElementById("gate-proyecto").value.trim();
   if(!proyecto){
-    return; // el botón solo se habilita cuando ya hay un proyecto validado por el servidor
+    return;
   }
   document.getElementById("gate").style.display = "none";
   document.getElementById("tag-proyecto").textContent = "Proyecto: " + proyecto;
   document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + proyecto;
   const datoProyecto = document.getElementById("dato-proyecto");
   if(datoProyecto) datoProyecto.value = proyecto;
-  cargarDatosInicio(); // ya se conoce el proyecto: ahora sí se puede cargar SU bitácora
+  cargarDatosInicio();
 }
 
 (function(){
@@ -1422,19 +1411,7 @@ Object.keys(MODULOS).forEach(modKey=>{
 });
 
 /* =====================================================================
-   NAVEGACIÓN
-   ===================================================================== */
-/* =====================================================================
    CARGA REAL DE DATOS GUARDADOS (Supabase Storage, vía /reporte)
-   ---------------------------------------------------------------------
-   Cada módulo arranca vacío. La primera vez que el usuario entra a un
-   módulo en esta sesión, se pide al backend el último CSV real guardado
-   para ese módulo + proyecto. Si nunca se ha guardado nada, sigue vacío
-   (no se inventan datos).
-   NOTA: para módulos con subtabs (costo_plan), tu backend valida el
-   nombre de "modulo" contra una lista fija (MODULOS_VALIDOS) que no
-   distingue subtabs — por ahora solo se carga la primera subtab
-   automáticamente; la segunda se puede cargar manualmente si hace falta.
    ===================================================================== */
 const moduloDataCargada = new Set();
 
@@ -1463,7 +1440,7 @@ async function cargarModuloDesdeServidor(tab){
     const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto=${proyParam}`, {
       headers: token ? { "Authorization": `Bearer ${token}` } : {}
     });
-    if(!resp.ok) return; // 404: aún no hay nada guardado para este módulo/proyecto
+    if(!resp.ok) return;
     const data = await resp.json();
     if(!data || !Array.isArray(data.data)) return;
 
@@ -1514,6 +1491,11 @@ function navegarA(tab){
 
   if(tab === "planos"){
     cargarPlanos();
+    return;
+  }
+
+  if(tab === "fotografico"){
+    cargarFotografico();
     return;
   }
 
@@ -1667,6 +1649,16 @@ function datosAcsv(modKey, stKey){
 async function guardarModuloActivo(){
   const modKey = moduloActivo;
   if(modKey === "inicio"){ alert("Selecciona un módulo de captura para guardar."); return; }
+
+  // El módulo Fotográfico tiene su propio botón "Guardar" dentro del módulo
+  // (porque su flujo es subir archivos, no editar una tabla de texto).
+  // Si el usuario da clic en el botón del header estando en Fotográfico,
+  // lo mandamos a usar el botón correcto en vez de fallar en silencio.
+  if(modKey === "fotografico"){
+    alert("En el módulo Fotográfico usa el botón '💾 Guardar' que aparece junto al selector de imágenes.");
+    return;
+  }
+
   const mod = MODULOS[modKey];
   if(!mod) return;
   
@@ -1676,7 +1668,6 @@ async function guardarModuloActivo(){
   }
   
   const csv = datosAcsv(modKey, stKey);
-  // UNIFICADO: usamos obra360_proyecto_nombre en lugar de dato-proyecto
   const proyecto = localStorage.getItem("obra360_proyecto_nombre") || document.getElementById("dato-proyecto").value || "sin-proyecto";
   const blob = new Blob([csv], {type:"text/csv"});
   const nombreArchivo = (mod.endpoint||modKey) + ".csv";
@@ -1745,19 +1736,11 @@ document.addEventListener("keydown",(e)=>{
 
 /* =====================================================================
    MÓDULO: PLANOS DEL PROYECTO
-   ---------------------------------------------------------------------
-   - Ver/descargar: cualquiera con acceso al proyecto (admin, cliente,
-     equipo, despacho asignado).
-   - Subir: EXCLUSIVAMENTE el despacho asignado a este proyecto.
-   - Nunca se borra nada: si el despacho se equivoca, vuelve a subir la
-     versión correcta; el error se queda en Histórico para siempre.
    ===================================================================== */
 let planosCache = [];
-let planosLote = []; // [{file, clave_base, sufijo}] pendiente de confirmar
+let planosLote = [];
 
 function getTokenParaPlanos(){
-  // Si hay sesión de despacho, se usa esa (permite subir).
-  // Si no, se usa la sesión normal (admin/cliente/equipo, solo ver).
   return localStorage.getItem("obra360_despacho_token") || localStorage.getItem("obra360_token");
 }
 
@@ -1831,13 +1814,6 @@ function cambiarSubtabPlanos(cual){
   document.getElementById("planos-tab-historico").style.display = cual === "historico" ? "" : "none";
 }
 
-/**
- * Detecta clave_base + sufijo a partir del nombre del archivo.
- * "AR-01 A.pdf"  -> clave_base "AR-01", sufijo "A"
- * "AR-01-1.pdf"  -> clave_base "AR-01", sufijo "1"
- * Heurística simple: el último "token" separado por espacio/guión es
- * el sufijo; el resto es la clave. Siempre editable antes de confirmar.
- */
 function detectarClaveDesdeNombre(filename){
   const sinExt = filename.replace(/\.pdf$/i, "").trim();
   const partes = sinExt.split(/[\s\-_]+/).filter(Boolean);
@@ -1881,7 +1857,6 @@ function cerrarModalPlanos(){
 }
 
 async function confirmarSubidaPlanos(){
-  // Toma los valores editados (por si el despacho corrigió algo) antes de subir
   document.querySelectorAll('#modal-planos-confirmar-body input').forEach(inp=>{
     const idx = Number(inp.dataset.idx);
     const campo = inp.dataset.campo;
@@ -1920,6 +1895,160 @@ async function confirmarSubidaPlanos(){
   cargarPlanos();
 }
 
+/* =====================================================================
+   MÓDULO: FOTOGRÁFICO (Avance Fotográfico)
+   ---------------------------------------------------------------------
+   - TODOS los roles de equipo pueden subir fotos (según pediste).
+   - El "Colaborador" que se registra es SIEMPRE el rol de la sesión
+     activa (obra360_rol) tomado del servidor — nunca se escribe a mano
+     ni se manda desde el navegador como dato de confianza.
+   - Al abrir el módulo, se hace GET real a Supabase (vía backend) para
+     mostrar los registros ya guardados de la semana en curso — así
+     varios colaboradores en sesiones distintas ven lo mismo.
+   - El ciclo martes-viernes se resuelve 100% en el backend
+     (calcular_semana_actual), nunca en el navegador, para que todos
+     los colaboradores y Power BI vean exactamente la misma semana.
+   ===================================================================== */
+let fotograficoLote = [];               // [{file}] pendiente de guardar
+let fotograficoRegistrosServidor = [];  // ya guardado en el servidor (semana actual)
+
+function getRolActual(){
+  return localStorage.getItem("obra360_rol") || "";
+}
+
+function esSesionDeEquipo(){
+  // Solo colaboradores de "equipo" (no despachos) pueden subir fotos.
+  return !localStorage.getItem("obra360_despacho_token") && !!getRolActual();
+}
+
+async function cargarFotografico(){
+  const proyectoId = localStorage.getItem("obra360_proyecto_id");
+  const token = localStorage.getItem("obra360_token");
+  const zonaSubida = document.getElementById("fotografico-zona-subida");
+  const tbody = document.getElementById("fotografico-body");
+
+  zonaSubida.style.display = esSesionDeEquipo() ? "block" : "none";
+
+  if(!proyectoId || !token){
+    tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:#a72e21;">No se encontró proyecto o sesión activa.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr>`;
+
+  try{
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/fotografico`, {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if(!resp.ok){
+      tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:#a72e21;">No se pudo cargar el avance fotográfico.</td></tr>`;
+      return;
+    }
+    const data = await resp.json();
+    fotograficoRegistrosServidor = data.registros || [];
+    renderizarFotografico();
+  }catch(err){
+    tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:#a72e21;">Error de conexión.</td></tr>`;
+  }
+}
+
+function renderizarFotografico(){
+  const tbody = document.getElementById("fotografico-body");
+  const count = document.getElementById("fotografico-count");
+
+  if(fotograficoRegistrosServidor.length === 0){
+    tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:var(--texto-secundario);">Sin registros esta semana.</td></tr>`;
+  } else {
+    tbody.innerHTML = fotograficoRegistrosServidor.map(r => `
+      <tr>
+        <td class="cell num">${r.numero}</td>
+        <td class="cell">${r.colaborador_rol}</td>
+        <td class="cell" style="text-align:center;">✅</td>
+      </tr>
+    `).join("");
+  }
+  if(count) count.textContent = fotograficoRegistrosServidor.length + " registros esta semana";
+}
+
+document.getElementById("fotografico-input-archivos")?.addEventListener("change", (e)=>{
+  const archivos = Array.from(e.target.files || []);
+  if(archivos.length === 0) return;
+
+  const validas = archivos.filter(f => /\.(jpe?g|png)$/i.test(f.name));
+  if(validas.length < archivos.length){
+    alert("⚠️ Algunas imágenes no son JPEG/PNG y fueron ignoradas.");
+  }
+
+  fotograficoLote = validas.map(file => ({ file }));
+  renderizarFotograficoPendientes();
+  e.target.value = "";
+});
+
+function renderizarFotograficoPendientes(){
+  const cont = document.getElementById("fotografico-pendientes");
+  const btnGuardar = document.getElementById("fotografico-btn-guardar");
+  if(fotograficoLote.length === 0){
+    cont.innerHTML = "";
+    btnGuardar.style.display = "none";
+    return;
+  }
+  const rolActual = getRolActual();
+  let html = `<div class="grid-wrap" style="margin-top:10px;"><table class="grid">
+    <thead><tr><th>Número</th><th>Colaborador</th><th>Archivo</th><th>Listo para guardar</th></tr></thead><tbody>`;
+  fotograficoLote.forEach((item, idx)=>{
+    html += `<tr>
+      <td class="cell num">${idx+1}</td>
+      <td class="cell">${rolActual}</td>
+      <td class="cell">${item.file.name}</td>
+      <td class="cell" style="text-align:center;">✅</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  cont.innerHTML = html;
+  btnGuardar.style.display = "inline-block";
+}
+
+async function guardarFotografico(){
+  if(fotograficoLote.length === 0) return;
+  const proyectoId = localStorage.getItem("obra360_proyecto_id");
+  const token = localStorage.getItem("obra360_token");
+  if(!proyectoId || !token){
+    alert("❌ No se encontró proyecto o sesión activa.");
+    return;
+  }
+
+  const formData = new FormData();
+  fotograficoLote.forEach(item => formData.append("files", item.file, item.file.name));
+
+  const btn = document.getElementById("fotografico-btn-guardar");
+  btn.disabled = true;
+  btn.textContent = "Guardando…";
+
+  try{
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/fotografico`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData
+    });
+    const data = await resp.json();
+    if(!resp.ok){
+      alert("❌ " + (data.detail || "Error al guardar las fotos."));
+    } else {
+      const exitos = data.resultados.filter(r=>r.subido).length;
+      const errores = data.resultados.filter(r=>!r.subido).length;
+      alert(`✅ ${exitos} foto(s) guardada(s) correctamente.` + (errores ? ` ⚠️ ${errores} con error.` : ""));
+    }
+    fotograficoLote = [];
+    document.getElementById("fotografico-pendientes").innerHTML = "";
+    btn.style.display = "none";
+    cargarFotografico();
+  }catch(err){
+    alert("❌ Error de conexión al guardar las fotos.");
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "💾 Guardar";
+  }
+}
 </script>
 </body>
 </html>
