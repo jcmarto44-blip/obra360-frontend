@@ -784,6 +784,91 @@ async function guardarDatosInicio(){
 /* =====================================================================
    CONFIGURACIÓN DE MÓDULOS
    ===================================================================== */
+
+// Conceptos fijos para PARTIDAS
+const CONCEPTOS_PARTIDAS = [
+  "PRESUPUESTO",
+  "EDIFICIO (CONSTRUCCION)",
+  "TRÁMITES Y PERMISOS",
+  "LICENCIAS DE CONSTRUCCIÓN",
+  "CONTRATOS DE SERVICIOS",
+  "ESTUDIOS Y DISEÑOS",
+  "ESTUDIOS PRELIMINARES",
+  "DISEÑOS E INGENIERÍAS",
+  "OBRAS PRELIMINARES Y PROVISIONALES",
+  "SERVICIOS",
+  "CONTROL DE OBRA",
+  "MEJORAS AL TERRENO (URBANIZACION)",
+  "TERRACERIAS",
+  "MUROS DE CONTENCIÓN",
+  "INFRAESTRUCTURA DE SERVICIOS FUERA DEL PREDIO",
+  "VIALIDADES",
+  "OBRA NEGRA DEPTO",
+  "CIMENTACIÓN",
+  "ESTRUCTURA METÁLICA",
+  "ALBAÑILERÍA",
+  "LAMINACIÓN EN CUBIERTA Y MUROS",
+  "LOSAS DE ENTREPISO Y AZOTEA",
+  "FIRMES",
+  "COMPLEMENTOS DE LA OBRA NEGRA DE TIENDA",
+  "CISTERNA",
+  "HERRERIAS",
+  "LIMPIEZA",
+  "INSTALACIONES HIDROSANITARIAS VS INCENDIOS Y GAS",
+  "INSTALACIONES OCULTAS HIDROSANITARIAS",
+  "INSTALACIONES HIDRÁULICAS",
+  "INSTALACIONES SANITARIAS",
+  "INSTALACIONES CONTRA INCENDIOS",
+  "INSTALACIONES DE GAS",
+  "INSTALACIONES ELÉCTRICAS",
+  "SUMINISTRO DE CABLE",
+  "SUMINISTRO DE LUMINARIAS Y LÁMPARAS",
+  "INSTALACIONES OCULTAS ELÉCTRICAS",
+  "INSTALACIONES ELÉCTRICAS BAJA TENSION",
+  "INSTALACIONES OCULTAS DE RED DE VOZ Y DATOS",
+  "INSTALACIONES AÉREAS DE RED DE VOZ Y DATOS",
+  "INSTALACIONES DE ACONDICIONAMIENTO AMBIENTAL",
+  "AIRE ACONDICIONADO",
+  "AIRE LAVADO",
+  "VENTILACION Y EXTRACCIÓN",
+  "ACABADOS",
+  "RECUBRIMIENTO EN MUROS",
+  "RECUBRIMIENTO EN PISOS",
+  "ALUMINIO Y VIDRIO",
+  "MUROS FALSOS Y PLAFONES",
+  "PINTURA GENERAL",
+  "CARPINTERÍA",
+  "DECORACIÓN",
+  "AREAS EXTERIORES",
+  "ACOMETIDAS EN EL INTERIOR DEL PREDIO",
+  "ESTACIONAMIENTO",
+  "PATIO DE MANIOBRAS",
+  "BARDAS Y CERCOS",
+  "TORRE EMBLEMA",
+  "SOMBRA PEATONAL Y VEHICULARES",
+  "PARADA DE AUTOBUSES",
+  "EQUIPO EDIFICIO",
+  "EQUIPO ELECTRICO",
+  "EQUIPO ACONDICIONAMIENTO AMBIENTAL",
+  "LOGOTIPOS Y LEYENDAS",
+  "EQUIPOS ESPECIALES",
+  "SUMA CONSTRUCCION + EE"
+];
+
+// Conceptos fijos para CUADRO INFORMATIVO
+const CONCEPTOS_CUADRO = [
+  { concepto: "AREA DE CONSTRUCCION", unidad: "M2" },
+  { concepto: "AREA DE TERRENO", unidad: "M2" },
+  { concepto: "COSTO CAJON / M2", unidad: "M2" },
+  { concepto: "CIMENTACION", unidad: "M2" },
+  { concepto: "ESTRUCTURA METALICA", unidad: "KG" },
+  { concepto: "MUROS DE BLOCK Y ALBANILERIAS", unidad: "M2" },
+  { concepto: "CUBIERTA DE LAMINA", unidad: "M2" },
+  { concepto: "FIRMES DE CONCRETO", unidad: "M2" },
+  { concepto: "COSTO CONSTRUCCION", unidad: "M2" },
+  { concepto: "COSTO URBANIZACION", unidad: "M2" }
+];
+
 const MODULOS = {
 
   costo_plan: {
@@ -796,7 +881,7 @@ const MODULOS = {
           {key:"concepto", label:"CONCEPTO"},
           {key:"presupuesto", label:"PRESUPUESTO", tipo:"num"}
         ],
-        datos:[]
+        datos: CONCEPTOS_PARTIDAS.map(c => ({ concepto: c, presupuesto: 0 }))
       },
       indicadores: {
         label:"Cuadro Informativo",
@@ -805,7 +890,7 @@ const MODULOS = {
           {key:"unidad", label:"UNIDAD"},
           {key:"monto", label:"MONTO", tipo:"num"}
         ],
-        datos:[]
+        datos: CONCEPTOS_CUADRO.map(c => ({ concepto: c.concepto, unidad: c.unidad, monto: 0 }))
       }
     }
   },
@@ -1317,6 +1402,23 @@ function renderSubtab(modKey, stKey){
   if(!tbody) return;
   tbody.innerHTML = "";
   const allData = st.datos;
+  
+  // Calcular SUMA CONSTRUCCION + EE automáticamente
+  if (modKey === "costo_plan" && stKey === "partidas") {
+    // Buscar el índice de "SUMA CONSTRUCCION + EE"
+    const sumaIndex = allData.findIndex(row => row.concepto === "SUMA CONSTRUCCION + EE");
+    if (sumaIndex !== -1) {
+      let total = 0;
+      allData.forEach((row, idx) => {
+        // Sumar todos los conceptos excepto "PRESUPUESTO" y "SUMA CONSTRUCCION + EE"
+        if (row.concepto !== "PRESUPUESTO" && row.concepto !== "SUMA CONSTRUCCION + EE") {
+          total += Number(row.presupuesto) || 0;
+        }
+      });
+      allData[sumaIndex].presupuesto = total;
+    }
+  }
+  
   allData.forEach((row, ridx)=>{
     const tr = document.createElement("tr");
     tr.innerHTML = cols.map(c=>{
@@ -1330,6 +1432,11 @@ function renderSubtab(modKey, stKey){
       }
       if(c.calculado){
         return `<td class="cell num readonly">${display}</td>`;
+      }
+      // Hacer readonly el concepto "SUMA CONSTRUCCION + EE" y "PRESUPUESTO" (solo el concepto, no el presupuesto)
+      const isReadonly = (modKey === "costo_plan" && stKey === "partidas" && c.key === "concepto");
+      if (isReadonly) {
+        return `<td class="cell readonly">${display}</td>`;
       }
       return `<td class="cell${c.tipo==='num'?' num':''}" contenteditable="true"
                 onblur="actualizarCeldaSubtab('${modKey}','${stKey}',${ridx},'${c.key}',this.textContent)">${display}</td>`;
@@ -1451,8 +1558,9 @@ async function cargarModuloDesdeServidor(tab){
   let cols, targetDatos, stKeyParaRender;
   if(mod.subtabs){
     stKeyParaRender = Object.keys(mod.subtabs)[0];
-    cols = mod.subtabs[stKeyParaRender].columnas;
-    targetDatos = mod.subtabs[stKeyParaRender].datos;
+    const st = mod.subtabs[stKeyParaRender];
+    cols = st.columnas;
+    targetDatos = st.datos;
   } else {
     cols = mod.columnas;
     targetDatos = mod.datos;
@@ -1479,6 +1587,85 @@ async function cargarModuloDesdeServidor(tab){
       });
       return row;
     });
+
+    // Para Costo Plan: actualizar conceptos existentes, agregar nuevos si no existen
+    if (tab === "costo_plan" && mod.subtabs) {
+      // Procesar Partidas
+      const partidasSt = mod.subtabs.partidas;
+      const partidasCols = partidasSt.columnas;
+      const partidasTarget = partidasSt.datos;
+      
+      // Crear un mapa de conceptos existentes
+      const conceptosMap = new Map();
+      partidasTarget.forEach(row => {
+        conceptosMap.set(row.concepto, row);
+      });
+      
+      // Procesar cada fila importada
+      nuevasFilas.forEach(row => {
+        const concepto = row.concepto;
+        if (concepto) {
+          if (conceptosMap.has(concepto)) {
+            // Actualizar existente
+            const existing = conceptosMap.get(concepto);
+            partidasCols.forEach(c => {
+              if (c.key !== 'concepto' && row[c.key] !== undefined) {
+                existing[c.key] = row[c.key];
+              }
+            });
+          } else {
+            // Agregar nuevo concepto
+            const newRow = {};
+            partidasCols.forEach(c => {
+              newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
+            });
+            // Insertar antes de "SUMA CONSTRUCCION + EE"
+            const sumaIndex = partidasTarget.findIndex(r => r.concepto === "SUMA CONSTRUCCION + EE");
+            if (sumaIndex !== -1) {
+              partidasTarget.splice(sumaIndex, 0, newRow);
+            } else {
+              partidasTarget.push(newRow);
+            }
+            conceptosMap.set(concepto, newRow);
+          }
+        }
+      });
+      
+      // Procesar Cuadro Informativo
+      const cuadroSt = mod.subtabs.indicadores;
+      const cuadroCols = cuadroSt.columnas;
+      const cuadroTarget = cuadroSt.datos;
+      const cuadroMap = new Map();
+      cuadroTarget.forEach(row => {
+        cuadroMap.set(row.concepto, row);
+      });
+      
+      // Buscar filas de cuadro en los datos importados (si vienen en el mismo CSV)
+      // Para simplificar, si el CSV tiene columnas de cuadro, las procesamos
+      nuevasFilas.forEach(row => {
+        const concepto = row.concepto;
+        if (concepto && cuadroMap.has(concepto)) {
+          const existing = cuadroMap.get(concepto);
+          cuadroCols.forEach(c => {
+            if (c.key !== 'concepto' && c.key !== 'unidad' && row[c.key] !== undefined) {
+              existing[c.key] = row[c.key];
+            }
+          });
+        } else if (concepto && !cuadroMap.has(concepto) && row.unidad) {
+          // Agregar nuevo concepto al cuadro
+          const newRow = {};
+          cuadroCols.forEach(c => {
+            newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
+          });
+          cuadroTarget.push(newRow);
+          cuadroMap.set(concepto, newRow);
+        }
+      });
+      
+      renderSubtab(tab, 'partidas');
+      renderSubtab(tab, 'indicadores');
+      return;
+    }
 
     targetDatos.length = 0;
     targetDatos.push(...nuevasFilas);
@@ -1628,6 +1815,87 @@ function confirmarMapeo(){
     });
     return obj;
   });
+  
+  // Para Costo Plan: procesar de manera especial
+  if (moduloActivo === "costo_plan" && mod.subtabs) {
+    // Procesar Partidas
+    const partidasSt = mod.subtabs.partidas;
+    const partidasCols = partidasSt.columnas;
+    const partidasTarget = partidasSt.datos;
+    
+    // Crear un mapa de conceptos existentes
+    const conceptosMap = new Map();
+    partidasTarget.forEach(row => {
+      conceptosMap.set(row.concepto, row);
+    });
+    
+    // Procesar cada fila importada
+    nuevasFilas.forEach(row => {
+      const concepto = row.concepto;
+      if (concepto) {
+        if (conceptosMap.has(concepto)) {
+          // Actualizar existente
+          const existing = conceptosMap.get(concepto);
+          partidasCols.forEach(c => {
+            if (c.key !== 'concepto' && row[c.key] !== undefined) {
+              existing[c.key] = row[c.key];
+            }
+          });
+        } else {
+          // Agregar nuevo concepto
+          const newRow = {};
+          partidasCols.forEach(c => {
+            newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
+          });
+          // Insertar antes de "SUMA CONSTRUCCION + EE"
+          const sumaIndex = partidasTarget.findIndex(r => r.concepto === "SUMA CONSTRUCCION + EE");
+          if (sumaIndex !== -1) {
+            partidasTarget.splice(sumaIndex, 0, newRow);
+          } else {
+            partidasTarget.push(newRow);
+          }
+          conceptosMap.set(concepto, newRow);
+        }
+      }
+    });
+    
+    // Procesar Cuadro Informativo
+    const cuadroSt = mod.subtabs.indicadores;
+    const cuadroCols = cuadroSt.columnas;
+    const cuadroTarget = cuadroSt.datos;
+    const cuadroMap = new Map();
+    cuadroTarget.forEach(row => {
+      cuadroMap.set(row.concepto, row);
+    });
+    
+    nuevasFilas.forEach(row => {
+      const concepto = row.concepto;
+      if (concepto && row.unidad) {
+        if (cuadroMap.has(concepto)) {
+          const existing = cuadroMap.get(concepto);
+          cuadroCols.forEach(c => {
+            if (c.key !== 'concepto' && c.key !== 'unidad' && row[c.key] !== undefined) {
+              existing[c.key] = row[c.key];
+            }
+          });
+        } else {
+          const newRow = {};
+          cuadroCols.forEach(c => {
+            newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
+          });
+          cuadroTarget.push(newRow);
+          cuadroMap.set(concepto, newRow);
+        }
+      }
+    });
+    
+    renderSubtab(moduloActivo, 'partidas');
+    renderSubtab(moduloActivo, 'indicadores');
+    cerrarModalMapeo();
+    alert("Datos importados a Costo Plan correctamente.");
+    return;
+  }
+  
   target.datos.push(...nuevasFilas);
   
   if(mod.subtabs){
@@ -1675,9 +1943,6 @@ async function guardarModuloActivo(){
   if(modKey === "inicio"){ alert("Selecciona un módulo de captura para guardar."); return; }
 
   // El módulo Fotográfico tiene su propio botón "Guardar" dentro del módulo
-  // (porque su flujo es subir archivos, no editar una tabla de texto).
-  // Si el usuario da clic en el botón del header estando en Fotográfico,
-  // lo mandamos a usar el botón correcto en vez de fallar en silencio.
   if(modKey === "fotografico"){
     alert("En el módulo Fotográfico usa el botón '💾 Guardar' que aparece junto al selector de imágenes.");
     return;
@@ -1685,6 +1950,67 @@ async function guardarModuloActivo(){
 
   const mod = MODULOS[modKey];
   if(!mod) return;
+  
+  // Para Costo Plan: guardar ambas subtabs en un solo CSV
+  if (modKey === "costo_plan" && mod.subtabs) {
+    // Guardar Partidas y Cuadro Informativo juntos
+    const partidasSt = mod.subtabs.partidas;
+    const cuadroSt = mod.subtabs.indicadores;
+    
+    // Crear un CSV combinado: primero Partidas, luego Cuadro
+    const partidasCols = partidasSt.columnas;
+    const cuadroCols = cuadroSt.columnas;
+    
+    // Encabezado combinado
+    const encabezado = ["TIPO", ...partidasCols.map(c => c.label), ...cuadroCols.map(c => c.label)].join(",");
+    
+    const filasPartidas = partidasSt.datos.map(row => {
+      const valores = partidasCols.map(c => {
+        let v = row[c.key];
+        v = (v===undefined||v===null) ? "" : v;
+        v = String(v).replace(/"/g,'""');
+        return /[,"\n]/.test(v) ? `"${v}"` : v;
+      });
+      const valoresCuadro = cuadroCols.map(() => "");
+      return ["PARTIDA", ...valores, ...valoresCuadro].join(",");
+    });
+    
+    const filasCuadro = cuadroSt.datos.map(row => {
+      const valores = cuadroCols.map(c => {
+        let v = row[c.key];
+        v = (v===undefined||v===null) ? "" : v;
+        v = String(v).replace(/"/g,'""');
+        return /[,"\n]/.test(v) ? `"${v}"` : v;
+      });
+      const valoresPartida = partidasCols.map(() => "");
+      return ["CUADRO", ...valoresPartida, ...valores].join(",");
+    });
+    
+    const csv = [encabezado, ...filasPartidas, ...filasCuadro].join("\n");
+    const proyecto = localStorage.getItem("obra360_proyecto_nombre") || document.getElementById("dato-proyecto").value || "sin-proyecto";
+    const blob = new Blob([csv], {type:"text/csv"});
+    const nombreArchivo = "costo_plan.csv";
+
+    const formData = new FormData();
+    formData.append("file", blob, nombreArchivo);
+    formData.append("modulo", "costo_plan");
+    formData.append("proyecto", proyecto);
+
+    const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
+    const uploadUrl = `${API_URL}/subir`;
+
+    try{
+      const res = await fetch(uploadUrl, {
+        method:"POST", body: formData
+      });
+      const data = await res.json();
+      if(data.error){ alert("Error al guardar: "+data.error); return; }
+      alert("✅ Guardado correctamente: "+nombreArchivo);
+    }catch(err){
+      alert("❌ Error de conexión al guardar. Revisa tu conexión o intenta de nuevo.");
+    }
+    return;
+  }
   
   let stKey = null;
   if(mod.subtabs){
@@ -1921,27 +2247,15 @@ async function confirmarSubidaPlanos(){
 
 /* =====================================================================
    MÓDULO: FOTOGRÁFICO (Avance Fotográfico)
-   ---------------------------------------------------------------------
-   - TODOS los roles de equipo pueden subir fotos (según pediste).
-   - El "Colaborador" que se registra es SIEMPRE el rol de la sesión
-     activa (obra360_rol) tomado del servidor — nunca se escribe a mano
-     ni se manda desde el navegador como dato de confianza.
-   - Al abrir el módulo, se hace GET real a Supabase (vía backend) para
-     mostrar los registros ya guardados de la semana en curso — así
-     varios colaboradores en sesiones distintas ven lo mismo.
-   - El ciclo martes-viernes se resuelve 100% en el backend
-     (calcular_semana_actual), nunca en el navegador, para que todos
-     los colaboradores y Power BI vean exactamente la misma semana.
    ===================================================================== */
-let fotograficoLote = [];               // [{file}] pendiente de guardar
-let fotograficoRegistrosServidor = [];  // ya guardado en el servidor (semana actual)
+let fotograficoLote = [];
+let fotograficoRegistrosServidor = [];
 
 function getRolActual(){
   return localStorage.getItem("obra360_rol") || "";
 }
 
 function esSesionDeEquipo(){
-  // Solo colaboradores de "equipo" (no despachos) pueden subir fotos.
   return !localStorage.getItem("obra360_despacho_token") && !!getRolActual();
 }
 
