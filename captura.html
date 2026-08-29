@@ -371,6 +371,11 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
         <span class="ico"><i class="bi bi-bar-chart"></i></span> Control Presupuestal
       </div>
 
+      <!-- ===== NUEVO SUBÍNDICE EVM ===== -->
+      <div class="menu-item" data-tab="evm" data-visible-para="Desarrollador,Constructora">
+        <span class="ico"><i class="bi bi-graph-up-arrow"></i></span> EVM
+      </div>
+
       <div class="menu-item" data-tab="materiales" data-visible-para="Desarrollador,Constructora">
         <span class="ico"><i class="bi bi-box-seam"></i></span> Materiales
       </div>
@@ -646,7 +651,7 @@ function filtrarSidebarPorModelo() {
    ===================================================================== */
 function getModulosVisibles() {
   const modelo = getModeloGestion();
-  const comunes = ['presupuestal', 'materiales', 'mano_obra', 'requisiciones', 'pago_proveedores', 'estimaciones'];
+  const comunes = ['presupuestal', 'evm', 'materiales', 'mano_obra', 'requisiciones', 'pago_proveedores', 'estimaciones'];
   const especificos = {
     'Desarrollador': ['costo_plan', 'calidad', 'ordenes_compra'],
     'Constructora': ['control_pedidos']
@@ -662,6 +667,7 @@ function renderizarModulosInicio() {
   const todosLosModulos = {
     costo_plan: { ico: 'bi-coin', nombre: 'Costo Plan' },
     presupuestal: { ico: 'bi-bar-chart', nombre: 'Control Presupuestal' },
+    evm: { ico: 'bi-graph-up-arrow', nombre: 'EVM' },
     materiales: { ico: 'bi-box-seam', nombre: 'Materiales' },
     mano_obra: { ico: 'bi-person-workspace', nombre: 'Mano de Obra' },
     calidad: { ico: 'bi-check-circle', nombre: 'Calidad' },
@@ -821,6 +827,24 @@ const MODULOS = {
       {key:"costo_real", label:"Costo Real", tipo:"num"},
       {key:"etapa", label:"Etapa"},
       {key:"duracion", label:"Duración", tipo:"num"},
+    ],
+    datos:[]
+  },
+
+  /* ===== NUEVO MÓDULO EVM ===== */
+  evm: {
+    label:"EVM",
+    endpoint:"evm",
+    columnas:[
+      {key:"element_id", label:"element_id", hidden:true},
+      {key:"type_name", label:"type_name"},
+      {key:"fecha_inicio", label:"fecha inicio", tipo:"fecha"},
+      {key:"fecha_fin", label:"fecha fin", tipo:"fecha"},
+      {key:"duracion_planificada", label:"duracion planificada", tipo:"num"},
+      {key:"tarea", label:"tarea"},
+      {key:"costo_planificado", label:"costo planificado", tipo:"num"},
+      {key:"costo_real", label:"costo real", tipo:"num"},
+      {key:"valor_ganado", label:"valor ganado", tipo:"num"},
     ],
     datos:[]
   },
