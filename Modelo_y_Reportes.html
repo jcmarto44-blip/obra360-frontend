@@ -123,6 +123,11 @@
       color: #000;
       transform: translateY(-2px);
     }
+    .btn-powerbi:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
     .btn-revit {
       background: var(--primary-color);
       color: white;
@@ -256,9 +261,7 @@
           <div class="icon"><i class="bi bi-bar-chart-fill"></i></div>
           <h4>Reporte Semanal</h4>
           <p>Visualiza los indicadores, costos y avance del proyecto en Power BI.</p>
-          <a href="https://app.powerbi.com/view?r=eyJrIjoiOGY3NGUxM2ItZWEyMi00ZGNkLThlMTItNmU2ZWYzMWE0OWMyIiwidCI6IjE1ZGEzZGM4LWRkODUtNDZiYi05NGU3LWI1YTNjMzE3ZTBhOSJ9"
-             target="_blank"
-             class="btn-powerbi">
+          <a id="btnReporte" href="#" target="_blank" class="btn-powerbi">
             <i class="bi bi-box-arrow-up-right me-2"></i>Ver Reporte
           </a>
         </div>
@@ -305,8 +308,129 @@
     // ============================================================
     // CONFIGURACIÓN
     // ============================================================
+    const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
+    const TOKEN_KEY = 'obra360_token';
+    const PROYECTO_ID_KEY = 'obra360_proyecto_id';
+
+    // URL fija de demostración (la que ya existía)
+    const URL_FIJA = 'https://app.powerbi.com/view?r=eyJrIjoiOGY3NGUxM2ItZWEyMi00ZGNkLThlMTItNmU2ZWYzMWE0OWMyIiwidCI6IjE1ZGEzZGM4LWRkODUtNDZiYi05NGU3LWI1YTNjMzE3ZTBhOSJ9';
+
+    // ============================================================
+    // FUNCIONES DE AUTENTICACIÓN
+    // ============================================================
+    function obtenerToken() {
+      return localStorage.getItem(TOKEN_KEY);
+    }
+
+    function obtenerProyectoId() {
+      return localStorage.getItem(PROYECTO_ID_KEY);
+    }
+
+    // ============================================================
+    // PETICIONES A LA API
+    // ============================================================
+    async function apiFetch(endpoint, options = {}) {
+      const token = obtenerToken();
+      const headers = {
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Error ${response.status}`);
+      }
+
+      return response.json();
+    }
+
+    async function obtenerProyectos(clienteId) {
+      try {
+        return await apiFetch(`/clientes/${clienteId}/proyectos`);
+      } catch (error) {
+        console.error('Error obteniendo proyectos:', error);
+        return [];
+      }
+    }
+
+    // ============================================================
+    // OBTENER URL DEL PROYECTO
+    // ============================================================
+    async function obtenerUrlProyecto(proyectoId) {
+      try {
+        // Primero intentamos obtener el cliente_id del token
+        const token = obtenerToken();
+        if (!token) return null;
+
+        // Verificar token para obtener cliente_id
+        const data = await apiFetch('/verificar_token');
+        const clienteId = data.cliente?.id;
+        
+        if (!clienteId) return null;
+
+        // Obtener todos los proyectos del cliente
+        const proyectos = await obtenerProyectos(clienteId);
+        
+        // Buscar el proyecto por ID
+        const proyecto = proyectos.find(p => String(p.id) === String(proyectoId));
+        
+        if (proyecto && proyecto.url) {
+          return proyecto.url;
+        }
+        
+        return null;
+      } catch (error) {
+        console.error('Error obteniendo URL del proyecto:', error);
+        return null;
+      }
+    }
+
+    // ============================================================
+    // CONFIGURAR BOTÓN DE REPORTE
+    // ============================================================
+    async function configurarBotonReporte() {
+      const btnReporte = document.getElementById('btnReporte');
+      const proyectoId = obtenerProyectoId();
+
+      // Si no hay proyectoId, usar URL fija
+      if (!proyectoId) {
+        btnReporte.href = URL_FIJA;
+        btnReporte.disabled = false;
+        return;
+      }
+
+      try {
+        const url = await obtenerUrlProyecto(proyectoId);
+        
+        if (url && url.trim() !== '') {
+          // Tiene URL propia → usarla
+          btnReporte.href = url;
+          btnReporte.disabled = false;
+        } else {
+          // No tiene URL → usar la fija
+          btnReporte.href = URL_FIJA;
+          btnReporte.disabled = false;
+        }
+      } catch (error) {
+        // Si hay error, usar URL fija
+        btnReporte.href = URL_FIJA;
+        btnReporte.disabled = false;
+      }
+    }
+
+    // ============================================================
+    // FUNCIONES EXISTENTES (VOLVER, CERRAR SESIÓN, MODAL REVIT)
+    // ============================================================
     function getOrigen() {
-      // Detectar de dónde vino el usuario
       const referrer = document.referrer || '';
       if (referrer.includes('Portal_Cliente.html')) {
         return 'Portal_Cliente.html';
@@ -314,30 +438,32 @@
       if (referrer.includes('captura.html')) {
         return 'captura.html';
       }
+      // También verificar si venimos del Portal Administrador
+      if (referrer.includes('Portal_Administrador.html')) {
+        return 'Portal_Administrador.html';
+      }
       return null;
     }
 
-    // ============================================================
-    // VOLVER (sin cerrar sesión)
-    // ============================================================
     function volver() {
       const origen = getOrigen();
       if (origen) {
         window.location.href = origen;
       } else {
-        // Si no sabemos de dónde viene, intentamos con history.back()
         if (document.referrer) {
           window.history.back();
         } else {
-          // Último recurso: ir a Portal_Cliente.html
-          window.location.href = 'Portal_Cliente.html';
+          // Intentar ir a Portal_Cliente, si no, a index
+          if (localStorage.getItem('obra360_token')) {
+            // Si hay token, intentar ir a Portal_Cliente
+            window.location.href = 'Portal_Cliente.html';
+          } else {
+            window.location.href = 'index.html';
+          }
         }
       }
     }
 
-    // ============================================================
-    // CERRAR SESIÓN (limpiar todo y salir)
-    // ============================================================
     function cerrarSesion() {
       if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
         localStorage.clear();
@@ -365,7 +491,6 @@
         return;
       }
 
-      // Protocolo para abrir Revit
       const url = `revit://open?project=${encodeURIComponent(proyecto)}&view=${encodeURIComponent(vista)}`;
       window.location.href = url;
 
@@ -379,6 +504,9 @@
     (function init() {
       const nombre = localStorage.getItem('cliente_nombre') || 'Usuario';
       document.getElementById('user-info').textContent = '👤 ' + nombre;
+      
+      // Configurar el botón de reporte
+      configurarBotonReporte();
     })();
 
     // Cerrar modal con ESC
