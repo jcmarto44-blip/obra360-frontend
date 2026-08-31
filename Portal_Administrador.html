@@ -198,6 +198,54 @@
       display: inline-block;
       margin: 0.2rem 0.2rem;
     }
+    .proyecto-url-container {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.3rem;
+      margin-bottom: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .proyecto-url-container label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--admin-primary);
+      min-width: 40px;
+    }
+    .proyecto-url-container input {
+      flex: 1;
+      min-width: 180px;
+      padding: 0.25rem 0.5rem;
+      border: 1px solid #dce2eb;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      background: #fafbfc;
+      transition: border-color 0.2s;
+    }
+    .proyecto-url-container input:focus {
+      border-color: var(--admin-primary);
+      outline: none;
+      background: white;
+    }
+    .proyecto-url-container .btn-guardar-url {
+      background: var(--admin-primary);
+      color: white;
+      border: none;
+      padding: 0.2rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .proyecto-url-container .btn-guardar-url:hover {
+      background: #123a70;
+    }
+    .proyecto-url-container .btn-guardar-url:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
     .cliente-card .card-footer-custom {
       padding: 0.75rem 1.25rem;
       background: #fafbfc;
@@ -336,6 +384,8 @@
       .admin-header { padding: 1rem; }
       .admin-header h1 { font-size: 1.2rem; }
       .stats-card .number { font-size: 1.5rem; }
+      .proyecto-url-container { flex-wrap: wrap; }
+      .proyecto-url-container input { min-width: 120px; }
     }
   </style>
 </head>
@@ -553,7 +603,7 @@
     }
 
     // ============================================================
-    // VERIFICAR SESIÓN - CORREGIDO
+    // VERIFICAR SESIÓN
     // ============================================================
     async function verificarSesion() {
       const token = obtenerToken();
@@ -566,7 +616,6 @@
       try {
         const data = await apiFetch('/verificar_token');
         
-        // ✅ CORRECTO: Revisar si es admin por el usuario
         const esAdmin = data.cliente?.usuario === 'adminjc';
         
         if (!esAdmin) {
@@ -657,6 +706,21 @@
         });
       } catch (error) {
         console.error('Error creando proyecto:', error);
+        throw error;
+      }
+    }
+
+    // ============================================================
+    // NUEVA FUNCIÓN: ACTUALIZAR URL DE PROYECTO
+    // ============================================================
+    async function actualizarUrlProyecto(proyectoId, url) {
+      try {
+        return await apiFetch(`/admin/proyectos/${proyectoId}/url`, {
+          method: 'PUT',
+          body: JSON.stringify({ url: url })
+        });
+      } catch (error) {
+        console.error('Error actualizando URL:', error);
         throw error;
       }
     }
@@ -870,9 +934,26 @@
         let html = '<div class="row g-4">';
         for (const cliente of clientes) {
           const proyectos = cliente._proyectos || [];
-          const proyectosHtml = proyectos.length > 0
-            ? proyectos.map(p => `<span class="badge-proyecto">${p.nombre_proyecto}</span>`).join(' ')
-            : '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-folder-x me-1"></i>Sin proyectos</span>';
+          
+          // Construir HTML de proyectos con input URL y botón Guardar
+          let proyectosHtml = '';
+          if (proyectos.length > 0) {
+            proyectosHtml = proyectos.map(p => {
+              const urlValue = p.url || '';
+              return `
+                <div style="margin-top:0.5rem; border-top:1px solid #e9edf4; padding-top:0.5rem;">
+                  <span class="badge-proyecto">${p.nombre_proyecto}</span>
+                  <div class="proyecto-url-container">
+                    <label>URL:</label>
+                    <input type="text" class="url-input" data-proyecto-id="${p.id}" value="${urlValue}" placeholder="Pega la URL del reporte">
+                    <button class="btn-guardar-url" data-proyecto-id="${p.id}">Guardar</button>
+                  </div>
+                </div>
+              `;
+            }).join('');
+          } else {
+            proyectosHtml = '<span class="text-muted" style="font-size:0.85rem;"><i class="bi bi-folder-x me-1"></i>Sin proyectos</span>';
+          }
 
           const estadoLabel = cliente.activo ? '✅ Activo' : '⛔ Inactivo';
           const estadoBadge = cliente.activo ? 'badge-activo' : 'badge-inactivo';
@@ -932,6 +1013,48 @@
         }
         html += '</div>';
         contenedor.innerHTML = html;
+
+        // ============================================================
+        // EVENTOS PARA GUARDAR URL CON BOTÓN
+        // ============================================================
+        document.querySelectorAll('.btn-guardar-url').forEach(btn => {
+          btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const proyectoId = this.dataset.proyectoId;
+            const input = document.querySelector(`.url-input[data-proyecto-id="${proyectoId}"]`);
+            const url = input.value.trim();
+            
+            if (!url) {
+              mostrarToast('⚠️ Ingresa una URL antes de guardar.', 'error');
+              return;
+            }
+
+            this.disabled = true;
+            this.textContent = 'Guardando...';
+
+            try {
+              await actualizarUrlProyecto(proyectoId, url);
+              mostrarToast('✅ URL guardada correctamente.');
+            } catch (error) {
+              mostrarToast('❌ Error al guardar la URL: ' + error.message, 'error');
+            } finally {
+              this.disabled = false;
+              this.textContent = 'Guardar';
+            }
+          });
+        });
+
+        // Guardar al presionar Enter en el input
+        document.querySelectorAll('.url-input').forEach(input => {
+          input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const btn = document.querySelector(`.btn-guardar-url[data-proyecto-id="${this.dataset.proyectoId}"]`);
+              if (btn) btn.click();
+            }
+          });
+        });
+
       } catch (error) {
         contenedor.innerHTML = `
           <div class="empty-state text-danger">
