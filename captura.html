@@ -1290,10 +1290,6 @@ function construirModuloHTML(modKey){
   const mod = MODULOS[modKey];
   if(!mod) return "";
   
-  // Verificar si el usuario es administrador
-  const usuarioActual = localStorage.getItem("obra360_usuario") || "desconocido";
-  const esAdmin = usuarioActual === "adminjc";
-  
   if(mod.subtabs){
     let html = `
       <div class="module" id="mod-${modKey}" data-mod="${modKey}">
@@ -1315,19 +1311,12 @@ function construirModuloHTML(modKey){
       const st = mod.subtabs[stKey];
       const active = idx===0 ? "active" : "";
       const cols = st.columnas.filter(c=>!c.hidden);
-      
-      // Botón Vaciar tabla solo para Admin
-      let botonVaciar = "";
-      if (esAdmin) {
-        botonVaciar = `<button onclick="vaciarTablaSubtab('${modKey}','${stKey}')" style="color:#a72e21;">🧹 Vaciar tabla</button>`;
-      }
-      
       html += `
         <div class="subtab-content ${active}" id="sub-${modKey}-${stKey}">
           <div class="toolbar">
             <button onclick="agregarFilaSubtab('${modKey}','${stKey}')">➕ Nueva fila</button>
             <button onclick="eliminarUltimaFilaSubtab('${modKey}','${stKey}')">🗑 Eliminar última fila</button>
-            ${botonVaciar}
+            <button onclick="vaciarTablaSubtab('${modKey}','${stKey}')" style="color:#a72e21;">🧹 Vaciar tabla</button>
             <div class="sep"></div>
             <input type="text" placeholder="Buscar..." oninput="filtrarTablaSubtab('${modKey}','${stKey}', this.value)">
             <div class="status"><span class="dot"></span> Listo</div>
@@ -1349,13 +1338,6 @@ function construirModuloHTML(modKey){
   }
   
   const cols = mod.columnas.filter(c=>!c.hidden);
-  
-  // Botón Vaciar tabla solo para Admin
-  let botonVaciar = "";
-  if (esAdmin) {
-    botonVaciar = `<button onclick="vaciarTabla('${modKey}')" style="color:#a72e21;">🧹 Vaciar tabla</button>`;
-  }
-  
   let html = `
     <div class="module" id="mod-${modKey}" data-mod="${modKey}">
       <div class="module-title-row">
@@ -1367,7 +1349,7 @@ function construirModuloHTML(modKey){
       <div class="toolbar">
         <button onclick="agregarFila('${modKey}')">➕ Nueva fila</button>
         <button onclick="eliminarUltimaFila('${modKey}')">🗑 Eliminar última fila</button>
-        ${botonVaciar}
+        <button onclick="vaciarTabla('${modKey}')" style="color:#a72e21;">🧹 Vaciar tabla</button>
         <div class="sep"></div>
         <input type="text" placeholder="Buscar..." oninput="filtrarTabla('grid-${modKey}', this.value)">
         <div class="status"><span class="dot"></span> Listo</div>
@@ -1586,6 +1568,26 @@ Object.keys(MODULOS).forEach(modKey=>{
     renderModulo(modKey);
   }
 });
+
+/* =====================================================================
+   FUNCIÓN PARA OCULTAR EL BOTÓN "VACIAR TABLA" PARA USUARIOS NO ADMIN
+   ===================================================================== */
+function ocultarBotonVaciarParaNoAdmin() {
+  const usuarioActual = localStorage.getItem("obra360_usuario") || "desconocido";
+  const esAdmin = usuarioActual === "adminjc";
+  
+  if (!esAdmin) {
+    // Buscar todos los botones que contienen "🧹 Vaciar tabla" y ocultarlos
+    document.querySelectorAll('button[style*="color:#a72e21;"]').forEach(btn => {
+      if (btn.textContent.includes("🧹 Vaciar tabla")) {
+        btn.style.display = "none";
+      }
+    });
+  }
+}
+
+// Ejecutar después de que se construyan los módulos
+setTimeout(ocultarBotonVaciarParaNoAdmin, 100);
 
 /* =====================================================================
    CARGA REAL DE DATOS GUARDADOS (Supabase Storage, vía /reporte)
