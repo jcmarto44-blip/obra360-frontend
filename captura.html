@@ -718,6 +718,8 @@ const LABELS_DATOS_INICIO = {
   monto:"Monto Total", ejercido:"Ejercido", disponible:"Disponible"
 };
 
+const CAMPOS_TIPO_FECHA = new Set(["inicio", "fin"]);
+
 async function cargarDatosInicio(){
   const proyecto = localStorage.getItem("obra360_proyecto_nombre");
   const token = localStorage.getItem("obra360_token");
@@ -730,7 +732,7 @@ async function cargarDatosInicio(){
     if(!resp.ok){
       CAMPOS_DATOS_INICIO.forEach(c=>{
         const el = document.getElementById("dato-"+c);
-        if(el) el.value = "—";
+        if(el) el.value = CAMPOS_TIPO_FECHA.has(c) ? "" : "—";
       });
       return;
     }
@@ -738,7 +740,9 @@ async function cargarDatosInicio(){
     const fila = (data.data && data.data[0]) || {};
     CAMPOS_DATOS_INICIO.forEach(c=>{
       const el = document.getElementById("dato-"+c);
-      if(el) el.value = fila[LABELS_DATOS_INICIO[c]] || "—";
+      if(!el) return;
+      const valor = fila[LABELS_DATOS_INICIO[c]];
+      el.value = valor || (CAMPOS_TIPO_FECHA.has(c) ? "" : "—");
     });
   }catch(err){
     console.error("No se pudieron cargar los Datos Generales:", err);
@@ -899,6 +903,7 @@ const MODULOS = {
     label:"Control Presupuestal",
     endpoint:"control_presupuestal",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"nombre", label:"Nombre / Familia / Elemento"},
       {key:"inicio", label:"Inicio", tipo:"fecha"},
@@ -916,12 +921,12 @@ const MODULOS = {
     datos:[]
   },
 
-  /* ===== NUEVO MÓDULO EVM ===== */
   evm: {
     label:"EVM",
     endpoint:"evm",
     columnas:[
       {key:"element_id", label:"element_id", hidden:true},
+      {key:"numero", label:"Número", esLlave:true},
       {key:"type_name", label:"type_name"},
       {key:"fecha_inicio", label:"fecha inicio", tipo:"fecha"},
       {key:"fecha_fin", label:"fecha fin", tipo:"fecha"},
@@ -939,6 +944,7 @@ const MODULOS = {
     label:"Materiales",
     endpoint:"materiales",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"categoria", label:"Categoría", tipo:"select", opciones:["Terracerías","Obra Negra - Cimentación","Obra Negra - Edificación"]},
       {key:"concepto", label:"Concepto"},
@@ -954,6 +960,7 @@ const MODULOS = {
     label:"Mano de Obra",
     endpoint:"mano_obra",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"concepto", label:"Concepto", tipo:"select", opciones:[
         "Habilitado Acero de Refuerzo (KG)","Cimbra Zapatas/Pedestales/Dados/CT/Pilas (M2)",
@@ -974,6 +981,7 @@ const MODULOS = {
     label:"Control de Calidad",
     endpoint:"calidad",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"nombre", label:"Nombre"},
       {key:"clave", label:"Clave"},
@@ -999,6 +1007,7 @@ const MODULOS = {
     label:"Control de Pedidos",
     endpoint:"control_pedidos",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"no_pedido", label:"No. Pedido"},
       {key:"proveedor", label:"Proveedor"},
@@ -1018,6 +1027,7 @@ const MODULOS = {
     label:"Requisiciones",
     endpoint:"requisiciones",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"no", label:"Nº"},
       {key:"descripcion", label:"Descripción"},
@@ -1035,6 +1045,7 @@ const MODULOS = {
     label:"Órdenes de Compra",
     endpoint:"ordenes_compra",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"orden_compra", label:"ORDEN DE COMPRA"},
       {key:"presup", label:"PRESUP."},
@@ -1055,6 +1066,7 @@ const MODULOS = {
     label:"Pago a Proveedores y Contratistas",
     endpoint:"pago_proveedores",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"proveedor", label:"Proveedor / Contratista"},
       {key:"no_proveedor", label:"N° Proveedor"},
@@ -1073,6 +1085,7 @@ const MODULOS = {
     label:"Estimaciones",
     endpoint:"estimaciones",
     columnas:[
+      {key:"numero", label:"Número", esLlave:true},
       {key:"id", label:"ID", hidden:true},
       {key:"estimacion_no", label:"Estimación #"},
       {key:"numero_factura", label:"Número de Factura"},
@@ -1303,6 +1316,7 @@ function construirModuloHTML(modKey){
           <div class="toolbar">
             <button onclick="agregarFilaSubtab('${modKey}','${stKey}')">➕ Nueva fila</button>
             <button onclick="eliminarUltimaFilaSubtab('${modKey}','${stKey}')">🗑 Eliminar última fila</button>
+            <button onclick="vaciarTablaSubtab('${modKey}','${stKey}')" style="color:#a72e21;">🧹 Vaciar tabla</button>
             <div class="sep"></div>
             <input type="text" placeholder="Buscar..." oninput="filtrarTablaSubtab('${modKey}','${stKey}', this.value)">
             <div class="status"><span class="dot"></span> Listo</div>
@@ -1335,6 +1349,7 @@ function construirModuloHTML(modKey){
       <div class="toolbar">
         <button onclick="agregarFila('${modKey}')">➕ Nueva fila</button>
         <button onclick="eliminarUltimaFila('${modKey}')">🗑 Eliminar última fila</button>
+        <button onclick="vaciarTabla('${modKey}')" style="color:#a72e21;">🧹 Vaciar tabla</button>
         <div class="sep"></div>
         <input type="text" placeholder="Buscar..." oninput="filtrarTabla('grid-${modKey}', this.value)">
         <div class="status"><span class="dot"></span> Listo</div>
@@ -1451,6 +1466,18 @@ function renderSubtab(modKey, stKey){
   }
   const visibleEl = document.getElementById(`visible-${modKey}-${stKey}`);
   if(visibleEl) visibleEl.textContent = st.datos.length;
+}
+
+function vaciarTabla(modKey){
+  if(!confirm("¿Seguro que quieres borrar TODAS las filas de este módulo? Esto no se puede deshacer hasta que guardes de nuevo.")) return;
+  MODULOS[modKey].datos.length = 0;
+  renderModulo(modKey);
+}
+
+function vaciarTablaSubtab(modKey, stKey){
+  if(!confirm("¿Seguro que quieres borrar TODAS las filas de esta subtab?")) return;
+  MODULOS[modKey].subtabs[stKey].datos.length = 0;
+  renderSubtab(modKey, stKey);
 }
 
 function actualizarCelda(modKey, ridx, key, val){
@@ -1573,111 +1600,41 @@ async function cargarModuloDesdeServidor(tab){
     const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto=${proyParam}`, {
       headers: token ? { "Authorization": `Bearer ${token}` } : {}
     });
-    if(!resp.ok) return;
-    const data = await resp.json();
-    if(!data || !Array.isArray(data.data)) return;
-
-    const nuevasFilas = data.data.map(record => {
-      const row = {};
-      cols.forEach(c=>{
-        if(c.calculado) return;
-        const val = record[c.label];
-        row[c.key] = (c.tipo === "num")
-          ? (val === "" || val === undefined || val === null ? "" : Number(val))
-          : val;
-      });
-      return row;
-    });
-
-    // Para Costo Plan: actualizar conceptos existentes, agregar nuevos si no existen
-    if (tab === "costo_plan" && mod.subtabs) {
-      // Procesar Partidas
-      const partidasSt = mod.subtabs.partidas;
-      const partidasCols = partidasSt.columnas;
-      const partidasTarget = partidasSt.datos;
-      
-      // Crear un mapa de conceptos existentes
-      const conceptosMap = new Map();
-      partidasTarget.forEach(row => {
-        conceptosMap.set(row.concepto, row);
-      });
-      
-      // Procesar cada fila importada
-      nuevasFilas.forEach(row => {
-        const concepto = row.concepto;
-        if (concepto) {
-          if (conceptosMap.has(concepto)) {
-            // Actualizar existente
-            const existing = conceptosMap.get(concepto);
-            partidasCols.forEach(c => {
-              if (c.key !== 'concepto' && row[c.key] !== undefined) {
-                existing[c.key] = row[c.key];
-              }
-            });
-          } else {
-            // Agregar nuevo concepto
-            const newRow = {};
-            partidasCols.forEach(c => {
-              newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
-            });
-            // Insertar antes de "SUMA CONSTRUCCION + EE"
-            const sumaIndex = partidasTarget.findIndex(r => r.concepto === "SUMA CONSTRUCCION + EE");
-            if (sumaIndex !== -1) {
-              partidasTarget.splice(sumaIndex, 0, newRow);
-            } else {
-              partidasTarget.push(newRow);
-            }
-            conceptosMap.set(concepto, newRow);
-          }
-        }
-      });
-      
-      // Procesar Cuadro Informativo
-      const cuadroSt = mod.subtabs.indicadores;
-      const cuadroCols = cuadroSt.columnas;
-      const cuadroTarget = cuadroSt.datos;
-      const cuadroMap = new Map();
-      cuadroTarget.forEach(row => {
-        cuadroMap.set(row.concepto, row);
-      });
-      
-      // Buscar filas de cuadro en los datos importados (si vienen en el mismo CSV)
-      // Para simplificar, si el CSV tiene columnas de cuadro, las procesamos
-      nuevasFilas.forEach(row => {
-        const concepto = row.concepto;
-        if (concepto && cuadroMap.has(concepto)) {
-          const existing = cuadroMap.get(concepto);
-          cuadroCols.forEach(c => {
-            if (c.key !== 'concepto' && c.key !== 'unidad' && row[c.key] !== undefined) {
-              existing[c.key] = row[c.key];
-            }
+    
+    if(resp.ok){
+      const data = await resp.json();
+      if(data && Array.isArray(data.data)){
+        const nuevasFilas = data.data.map(record => {
+          const row = {};
+          cols.forEach(c=>{
+            if(c.calculado) return;
+            const val = record[c.label];
+            row[c.key] = (c.tipo === "num")
+              ? (val === "" || val === undefined || val === null ? "" : Number(val))
+              : val;
           });
-        } else if (concepto && !cuadroMap.has(concepto) && row.unidad) {
-          // Agregar nuevo concepto al cuadro
-          const newRow = {};
-          cuadroCols.forEach(c => {
-            newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
-          });
-          cuadroTarget.push(newRow);
-          cuadroMap.set(concepto, newRow);
-        }
-      });
-      
-      renderSubtab(tab, 'partidas');
-      renderSubtab(tab, 'indicadores');
-      return;
+          return row;
+        });
+        targetDatos.length = 0;
+        targetDatos.push(...nuevasFilas);
+      }
+    } else if(resp.status !== 404) {
+      console.warn("Error al cargar datos del módulo", tab, ":", resp.status);
     }
-
-    targetDatos.length = 0;
-    targetDatos.push(...nuevasFilas);
-
+    
     if(mod.subtabs){
       renderSubtab(tab, stKeyParaRender);
     } else {
       renderModulo(tab);
     }
+    
   }catch(err){
     console.error("No se pudo cargar datos guardados para " + tab + ":", err);
+    if(mod.subtabs){
+      renderSubtab(tab, stKeyParaRender);
+    } else {
+      renderModulo(tab);
+    }
   }
 }
 
@@ -1711,6 +1668,7 @@ function navegarA(tab){
     return;
   }
 
+  moduloDataCargada.delete(tab);
   cargarModuloDesdeServidor(tab);
 }
 
@@ -1743,9 +1701,9 @@ document.getElementById("file-importar").addEventListener("change", (e)=>{
   if(!file) return;
   const reader = new FileReader();
   reader.onload = (evt)=>{
-    const wb = XLSX.read(evt.target.result, {type:"binary"});
+    const wb = XLSX.read(evt.target.result, {type:"binary", cellDates:true});
     const hoja = wb.Sheets[wb.SheetNames[0]];
-    const filas = XLSX.utils.sheet_to_json(hoja, {header:1, defval:""});
+    const filas = XLSX.utils.sheet_to_json(hoja, {header:1, defval:"", raw:false, dateNF:"yyyy-mm-dd"});
     if(filas.length<1){ alert("El archivo no tiene datos."); return; }
     encabezadosArchivo = filas[0];
     filasArchivo = filas.slice(1);
@@ -1798,12 +1756,14 @@ function confirmarMapeo(){
   const mod = MODULOS[moduloActivo];
   if(!mod){ cerrarModalMapeo(); return; }
   
-  let target;
+  let target, cols;
   if(mod.subtabs){
     const stKey = subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0];
     target = mod.subtabs[stKey];
+    cols = target.columnas;
   } else {
     target = mod;
+    cols = mod.columnas;
   }
   
   const selects = document.querySelectorAll("#modal-mapeo-body select");
@@ -1897,6 +1857,42 @@ function confirmarMapeo(){
     return;
   }
   
+  // ===== NUEVO: Emparejamiento por columna llave (numero) =====
+  const columnaLlave = cols.find(c => c.esLlave)?.key;
+  
+  if (columnaLlave && nuevasFilas.some(f => f[columnaLlave] !== undefined && f[columnaLlave] !== "")) {
+    const indice = new Map();
+    target.datos.forEach((row, i) => {
+      if (row[columnaLlave] !== undefined && row[columnaLlave] !== "") {
+        indice.set(String(row[columnaLlave]).trim(), i);
+      }
+    });
+    
+    let actualizadas = 0, nuevas = 0;
+    nuevasFilas.forEach(fila => {
+      const llave = String(fila[columnaLlave] ?? "").trim();
+      if (llave === "") return;
+      const idx = indice.get(llave);
+      if (idx !== undefined) {
+        Object.keys(fila).forEach(k => { target.datos[idx][k] = fila[k]; });
+        actualizadas++;
+      } else {
+        target.datos.push(fila);
+        nuevas++;
+      }
+    });
+    
+    if(mod.subtabs){
+      renderSubtab(moduloActivo, subtabActivo[moduloActivo] || Object.keys(mod.subtabs)[0]);
+    } else {
+      renderModulo(moduloActivo);
+    }
+    cerrarModalMapeo();
+    alert(`✅ ${actualizadas} fila(s) actualizadas.` + (nuevas ? ` ➕ ${nuevas} fila(s) nuevas agregadas (número sin coincidencia previa).` : ""));
+    return;
+  }
+  
+  // ===== Comportamiento anterior: si no hay clave, se apila =====
   target.datos.push(...nuevasFilas);
   
   if(mod.subtabs){
