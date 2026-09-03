@@ -1953,14 +1953,18 @@ function confirmarMapeo(){
     return;
   }
 
-  // ===== NUEVO: emparejamiento por columna "Número" (o cualquier columna marcada esLlave)
+  // ===== Emparejamiento por columna "Número" (o cualquier columna marcada esLlave)
   // Si el archivo importado trae esa columna, ACTUALIZA la fila existente que coincida
   // (rellena solo las columnas que trae el archivo) en vez de duplicarla al final.
-  // Si el número no existe todavía en la tabla, se agrega como fila nueva. =====
+  // Si el número no existe todavía en la tabla, se agrega como fila nueva.
+  // A PROPÓSITO: las filas SIN Número en el archivo se RECHAZAN (no se importan) —
+  // esto es intencional: sirve como validación para detectar archivos incompletos.
+  // El resumen final siempre reporta cuántas se rechazaron y por qué, para que
+  // nunca sea un misterio por qué el total no cuadra con lo esperado. =====
   const columnaLlaveObj = cols.find(c => c.esLlave);
   const columnaLlave = columnaLlaveObj?.key;
 
-  if (columnaLlave && nuevasFilas.some(f => f[columnaLlave] !== undefined && String(f[columnaLlave]).trim() !== "")) {
+  if (columnaLlave) {
     const indice = new Map();
     target.datos.forEach((row, i) => {
       if (row[columnaLlave] !== undefined && String(row[columnaLlave]).trim() !== "") {
@@ -1968,10 +1972,15 @@ function confirmarMapeo(){
       }
     });
 
-    let actualizadas = 0, nuevas = 0;
-    nuevasFilas.forEach(fila => {
+    let actualizadas = 0, nuevas = 0, rechazadasSinNumero = 0;
+    const numerosRechazados = [];
+    nuevasFilas.forEach((fila, i) => {
       const llave = String(fila[columnaLlave] ?? "").trim();
-      if (llave === "") { return; } // sin número, se ignora esa fila (no se puede emparejar)
+      if (llave === "") {
+        rechazadasSinNumero++;
+        if (numerosRechazados.length < 10) numerosRechazados.push(`fila ${i + 1} del archivo`);
+        return; // se rechaza a propósito: no se importa esta fila
+      }
       const idx = indice.get(llave);
       if (idx !== undefined) {
         // Fusiona SOLO las columnas que trae el archivo; conserva el resto intacto
@@ -1992,8 +2001,19 @@ function confirmarMapeo(){
       renderModulo(moduloActivo);
     }
     cerrarModalMapeo();
-    alert(`✅ ${actualizadas} fila(s) actualizadas correctamente.` +
-          (nuevas ? ` ➕ ${nuevas} fila(s) nuevas agregadas (sin "${columnaLlaveObj.label}" coincidente previamente).` : ""));
+
+    const totalArchivo = nuevasFilas.length;
+    const totalImportado = actualizadas + nuevas;
+    let msg = `📄 El archivo traía ${totalArchivo} fila(s) con datos.\n`;
+    msg += `✅ ${actualizadas} fila(s) actualizadas correctamente.\n`;
+    if (nuevas) msg += `➕ ${nuevas} fila(s) nuevas agregadas.\n`;
+    if (rechazadasSinNumero) {
+      msg += `⚠️ ${rechazadasSinNumero} fila(s) RECHAZADAS por no traer "${columnaLlaveObj.label}" (ej: ${numerosRechazados.join(", ")}${rechazadasSinNumero > numerosRechazados.length ? ", ..." : ""}).\n`;
+      msg += `Revisa tu archivo: total importado ${totalImportado} de ${totalArchivo} filas.`;
+    } else {
+      msg += `Total importado: ${totalImportado} de ${totalArchivo} filas. ✔️ Coincide completo.`;
+    }
+    alert(msg);
     return;
   }
 
