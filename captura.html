@@ -417,8 +417,8 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
   background: #218838;
 }
 .as-tool-btn.as-tool-activa {
-  background: #FF6B00 !important;
-  border-color: #FF6B00 !important;
+  background: #000 !important;
+  border-color: #000 !important;
 }
 .as-panel-visor .fotos-zona-grid {
   display: grid;
@@ -848,23 +848,23 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <div id="visor-pdf-container" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;z-index:9999;flex-direction:column;">
   <div style="background:#16213e;padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;border-bottom:2px solid #0f3460;min-height:52px;">
     <div id="as-toolbar-dibujo" style="display:none;gap:6px;align-items:center;flex-wrap:wrap;">
-      <button id="as-btn-modo-seleccionar" onclick="cambiarHerramientaAvanceSemanal('select')" class="as-tool-btn as-tool-activa" style="background:#0f3460;color:#fff;border:1px solid #1b4b8f;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+      <button id="as-btn-modo-seleccionar" onclick="cambiarHerramientaAvanceSemanal('select')" class="as-tool-btn as-tool-activa" style="background:#333;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
         <i class="bi bi-cursor"></i> Seleccionar
       </button>
-      <button id="as-btn-modo-poligono" onclick="cambiarHerramientaAvanceSemanal('poligono')" class="as-tool-btn" style="background:#0f3460;color:#fff;border:1px solid #1b4b8f;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+      <button id="as-btn-modo-poligono" onclick="cambiarHerramientaAvanceSemanal('poligono')" class="as-tool-btn" style="background:#333;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
         <i class="bi bi-pentagon"></i> Dibujar Zona
       </button>
-      <button id="as-btn-guardar-zona" onclick="guardarZonaPoligono()" style="display:none;background:#28a745;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+      <button id="as-btn-guardar-zona" onclick="guardarZonaPoligono()" style="display:none;background:#000;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
         <i class="bi bi-check-lg"></i> Guardar Zona
       </button>
-      <button id="as-btn-cancelar-zona" onclick="cancelarDibujoZona()" style="display:none;background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+      <button id="as-btn-cancelar-zona" onclick="cancelarDibujoZona()" style="display:none;background:#fff;color:#000;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
-      <span id="as-instruccion-dibujo" style="color:#f0ad4e;font-size:10.5px;display:none;">
+      <span id="as-instruccion-dibujo" style="color:#ccc;font-size:10.5px;display:none;">
         Da clic para poner puntos. Mínimo 3. Doble clic o "Guardar Zona" para terminar.
       </span>
     </div>
-    <button onclick="cerrarVisorCompleto()" style="background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;">
+    <button onclick="cerrarVisorCompleto()" style="background:#000;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;">
       <i class="bi bi-x-lg"></i> Cerrar
     </button>
   </div>
