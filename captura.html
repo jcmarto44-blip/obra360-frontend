@@ -474,6 +474,16 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
   #mod-inicio .modulos-grid{grid-template-columns:1fr;}
   .toolbar input[type="text"]{width:120px;}
 }
+
+/* ===== CORRECCIÓN: EVITA QUE EL PDF INTERCEPTE CLICS ===== */
+#pdf-canvas {
+  pointer-events: none !important;
+}
+#fabric-canvas {
+  pointer-events: auto !important;
+}
+/* ===== FIN CORRECCIÓN ===== */
+
 </style>
 </head>
 <body>
