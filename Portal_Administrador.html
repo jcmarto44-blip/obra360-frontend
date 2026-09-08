@@ -387,6 +387,81 @@
       .proyecto-url-container { flex-wrap: wrap; }
       .proyecto-url-container input { min-width: 120px; }
     }
+
+    /* ============================================================
+       NUEVO: PERMISOS DE ACCESO POR CLIENTE
+       (Avance Semanal / Ver Reporte / Ver Modelo 3D)
+       ============================================================ */
+    .permisos-box {
+      margin-top: 0.75rem;
+      border-top: 1px solid #e9edf4;
+      padding-top: 0.6rem;
+    }
+    .permisos-box .permisos-titulo {
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: var(--admin-primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .permisos-box .form-check {
+      margin-bottom: 2px;
+    }
+    .permisos-box .form-check-label {
+      font-size: 0.8rem;
+      color: #3d4a5a;
+    }
+    .btn-guardar-permisos {
+      background: var(--admin-primary);
+      color: white;
+      border: none;
+      padding: 0.25rem 0.9rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 4px;
+    }
+    .btn-guardar-permisos:hover {
+      background: #123a70;
+    }
+    .btn-guardar-permisos:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ============================================================
+       NUEVO: MODAL DE CREACIÓN DE CLIENTE (reemplaza los prompt())
+       ============================================================ */
+    .modal-crear-cliente-box {
+      background:#fff; width:100%; max-width:460px; border-radius:12px;
+      box-shadow:0 20px 60px rgba(0,0,0,.3); overflow:hidden;
+    }
+    .modal-crear-cliente-body {
+      padding: 20px;
+    }
+    .modal-crear-cliente-body label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #3d4a5a;
+      margin-bottom: 3px;
+      display: block;
+    }
+    .permisos-contratados-box {
+      background: var(--admin-primary-light);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin: 10px 0 14px;
+    }
+    .permisos-contratados-box .titulo {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--admin-primary);
+      margin-bottom: 6px;
+    }
   </style>
 </head>
 <body>
@@ -523,6 +598,51 @@
     </div>
   </div>
 
+  <!-- ============================================================
+       NUEVO: MODAL DE CREACIÓN DE CLIENTE CON PERMISOS
+       ============================================================ -->
+  <div class="modal-bitacora-overlay" id="modal-crear-cliente">
+    <div class="modal-crear-cliente-box">
+      <div class="modal-bitacora-head">
+        <div><h3><i class="bi bi-person-plus me-2"></i>Nuevo Cliente</h3></div>
+        <button class="btn-close-bitacora" onclick="cerrarModalCrearCliente()"><i class="bi bi-x-lg"></i></button>
+      </div>
+      <div class="modal-crear-cliente-body">
+        <label for="nc-nombre">Nombre del Cliente</label>
+        <input type="text" id="nc-nombre" class="form-control form-control-sm mb-2" placeholder="ej. Coppel, ALSUPER, Prologis">
+
+        <label for="nc-modelo">Modelo de gestión</label>
+        <input type="text" id="nc-modelo" class="form-control form-control-sm mb-2" placeholder="desarrollador, constructora, admin...">
+
+        <label for="nc-usuario">Usuario</label>
+        <input type="text" id="nc-usuario" class="form-control form-control-sm mb-2" placeholder="Usuario de acceso">
+
+        <label for="nc-password">Contraseña</label>
+        <input type="password" id="nc-password" class="form-control form-control-sm mb-2" placeholder="Contraseña">
+
+        <div class="permisos-contratados-box">
+          <div class="titulo"><i class="bi bi-shield-check me-1"></i>Accesos contratados</div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="nc-avance-semanal">
+            <label class="form-check-label" for="nc-avance-semanal">📅 Avance Semanal (PDF + zonas + fotos)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="nc-ver-reporte">
+            <label class="form-check-label" for="nc-ver-reporte">📊 Ver Reporte (Power BI)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="nc-modelo-3d">
+            <label class="form-check-label" for="nc-modelo-3d">🧊 Ver Modelo 3D (Revit)</label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100 fw-bold" onclick="confirmarCrearCliente()">
+          <i class="bi bi-check2-circle me-1"></i>Crear Cliente
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ============================================================
     // CONFIGURACIÓN
@@ -646,16 +766,11 @@
       }
     }
 
-    async function crearCliente(nombre, modeloGestion, usuario, password) {
+    async function crearCliente(datosCliente) {
       try {
         return await apiFetch('/admin/clientes', {
           method: 'POST',
-          body: JSON.stringify({
-            nombre,
-            modelo_gestion: modeloGestion,
-            usuario,
-            password
-          })
+          body: JSON.stringify(datosCliente)
         });
       } catch (error) {
         console.error('Error creando cliente:', error);
@@ -682,6 +797,22 @@
         });
       } catch (error) {
         console.error('Error cambiando estado:', error);
+        throw error;
+      }
+    }
+
+    // ============================================================
+    // NUEVO: ACTUALIZAR PERMISOS DE ACCESO DEL CLIENTE
+    // (Avance Semanal / Ver Reporte / Ver Modelo 3D)
+    // ============================================================
+    async function actualizarPermisosCliente(clienteId, permisos) {
+      try {
+        return await apiFetch(`/admin/clientes/${clienteId}/permisos`, {
+          method: 'PUT',
+          body: JSON.stringify(permisos)
+        });
+      } catch (error) {
+        console.error('Error actualizando permisos:', error);
         throw error;
       }
     }
@@ -959,6 +1090,37 @@
           const estadoBadge = cliente.activo ? 'badge-activo' : 'badge-inactivo';
           const modeloLabel = cliente.modelo_gestion || 'Cliente';
 
+          // ============================================================
+          // NUEVO: bloque de permisos de acceso (Avance Semanal / Ver
+          // Reporte / Modelo 3D) — el admin decide qué contrató el cliente
+          // ============================================================
+          const permisosHtml = `
+            <div class="permisos-box">
+              <div class="permisos-titulo"><i class="bi bi-shield-check"></i>Accesos contratados</div>
+              <div class="form-check">
+                <input class="form-check-input permiso-checkbox" type="checkbox"
+                       id="perm-as-${cliente.id}" data-cliente-id="${cliente.id}" data-permiso="acceso_avance_semanal"
+                       ${cliente.acceso_avance_semanal ? 'checked' : ''}>
+                <label class="form-check-label" for="perm-as-${cliente.id}">📅 Avance Semanal (PDF + zonas + fotos)</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input permiso-checkbox" type="checkbox"
+                       id="perm-vr-${cliente.id}" data-cliente-id="${cliente.id}" data-permiso="acceso_ver_reporte"
+                       ${cliente.acceso_ver_reporte ? 'checked' : ''}>
+                <label class="form-check-label" for="perm-vr-${cliente.id}">📊 Ver Reporte (Power BI)</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input permiso-checkbox" type="checkbox"
+                       id="perm-m3d-${cliente.id}" data-cliente-id="${cliente.id}" data-permiso="acceso_modelo_3d"
+                       ${cliente.acceso_modelo_3d ? 'checked' : ''}>
+                <label class="form-check-label" for="perm-m3d-${cliente.id}">🧊 Ver Modelo 3D (Revit)</label>
+              </div>
+              <button class="btn-guardar-permisos" data-cliente-id-guardar="${cliente.id}">
+                <i class="bi bi-check2 me-1"></i>Guardar accesos
+              </button>
+            </div>
+          `;
+
           html += `
             <div class="col-md-6 col-xl-4">
               <div class="cliente-card">
@@ -990,6 +1152,7 @@
                     <strong style="font-size:0.8rem;color:#6c7a8a;">Proyectos:</strong><br>
                     ${proyectosHtml}
                   </div>
+                  ${permisosHtml}
                 </div>
                 <div class="card-footer-custom">
                   <button class="btn btn-outline-primary btn-sm-custom" onclick="verDetalle('${cliente.id}')">
@@ -1051,6 +1214,37 @@
               e.preventDefault();
               const btn = document.querySelector(`.btn-guardar-url[data-proyecto-id="${this.dataset.proyectoId}"]`);
               if (btn) btn.click();
+            }
+          });
+        });
+
+        // ============================================================
+        // NUEVO: EVENTOS PARA GUARDAR PERMISOS DE ACCESO POR CLIENTE
+        // ============================================================
+        document.querySelectorAll('.btn-guardar-permisos').forEach(btn => {
+          btn.addEventListener('click', async function(e) {
+            e.stopPropagation();
+            const clienteId = this.dataset.clienteIdGuardar;
+            const checks = document.querySelectorAll(`.permiso-checkbox[data-cliente-id="${clienteId}"]`);
+            const permisos = {
+              acceso_avance_semanal: false,
+              acceso_ver_reporte: false,
+              acceso_modelo_3d: false
+            };
+            checks.forEach(chk => { permisos[chk.dataset.permiso] = chk.checked; });
+
+            this.disabled = true;
+            const textoOriginal = this.innerHTML;
+            this.innerHTML = 'Guardando...';
+
+            try {
+              await actualizarPermisosCliente(clienteId, permisos);
+              mostrarToast('✅ Accesos actualizados correctamente.');
+            } catch (error) {
+              mostrarToast('❌ Error actualizando accesos: ' + error.message, 'error');
+            } finally {
+              this.disabled = false;
+              this.innerHTML = textoOriginal;
             }
           });
         });
@@ -1150,33 +1344,50 @@
     // ============================================================
     // ACCIONES
     // ============================================================
-    async function agregarCliente() {
-      const nombre = prompt('Nombre del Cliente (ej. Coppel, ALSUPER, Prologis):');
-      if (!nombre) return;
-      
-      const modeloGestion = prompt('Modelo de gestión (ej. desarrollador, constructora, admin):') || 'desarrollador';
-      const usuario = prompt('Usuario para el cliente:');
-      if (!usuario) return;
-      
-      const password = prompt('Contraseña:');
-      if (!password) return;
 
-      const confirmar = confirm(
-        `⚠️ CONFIRMA LOS DATOS DEL CLIENTE:\n\n` +
-        `Nombre: ${nombre}\n` +
-        `Modelo: ${modeloGestion}\n` +
-        `Usuario: ${usuario}\n\n` +
-        `¿Son correctos?`
-      );
+    // ============================================================
+    // NUEVO: MODAL DE CREACIÓN DE CLIENTE (reemplaza los prompt())
+    // ============================================================
+    function agregarCliente() {
+      document.getElementById('nc-nombre').value = '';
+      document.getElementById('nc-modelo').value = '';
+      document.getElementById('nc-usuario').value = '';
+      document.getElementById('nc-password').value = '';
+      document.getElementById('nc-avance-semanal').checked = false;
+      document.getElementById('nc-ver-reporte').checked = false;
+      document.getElementById('nc-modelo-3d').checked = false;
+      document.getElementById('modal-crear-cliente').classList.add('open');
+    }
 
-      if (!confirmar) {
-        mostrarToast('❌ Operación cancelada. Puedes volver a intentar.', 'error');
+    function cerrarModalCrearCliente() {
+      document.getElementById('modal-crear-cliente').classList.remove('open');
+    }
+
+    async function confirmarCrearCliente() {
+      const nombre = document.getElementById('nc-nombre').value.trim();
+      const modeloGestion = document.getElementById('nc-modelo').value.trim() || 'desarrollador';
+      const usuario = document.getElementById('nc-usuario').value.trim();
+      const password = document.getElementById('nc-password').value.trim();
+
+      if (!nombre || !usuario || !password) {
+        mostrarToast('⚠️ Completa nombre, usuario y contraseña.', 'error');
         return;
       }
 
+      const datosCliente = {
+        nombre,
+        modelo_gestion: modeloGestion,
+        usuario,
+        password,
+        acceso_avance_semanal: document.getElementById('nc-avance-semanal').checked,
+        acceso_ver_reporte: document.getElementById('nc-ver-reporte').checked,
+        acceso_modelo_3d: document.getElementById('nc-modelo-3d').checked
+      };
+
       try {
-        await crearCliente(nombre.trim(), modeloGestion.trim(), usuario.trim(), password.trim());
+        await crearCliente(datosCliente);
         mostrarToast(`✅ Cliente "${nombre}" creado correctamente`);
+        cerrarModalCrearCliente();
         cargarClientes();
       } catch (error) {
         mostrarToast('❌ Error creando cliente: ' + error.message, 'error');
@@ -1252,12 +1463,19 @@
         const proyectoNombres = proyectos.map(p => `• ${p.nombre_proyecto}`).join('\n') || 'Ninguno';
 
         const estado = cliente.activo ? '✅ Activo' : '⛔ Inactivo';
+        const accesos = [
+          cliente.acceso_avance_semanal ? '📅 Avance Semanal' : null,
+          cliente.acceso_ver_reporte ? '📊 Ver Reporte' : null,
+          cliente.acceso_modelo_3d ? '🧊 Ver Modelo 3D' : null
+        ].filter(Boolean).join(', ') || 'Ninguno';
+
         alert(`📋 DETALLE DE CLIENTE\n\n` +
               `ID: ${cliente.id}\n` +
               `Nombre: ${cliente.nombre}\n` +
               `Usuario: ${cliente.usuario}\n` +
               `Modelo: ${cliente.modelo_gestion || 'Cliente'}\n` +
               `Estado: ${estado}\n` +
+              `Accesos contratados: ${accesos}\n` +
               `Proyectos (${proyectos.length}):\n${proyectoNombres}\n` +
               `Creación: ${cliente.fecha_creacion || '—'}`);
       } catch (error) {
