@@ -288,6 +288,175 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 .btn-fotografico-guardar:hover{opacity:.9;}
 .btn-fotografico-guardar:disabled{opacity:.6;cursor:default;}
 
+/* ============== AVANCE SEMANAL ============== */
+.as-selector-plano {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--gris-borde);
+  border-radius: 4px;
+  font-size: 13px;
+  min-width: 180px;
+}
+.as-btn-abrir-visor {
+  padding: 6px 16px;
+  background: var(--azul-header);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.as-btn-abrir-visor:hover {
+  background: var(--azul-header-dark);
+}
+.as-resumen {
+  background: #fff;
+  border: 1px solid var(--gris-borde);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.as-resumen .estado-activa {
+  color: #28a745;
+}
+.as-resumen .estado-inactiva {
+  color: #dc3545;
+}
+.as-panel-visor {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 16px;
+  width: 300px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  z-index: 10;
+  font-size: 13px;
+  border: 2px solid #1b4b8f;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.as-panel-visor .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #1b4b8f;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.as-panel-visor .header .titulo {
+  font-weight: bold;
+  font-size: 15px;
+  color: #1b4b8f;
+}
+.as-panel-visor .header .btn-cerrar {
+  background: #dc3545;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.as-panel-visor .selector-zona {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d3d8de;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.as-panel-visor .medicion-box {
+  background: #f8f9fa;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+.as-panel-visor .medicion-box .porcentaje-slider {
+  width: 100%;
+}
+.as-panel-visor .medicion-box .porcentaje-valor {
+  font-weight: bold;
+  font-size: 18px;
+  color: #1b4b8f;
+}
+.as-panel-visor .medicion-box .color-preview {
+  font-size: 18px;
+}
+.as-panel-visor .campo-comentario {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d3d8de;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.as-panel-visor .campo-foto {
+  font-size: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+.as-panel-visor .btn-reportar {
+  width: 100%;
+  padding: 10px;
+  background: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 13px;
+}
+.as-panel-visor .btn-reportar:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+}
+.as-panel-visor .btn-reportar:hover {
+  background: #218838;
+}
+.as-panel-visor .fotos-zona-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.as-panel-visor .fotos-zona-grid img {
+  width: 100%;
+  height: 70px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+.as-panel-visor .ultimos-reportes {
+  margin-top: 12px;
+  border-top: 1px solid #eee;
+  padding-top: 8px;
+}
+.as-panel-visor .ultimos-reportes .titulo {
+  font-size: 11px;
+  font-weight: 600;
+  color: #666;
+}
+.as-panel-visor .ultimos-reportes .lista {
+  max-height: 150px;
+  overflow-y: auto;
+  font-size: 11px;
+}
+.as-panel-visor .ultimos-reportes .lista .sin-reportes {
+  color: #999;
+  text-align: center;
+  padding: 8px 0;
+}
+.as-panel-visor .ultimos-reportes .lista .reporte-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
 /* ============== RESPONSIVE ============== */
 @media(max-width:900px){
   #mod-inicio .modulos-grid{grid-template-columns:repeat(2,1fr);}
@@ -428,6 +597,19 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
       <span class="ico"><i class="bi bi-file-earmark-pdf"></i></span> Planos del Proyecto
     </div>
 
+    <!-- ===== NUEVO SUBMÓDULO: AVANCE SEMANAL ===== -->
+    <div class="grupo-toggle" data-grupo="avance_semanal" style="padding-left:14px;font-size:12px;margin-top:4px;border-top:1px solid #d3d8de;padding-top:6px;">
+      <span class="ico"><i class="bi bi-calendar-week" style="color:#1b4b8f;"></i></span>
+      <span style="color:#1b4b8f;font-weight:600;">📏 Avance Semanal</span>
+      <span class="chev">▾</span>
+    </div>
+    <div class="grupo-body submenu" id="grupo-avance_semanal" style="padding-left:24px;">
+      <div class="menu-item" data-tab="avance_semanal" data-visible-para="Desarrollador,Constructora" style="font-size:12px;">
+        <span class="ico"><i class="bi bi-calendar-check"></i></span> 📅 Registrar Avance
+      </div>
+    </div>
+    <!-- ===== FIN SUBMÓDULO AVANCE SEMANAL ===== -->
+
     <!-- ===== MÓDULO FOTOGRÁFICO ===== -->
     <div class="menu-item" data-tab="fotografico">
       <span class="ico"><i class="bi bi-camera"></i></span> Fotográfico
@@ -550,6 +732,82 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
         </table>
       </div>
     </div>
+
+    <!-- ================= MÓDULO AVANCE SEMANAL ================= -->
+    <div class="module" id="mod-avance_semanal" data-mod="avance_semanal">
+      <div class="module-title-row">
+        <div class="module-title">📏 Avance Semanal <span class="count" id="count-avance_semanal">0 registros</span></div>
+      </div>
+
+      <div class="info-banner">
+        <b>💡 Instrucciones:</b> Abre un plano, selecciona una zona, reporta el avance con porcentaje, foto y comentario.
+      </div>
+
+      <!-- Selector de Plano -->
+      <div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;align-items:center;background:#fff;padding:12px;border-radius:6px;border:1px solid var(--gris-borde);">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-weight:600;font-size:13px;">📂 Proyecto:</span>
+          <span id="as-proyecto-nombre" style="font-weight:bold;color:var(--azul-header);">—</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex:1;">
+          <span style="font-weight:600;font-size:13px;">📄 Plano:</span>
+          <select id="as-selector-plano" class="as-selector-plano">
+            <option value="">Seleccionar plano...</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button id="as-btn-abrir-visor" class="as-btn-abrir-visor">
+            👁️ Abrir Visor
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel de Resumen / Ciclo -->
+      <div id="as-resumen" class="as-resumen" style="display:none;">
+        <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:center;">
+          <div><span style="font-weight:600;">Ciclo:</span> <span id="as-semana-nombre">—</span></div>
+          <div><span style="font-weight:600;">Inicio:</span> <span id="as-semana-inicio">—</span></div>
+          <div><span style="font-weight:600;">Cierre:</span> <span id="as-semana-cierre">—</span></div>
+          <div><span style="font-weight:600;">Estado:</span> <span id="as-semana-estado">—</span></div>
+          <div id="as-ciclo-acciones" style="margin-left:auto;display:flex;gap:8px;"></div>
+        </div>
+        <div id="as-nuevo-ciclo-form" style="display:none;margin-top:10px;padding-top:10px;border-top:1px dashed var(--gris-borde);gap:10px;align-items:center;flex-wrap:wrap;">
+          <span style="font-weight:600;font-size:12.5px;">📅 Nuevo ciclo:</span>
+          <input type="date" id="as-nuevo-ciclo-inicio" style="padding:5px 8px;border:1px solid var(--gris-borde);border-radius:5px;font-size:12.5px;">
+          <span style="font-size:12.5px;">al</span>
+          <input type="date" id="as-nuevo-ciclo-cierre" style="padding:5px 8px;border:1px solid var(--gris-borde);border-radius:5px;font-size:12.5px;">
+          <button class="as-btn-abrir-visor" style="padding:5px 12px;font-size:12px;" onclick="crearNuevoCicloAvanceSemanal()">✅ Iniciar Ciclo</button>
+        </div>
+      </div>
+
+      <!-- Tabla de Mediciones -->
+      <div class="grid-wrap">
+        <table class="grid" id="grid-avance_semanal">
+          <thead>
+            <tr>
+              <th>Zona</th>
+              <th>Nombre</th>
+              <th>% Avance</th>
+              <th>Color</th>
+              <th>Estatus</th>
+              <th>Usuario</th>
+              <th>Fecha</th>
+              <th>Comentario</th>
+              <th>Foto</th>
+            </tr>
+          </thead>
+          <tbody id="body-avance_semanal">
+            <tr><td colspan="9" style="padding:20px;text-align:center;color:var(--texto-secundario);">Abre un plano y reporta el avance desde el visor.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid-footer">
+        <span>Mostrando <span id="visible-avance_semanal">0</span> registros</span>
+      </div>
+      <div class="hint">💡 Los colores son automáticos: 🔴 0% | 🟡 1%-99% | 🟢 100%</div>
+    </div>
+    <!-- ================= FIN MÓDULO AVANCE SEMANAL ================= -->
+
   </div>
 </div>
 
@@ -583,7 +841,28 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
   </div>
 </div>
 
+<!-- ================= VISOR PDF (NUEVO) ================= -->
+<div id="visor-pdf-container" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;z-index:9999;flex-direction:column;">
+  <div style="background:#16213e;padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;border-bottom:2px solid #0f3460;min-height:52px;">
+    <button onclick="cerrarVisorCompleto()" style="background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;">
+      <i class="bi bi-x-lg"></i> Cerrar
+    </button>
+  </div>
+  <div style="flex:1;position:relative;overflow:auto;background:#1a1a2e;">
+    <canvas id="pdf-canvas" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;box-shadow:0 0 30px rgba(0,0,0,0.8);z-index:1;"></canvas>
+    <canvas id="fabric-canvas" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;"></canvas>
+  </div>
+  <div style="background:#16213e;color:#eee;padding:6px 15px;display:flex;gap:25px;border-top:1px solid #0f3460;font-size:12px;flex-wrap:wrap;">
+    <span id="info-medida"><i class="bi bi-rulers"></i> Distancia: 0.00 m</span>
+    <span id="info-area"><i class="bi bi-grid"></i> Área: 0.00 M2</span>
+    <span id="info-puntos"><i class="bi bi-geo-alt"></i> Puntos: 0</span>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+
 <script>
 /* =====================================================================
    MODELO DE GESTIÓN (UNIFICADO bajo obra360_*)
@@ -677,7 +956,8 @@ function renderizarModulosInicio() {
     requisiciones: { ico: 'bi-clipboard', nombre: 'Requisiciones' },
     ordenes_compra: { ico: 'bi-file-text', nombre: 'Órdenes de Compra' },
     pago_proveedores: { ico: 'bi-wallet2', nombre: 'Pago a Proveedores' },
-    estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' }
+    estimaciones: { ico: 'bi-graph-up', nombre: 'Estimaciones' },
+    avance_semanal: { ico: 'bi-calendar-week', nombre: '📏 Avance Semanal' }
   };
 
   let html = '';
@@ -720,7 +1000,6 @@ const LABELS_DATOS_INICIO = {
   monto:"Monto Total", ejercido:"Ejercido", disponible:"Disponible"
 };
 
-// ===== NUEVO: campos que son de tipo "date" en el HTML — no deben recibir "—" como valor =====
 const CAMPOS_TIPO_FECHA_INICIO = new Set(["inicio", "fin"]);
 
 async function cargarDatosInicio(){
@@ -792,7 +1071,6 @@ async function guardarDatosInicio(){
    CONFIGURACIÓN DE MÓDULOS
    ===================================================================== */
 
-// Conceptos fijos para PARTIDAS
 const CONCEPTOS_PARTIDAS = [
   "PRESUPUESTO",
   "EDIFICIO (CONSTRUCCION)",
@@ -862,7 +1140,6 @@ const CONCEPTOS_PARTIDAS = [
   "SUMA CONSTRUCCION + EE"
 ];
 
-// Conceptos fijos para CUADRO INFORMATIVO
 const CONCEPTOS_CUADRO = [
   { concepto: "AREA DE CONSTRUCCION", unidad: "M2" },
   { concepto: "AREA DE TERRENO", unidad: "M2" },
@@ -924,7 +1201,6 @@ const MODULOS = {
     datos:[]
   },
 
-  /* ===== NUEVO MÓDULO EVM ===== */
   evm: {
     label:"EVM",
     endpoint:"evm",
@@ -1127,6 +1403,22 @@ const MODULOS = {
     ],
     datos:[]
   },
+
+  avance_semanal: {
+    label: "📏 Avance Semanal",
+    endpoint: "avance_semanal",
+    columnas: [
+      {key: "zona_id", label: "Zona", hidden: true},
+      {key: "nombre", label: "Nombre"},
+      {key: "porcentaje", label: "% Avance", tipo: "num"},
+      {key: "color", label: "Color"},
+      {key: "estatus", label: "Estatus"},
+      {key: "usuario", label: "Usuario"},
+      {key: "fecha", label: "Fecha"},
+      {key: "comentario", label: "Comentario"},
+    ],
+    datos: []
+  },
 };
 
 let moduloActivo = "presupuestal";
@@ -1137,8 +1429,6 @@ let subtabActivo = {};
    ===================================================================== */
 const GATE_API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
 
-// ===== NUEVO: el botón "Vaciar tabla" SOLO debe verse para el administrador (adminjc).
-// Clientes, gerentes/colaboradores y despachos NUNCA lo ven. =====
 function actualizarVisibilidadBotonesVaciar(){
   const esAdmin = localStorage.getItem("obra360_es_admin") === "1";
   document.querySelectorAll(".btn-vaciar").forEach(b=>{
@@ -1175,7 +1465,6 @@ async function validarSesionYProyecto(){
     document.getElementById("tag-proyecto").textContent = "Proyecto: " + (proyectoNombre || "—");
     document.getElementById("cfg-proyecto-sidebar").textContent = "Proyecto: " + (proyectoNombre || "—");
 
-    // Restringe el sidebar: un despacho solo ve "Planos del Proyecto" (NUNCA Fotográfico)
     document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
       if(item.dataset.tab !== "planos") item.style.display = "none";
     });
@@ -1291,9 +1580,6 @@ function entrarApp(){
   renderizarModulosInicio();
 })();
 
-/* =====================================================================
-   IR A INICIO (desde sidebar)
-   ===================================================================== */
 function irAInicio() {
   navegarA('inicio');
 }
@@ -1439,14 +1725,11 @@ function renderSubtab(modKey, stKey){
   tbody.innerHTML = "";
   const allData = st.datos;
   
-  // Calcular SUMA CONSTRUCCION + EE automáticamente
   if (modKey === "costo_plan" && stKey === "partidas") {
-    // Buscar el índice de "SUMA CONSTRUCCION + EE"
     const sumaIndex = allData.findIndex(row => row.concepto === "SUMA CONSTRUCCION + EE");
     if (sumaIndex !== -1) {
       let total = 0;
       allData.forEach((row, idx) => {
-        // Sumar todos los conceptos excepto "PRESUPUESTO" y "SUMA CONSTRUCCION + EE"
         if (row.concepto !== "PRESUPUESTO" && row.concepto !== "SUMA CONSTRUCCION + EE") {
           total += Number(row.presupuesto) || 0;
         }
@@ -1469,7 +1752,6 @@ function renderSubtab(modKey, stKey){
       if(c.calculado){
         return `<td class="cell num readonly">${display}</td>`;
       }
-      // Hacer readonly el concepto "SUMA CONSTRUCCION + EE" y "PRESUPUESTO" (solo el concepto, no el presupuesto)
       const isReadonly = (modKey === "costo_plan" && stKey === "partidas" && c.key === "concepto");
       if (isReadonly) {
         return `<td class="cell readonly">${display}</td>`;
@@ -1524,10 +1806,6 @@ function eliminarUltimaFilaSubtab(modKey, stKey){
   renderSubtab(modKey, stKey);
 }
 
-/* =====================================================================
-   NUEVO: VACIAR TABLA (limpia todas las filas de un módulo antes de
-   reimportar, para evitar duplicados o filas mal emparejadas)
-   ===================================================================== */
 function vaciarTabla(modKey){
   if(!confirm("¿Seguro que quieres borrar TODAS las filas de este módulo? Esto solo afecta lo que ves en pantalla; no se pierde nada en el servidor hasta que guardes de nuevo.")) return;
   MODULOS[modKey].datos.length = 0;
@@ -1640,25 +1918,20 @@ async function cargarModuloDesdeServidor(tab){
       return row;
     });
 
-    // Para Costo Plan: actualizar conceptos existentes, agregar nuevos si no existen
     if (tab === "costo_plan" && mod.subtabs) {
-      // Procesar Partidas
       const partidasSt = mod.subtabs.partidas;
       const partidasCols = partidasSt.columnas;
       const partidasTarget = partidasSt.datos;
       
-      // Crear un mapa de conceptos existentes
       const conceptosMap = new Map();
       partidasTarget.forEach(row => {
         conceptosMap.set(row.concepto, row);
       });
       
-      // Procesar cada fila importada
       nuevasFilas.forEach(row => {
         const concepto = row.concepto;
         if (concepto) {
           if (conceptosMap.has(concepto)) {
-            // Actualizar existente
             const existing = conceptosMap.get(concepto);
             partidasCols.forEach(c => {
               if (c.key !== 'concepto' && row[c.key] !== undefined) {
@@ -1666,12 +1939,10 @@ async function cargarModuloDesdeServidor(tab){
               }
             });
           } else {
-            // Agregar nuevo concepto
             const newRow = {};
             partidasCols.forEach(c => {
               newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
             });
-            // Insertar antes de "SUMA CONSTRUCCION + EE"
             const sumaIndex = partidasTarget.findIndex(r => r.concepto === "SUMA CONSTRUCCION + EE");
             if (sumaIndex !== -1) {
               partidasTarget.splice(sumaIndex, 0, newRow);
@@ -1683,7 +1954,6 @@ async function cargarModuloDesdeServidor(tab){
         }
       });
       
-      // Procesar Cuadro Informativo
       const cuadroSt = mod.subtabs.indicadores;
       const cuadroCols = cuadroSt.columnas;
       const cuadroTarget = cuadroSt.datos;
@@ -1692,8 +1962,6 @@ async function cargarModuloDesdeServidor(tab){
         cuadroMap.set(row.concepto, row);
       });
       
-      // Buscar filas de cuadro en los datos importados (si vienen en el mismo CSV)
-      // Para simplificar, si el CSV tiene columnas de cuadro, las procesamos
       nuevasFilas.forEach(row => {
         const concepto = row.concepto;
         if (concepto && cuadroMap.has(concepto)) {
@@ -1704,7 +1972,6 @@ async function cargarModuloDesdeServidor(tab){
             }
           });
         } else if (concepto && !cuadroMap.has(concepto) && row.unidad) {
-          // Agregar nuevo concepto al cuadro
           const newRow = {};
           cuadroCols.forEach(c => {
             newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
@@ -1762,6 +2029,11 @@ function navegarA(tab){
     return;
   }
 
+  if(tab === "avance_semanal"){
+    cargarPlanosAvanceSemanal();
+    return;
+  }
+
   cargarModuloDesdeServidor(tab);
 }
 
@@ -1780,6 +2052,59 @@ document.querySelectorAll(".menu-item[data-tab]").forEach(item=>{
 
 document.getElementById("mod-inicio").classList.remove("hidden");
 
+// ============================================================
+// PERMISO "AVANCE SEMANAL" (lo decide el admin por cliente)
+// ------------------------------------------------------------
+// Si el cliente no tiene contratado este módulo, se oculta por
+// completo del sidebar y no se puede entrar aunque se navegue
+// directo por la URL (?modulo=avance_semanal).
+// ============================================================
+window.permisoAvanceSemanal = false;
+
+async function cargarPermisoAvanceSemanal() {
+  const token = localStorage.getItem('obra360_token');
+  if (!token) return;
+  try {
+    const resp = await fetch(`${GATE_API_URL}/verificar_token`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    window.permisoAvanceSemanal = !!(data.cliente && data.cliente.acceso_avance_semanal);
+
+    if (!window.permisoAvanceSemanal) {
+      const toggle = document.querySelector('.grupo-toggle[data-grupo="avance_semanal"]');
+      const body = document.getElementById('grupo-avance_semanal');
+      if (toggle) toggle.style.display = 'none';
+      if (body) body.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error cargando permiso de Avance Semanal:', error);
+  }
+}
+
+// Si se llega con ?modulo=xxx en la URL (ej. desde "Modelo y Reportes" → Avance Semanal),
+// se abre esa sección directamente en vez de quedarse en Inicio — siempre que el
+// cliente tenga contratado el módulo.
+(async function abrirModuloDesdeUrl(){
+  const params = new URLSearchParams(window.location.search);
+  const modulo = params.get("modulo");
+  const planoId = params.get("plano_id");
+
+  await cargarPermisoAvanceSemanal();
+
+  if (modulo) {
+    if (modulo === 'avance_semanal' && !window.permisoAvanceSemanal) {
+      alert('⚠️ Tu empresa no tiene contratado el módulo de Avance Semanal. Contacta al administrador.');
+      return;
+    }
+    if (modulo === 'avance_semanal' && planoId) {
+      window.asPlanoIdDesdeUrl = planoId;
+    }
+    navegarA(modulo);
+  }
+})();
+
 /* =====================================================================
    IMPORTAR (Excel/CSV) — con soporte para subtabs
    ===================================================================== */
@@ -1794,9 +2119,6 @@ document.getElementById("file-importar").addEventListener("change", (e)=>{
   if(!file) return;
   const reader = new FileReader();
   reader.onload = (evt)=>{
-    // ===== NUEVO: cellDates:true + raw:false + dateNF hace que las fechas de Excel
-    // se conviertan a texto legible (yyyy-mm-dd) en vez de al número interno de Excel
-    // (ej. "46211.999..." en vez de "07/09/2026") =====
     const wb = XLSX.read(evt.target.result, {type:"binary", cellDates:true});
     const hoja = wb.Sheets[wb.SheetNames[0]];
     const filas = XLSX.utils.sheet_to_json(hoja, {header:1, defval:"", raw:false, dateNF:"yyyy-mm-dd"});
@@ -1873,25 +2195,20 @@ function confirmarMapeo(){
     return obj;
   });
   
-  // Para Costo Plan: procesar de manera especial (sin cambios — sigue emparejando por "concepto")
   if (moduloActivo === "costo_plan" && mod.subtabs) {
-    // Procesar Partidas
     const partidasSt = mod.subtabs.partidas;
     const partidasCols = partidasSt.columnas;
     const partidasTarget = partidasSt.datos;
     
-    // Crear un mapa de conceptos existentes
     const conceptosMap = new Map();
     partidasTarget.forEach(row => {
       conceptosMap.set(row.concepto, row);
     });
     
-    // Procesar cada fila importada
     nuevasFilas.forEach(row => {
       const concepto = row.concepto;
       if (concepto) {
         if (conceptosMap.has(concepto)) {
-          // Actualizar existente
           const existing = conceptosMap.get(concepto);
           partidasCols.forEach(c => {
             if (c.key !== 'concepto' && row[c.key] !== undefined) {
@@ -1899,12 +2216,10 @@ function confirmarMapeo(){
             }
           });
         } else {
-          // Agregar nuevo concepto
           const newRow = {};
           partidasCols.forEach(c => {
             newRow[c.key] = row[c.key] !== undefined ? row[c.key] : (c.tipo === 'num' ? 0 : '');
           });
-          // Insertar antes de "SUMA CONSTRUCCION + EE"
           const sumaIndex = partidasTarget.findIndex(r => r.concepto === "SUMA CONSTRUCCION + EE");
           if (sumaIndex !== -1) {
             partidasTarget.splice(sumaIndex, 0, newRow);
@@ -1916,7 +2231,6 @@ function confirmarMapeo(){
       }
     });
     
-    // Procesar Cuadro Informativo
     const cuadroSt = mod.subtabs.indicadores;
     const cuadroCols = cuadroSt.columnas;
     const cuadroTarget = cuadroSt.datos;
@@ -1953,14 +2267,6 @@ function confirmarMapeo(){
     return;
   }
 
-  // ===== Emparejamiento por columna "Número" (o cualquier columna marcada esLlave)
-  // Si el archivo importado trae esa columna, ACTUALIZA la fila existente que coincida
-  // (rellena solo las columnas que trae el archivo) en vez de duplicarla al final.
-  // Si el número no existe todavía en la tabla, se agrega como fila nueva.
-  // A PROPÓSITO: las filas SIN Número en el archivo se RECHAZAN (no se importan) —
-  // esto es intencional: sirve como validación para detectar archivos incompletos.
-  // El resumen final siempre reporta cuántas se rechazaron y por qué, para que
-  // nunca sea un misterio por qué el total no cuadra con lo esperado. =====
   const columnaLlaveObj = cols.find(c => c.esLlave);
   const columnaLlave = columnaLlaveObj?.key;
 
@@ -1979,12 +2285,10 @@ function confirmarMapeo(){
       if (llave === "") {
         rechazadasSinNumero++;
         if (numerosRechazados.length < 10) numerosRechazados.push(`fila ${i + 1} del archivo`);
-        return; // se rechaza a propósito: no se importa esta fila
+        return;
       }
       const idx = indice.get(llave);
       if (idx !== undefined) {
-        // Fusiona SOLO las columnas que trae el archivo; conserva el resto intacto
-        // (por ejemplo, "element_id" y "type_name" que solo sube el administrador)
         Object.keys(fila).forEach(k => { target.datos[idx][k] = fila[k]; });
         actualizadas++;
       } else {
@@ -2017,7 +2321,6 @@ function confirmarMapeo(){
     return;
   }
 
-  // ===== Comportamiento anterior: si el módulo no tiene columna llave (o el archivo no la trae), se apila como antes =====
   target.datos.push(...nuevasFilas);
   
   if(mod.subtabs){
@@ -2064,7 +2367,6 @@ async function guardarModuloActivo(){
   const modKey = moduloActivo;
   if(modKey === "inicio"){ alert("Selecciona un módulo de captura para guardar."); return; }
 
-  // El módulo Fotográfico tiene su propio botón "Guardar" dentro del módulo
   if(modKey === "fotografico"){
     alert("En el módulo Fotográfico usa el botón '💾 Guardar' que aparece junto al selector de imágenes.");
     return;
@@ -2073,17 +2375,13 @@ async function guardarModuloActivo(){
   const mod = MODULOS[modKey];
   if(!mod) return;
   
-  // Para Costo Plan: guardar ambas subtabs en un solo CSV
   if (modKey === "costo_plan" && mod.subtabs) {
-    // Guardar Partidas y Cuadro Informativo juntos
     const partidasSt = mod.subtabs.partidas;
     const cuadroSt = mod.subtabs.indicadores;
     
-    // Crear un CSV combinado: primero Partidas, luego Cuadro
     const partidasCols = partidasSt.columnas;
     const cuadroCols = cuadroSt.columnas;
     
-    // Encabezado combinado
     const encabezado = ["TIPO", ...partidasCols.map(c => c.label), ...cuadroCols.map(c => c.label)].join(",");
     
     const filasPartidas = partidasSt.datos.map(row => {
@@ -2509,6 +2807,870 @@ async function guardarFotografico(){
     btn.textContent = "💾 Guardar";
   }
 }
+
+/* =====================================================================
+   AVANCE SEMANAL — VISOR CON DIBUJO
+   ===================================================================== */
+
+let asCanvas = null;
+let asFabric = null;
+let asZonas = [];
+let asPuntos = [];
+let asZonaSeleccionada = null;
+let asHerramienta = 'select';
+let asModoDibujo = false;
+let asPuntosDibujo = [];
+let asPlanoActualId = null;
+let asPlanoActualUrl = null;
+let asPlanoActualClave = null;
+
+// ============================================================
+// CARGAR PLANOS EN EL SELECTOR (Avance Semanal)
+// ============================================================
+async function cargarPlanosAvanceSemanal() {
+  const select = document.getElementById('as-selector-plano');
+  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+  const token = localStorage.getItem('obra360_token');
+  
+  if (!proyectoId || !token) {
+    select.innerHTML = '<option value="">No hay proyecto activo</option>';
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/planos`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) throw new Error('Error al cargar planos');
+    
+    const planos = await resp.json();
+    const actuales = planos.filter(p => p.estado === 'actualizacion');
+    
+    select.innerHTML = '<option value="">Seleccionar plano...</option>';
+    actuales.forEach(p => {
+      const option = document.createElement('option');
+      option.value = p.url;
+      option.dataset.id = p.id;
+      option.dataset.clave = `${p.clave_base}-${p.sufijo}`;
+      option.textContent = `${p.clave_base}-${p.sufijo} - ${p.nombre_archivo}`;
+      select.appendChild(option);
+    });
+    
+    if (actuales.length === 0) {
+      select.innerHTML = '<option value="">No hay planos disponibles</option>';
+    }
+    
+    // Cargar semanas
+    await cargarSemanasAvanceSemanal();
+
+    // Si se llegó con un plano ya elegido desde el modal de "Modelo y
+    // Reportes" (?plano_id=), se selecciona y se abre el visor solo,
+    // sin que el usuario tenga que volver a elegirlo.
+    if (window.asPlanoIdDesdeUrl) {
+      const optionDestino = Array.from(select.options).find(
+        opt => String(opt.dataset.id) === String(window.asPlanoIdDesdeUrl)
+      );
+      if (optionDestino) {
+        select.value = optionDestino.value;
+        const planoId = optionDestino.dataset.id;
+        const planoClave = optionDestino.dataset.clave;
+        asPlanoActualId = planoId;
+        asPlanoActualUrl = optionDestino.value;
+        asPlanoActualClave = planoClave;
+        abrirVisorAvanceSemanal(optionDestino.value, planoId, planoClave);
+      }
+      window.asPlanoIdDesdeUrl = null;
+    }
+  } catch (error) {
+    console.error('Error cargando planos:', error);
+    select.innerHTML = '<option value="">Error al cargar planos</option>';
+  }
+}
+
+// ============================================================
+// CARGAR SEMANAS / CICLO (Avance Semanal)
+// ============================================================
+let asSemanaActivaId = null;
+
+function esGerenteOSuper() {
+  const rol = (localStorage.getItem('obra360_rol') || '').toLowerCase();
+  return rol.includes('gerente') || rol.includes('super');
+}
+
+async function cargarSemanasAvanceSemanal() {
+  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+  const token = localStorage.getItem('obra360_token');
+  if (!proyectoId || !token) return;
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/semanas`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const semanas = data.semanas || [];
+    const activa = semanas.find(s => s.activa);
+    asSemanaActivaId = activa ? activa.id : null;
+    
+    const resumen = document.getElementById('as-resumen');
+    const acciones = document.getElementById('as-ciclo-acciones');
+    const formNuevo = document.getElementById('as-nuevo-ciclo-form');
+    resumen.style.display = 'block';
+    acciones.innerHTML = '';
+    formNuevo.style.display = 'none';
+
+    if (activa) {
+      document.getElementById('as-semana-nombre').textContent = activa.nombre;
+      document.getElementById('as-semana-inicio').textContent = activa.fecha_inicio;
+      document.getElementById('as-semana-cierre').textContent = activa.fecha_cierre;
+      const estadoEl = document.getElementById('as-semana-estado');
+      estadoEl.textContent = '🔵 ACTIVO';
+      estadoEl.className = 'estado-activa';
+
+      // Solo Gerente/Superintendente pueden cerrar el ciclo
+      if (esGerenteOSuper()) {
+        const btnCerrar = document.createElement('button');
+        btnCerrar.className = 'as-btn-abrir-visor';
+        btnCerrar.style.cssText = 'background:#a72e21;padding:5px 12px;font-size:12px;';
+        btnCerrar.textContent = '🔴 Cerrar Ciclo';
+        btnCerrar.onclick = cerrarCicloAvanceSemanal;
+        acciones.appendChild(btnCerrar);
+      }
+    } else {
+      document.getElementById('as-semana-nombre').textContent = 'Sin ciclo';
+      document.getElementById('as-semana-inicio').textContent = '—';
+      document.getElementById('as-semana-cierre').textContent = '—';
+      const estadoEl = document.getElementById('as-semana-estado');
+      estadoEl.textContent = '🔴 CERRADO';
+      estadoEl.className = 'estado-inactiva';
+
+      // Solo Gerente/Superintendente pueden abrir un ciclo nuevo
+      if (esGerenteOSuper()) {
+        const btnNuevo = document.createElement('button');
+        btnNuevo.className = 'as-btn-abrir-visor';
+        btnNuevo.style.cssText = 'padding:5px 12px;font-size:12px;';
+        btnNuevo.textContent = '🆕 Nuevo Ciclo';
+        btnNuevo.onclick = () => { formNuevo.style.display = 'flex'; };
+        acciones.appendChild(btnNuevo);
+      }
+    }
+
+    // Si no hay ciclo activo, bloquear el botón de Reportar Avance
+    const btnReportar = document.getElementById('as-btn-reportar');
+    if (btnReportar) {
+      btnReportar.disabled = !activa;
+      btnReportar.title = activa ? '' : 'No hay un ciclo activo. Espera a que Gerente/Superintendente abra uno nuevo.';
+    }
+  } catch (error) {
+    console.error('Error cargando ciclo:', error);
+  }
+}
+
+async function crearNuevoCicloAvanceSemanal() {
+  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+  const token = localStorage.getItem('obra360_token');
+  const inicio = document.getElementById('as-nuevo-ciclo-inicio').value;
+  const cierre = document.getElementById('as-nuevo-ciclo-cierre').value;
+
+  if (!inicio || !cierre) {
+    alert('⚠️ Selecciona la fecha de inicio y de cierre del ciclo.');
+    return;
+  }
+  if (cierre < inicio) {
+    alert('⚠️ La fecha de cierre no puede ser antes que la de inicio.');
+    return;
+  }
+
+  const nombre = `Ciclo ${inicio} al ${cierre}`;
+
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/semanas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ nombre, fecha_inicio: inicio, fecha_cierre: cierre })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo crear el ciclo');
+
+    alert(`✅ Ciclo iniciado: ${inicio} al ${cierre}`);
+    await cargarSemanasAvanceSemanal();
+  } catch (error) {
+    alert('❌ Error creando el ciclo: ' + error.message);
+  }
+}
+
+async function cerrarCicloAvanceSemanal() {
+  if (!asSemanaActivaId) return;
+  if (!confirm('⚠️ ¿Seguro que quieres cerrar el ciclo?\n\nUna vez cerrado, nadie podrá subir más avance hasta que se abra un ciclo nuevo.')) {
+    return;
+  }
+
+  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+  const token = localStorage.getItem('obra360_token');
+
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/semanas/${asSemanaActivaId}/cerrar`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo cerrar el ciclo');
+
+    alert('✅ Ciclo cerrado correctamente. Ya no se puede subir más avance.');
+    await cargarSemanasAvanceSemanal();
+  } catch (error) {
+    alert('❌ Error cerrando el ciclo: ' + error.message);
+  }
+}
+
+
+// ============================================================
+// ABRIR VISOR CON DIBUJO (Avance Semanal)
+// ============================================================
+document.getElementById('as-btn-abrir-visor')?.addEventListener('click', function() {
+  const select = document.getElementById('as-selector-plano');
+  const url = select.value;
+  if (!url) {
+    alert('⚠️ Por favor, selecciona un plano');
+    return;
+  }
+  
+  const option = select.options[select.selectedIndex];
+  const planoId = option.dataset.id;
+  const planoClave = option.dataset.clave;
+  
+  asPlanoActualId = planoId;
+  asPlanoActualUrl = url;
+  asPlanoActualClave = planoClave;
+  
+  abrirVisorAvanceSemanal(url, planoId, planoClave);
+});
+
+function abrirVisorAvanceSemanal(url, planoId, planoClave) {
+  const container = document.getElementById('visor-pdf-container');
+  container.style.display = 'flex';
+  
+  // Resetear marcas
+  asZonas = [];
+  asPuntos = [];
+  
+  // Cargar el PDF
+  cargarPDFAvanceSemanal(url);
+  
+  // Mostrar panel de Avance Semanal
+  setTimeout(() => {
+    mostrarPanelAvanceSemanal();
+    cargarZonasAvanceSemanal();
+  }, 500);
+}
+
+function cerrarVisorCompleto() {
+  document.getElementById('visor-pdf-container').style.display = 'none';
+  if (asFabric) {
+    asFabric.clear();
+  }
+  asPlanoActualId = null;
+  asPlanoActualUrl = null;
+  asPlanoActualClave = null;
+  asZonaSeleccionada = null;
+}
+
+// ============================================================
+// CARGAR PDF (Avance Semanal)
+// ============================================================
+async function cargarPDFAvanceSemanal(url) {
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  
+  try {
+    const loadingTask = pdfjsLib.getDocument(url);
+    const pdf = await loadingTask.promise;
+    const page = await pdf.getPage(1);
+    
+    const viewport = page.getViewport({ scale: 1.5 });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    
+    // Configurar Fabric canvas
+    if (!asFabric) {
+      asFabric = new fabric.Canvas('fabric-canvas', {
+        selection: false,
+        backgroundColor: 'transparent'
+      });
+      configurarEventosFabricAvanceSemanal();
+    }
+    asFabric.setWidth(viewport.width);
+    asFabric.setHeight(viewport.height);
+    asFabric.clear();
+    
+    // Renderizar PDF
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    await page.render(renderContext).promise;
+    
+    // Ajustar tamaño
+    const viewerArea = document.querySelector('#visor-pdf-container > div:nth-child(2)');
+    const containerWidth = viewerArea.clientWidth;
+    const containerHeight = viewerArea.clientHeight;
+    const scaleX = (containerWidth * 0.9) / viewport.width;
+    const scaleY = (containerHeight * 0.9) / viewport.height;
+    const scale = Math.min(scaleX, scaleY, 1);
+    
+    canvas.style.transform = `scale(${scale})`;
+    canvas.style.transformOrigin = 'center center';
+    asFabric.wrapperEl.style.transform = `scale(${scale})`;
+    asFabric.wrapperEl.style.transformOrigin = 'center center';
+    
+  } catch (error) {
+    console.error('Error cargando PDF:', error);
+    alert('❌ No se pudo cargar el PDF.');
+  }
+}
+
+// ============================================================
+// CONFIGURAR EVENTOS FABRIC (Avance Semanal)
+// ============================================================
+function configurarEventosFabricAvanceSemanal() {
+  if (!asFabric) return;
+  
+  let isDrawing = false;
+  let startPoint = null;
+  let currentShape = null;
+  
+  asFabric.on('mouse:down', function(opt) {
+    if (asHerramienta === 'select') return;
+    
+    const pointer = asFabric.getPointer(opt.e);
+    
+    if (asHerramienta === 'line' || asHerramienta === 'measure') {
+      startPoint = { x: pointer.x, y: pointer.y };
+      currentShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
+        stroke: '#FF6B00',
+        strokeWidth: 2,
+        strokeDashArray: [5, 5],
+        selectable: false,
+        evented: false
+      });
+      asFabric.add(currentShape);
+    }
+  });
+  
+  asFabric.on('mouse:move', function(opt) {
+    if (asHerramienta === 'select' || !startPoint || !currentShape) return;
+    
+    const pointer = asFabric.getPointer(opt.e);
+    
+    if (asHerramienta === 'line' || asHerramienta === 'measure') {
+      currentShape.set({
+        x2: pointer.x,
+        y2: pointer.y
+      });
+      
+      // Calcular distancia
+      const dx = pointer.x - startPoint.x;
+      const dy = pointer.y - startPoint.y;
+      const distanciaPx = Math.sqrt(dx*dx + dy*dy);
+      // Escala aproximada (1:100)
+      const escala = 100;
+      const pxPorMetro = 100 / (escala / 100);
+      const metros = distanciaPx / pxPorMetro;
+      
+      document.getElementById('info-medida').textContent = `📏 Distancia: ${metros.toFixed(2)} m`;
+    }
+    
+    asFabric.renderAll();
+  });
+  
+  asFabric.on('mouse:up', function(opt) {
+    if (asHerramienta === 'select' || !startPoint || !currentShape) return;
+    
+    const pointer = asFabric.getPointer(opt.e);
+    const dx = pointer.x - startPoint.x;
+    const dy = pointer.y - startPoint.y;
+    
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+      asFabric.remove(currentShape);
+      currentShape = null;
+      startPoint = null;
+      return;
+    }
+    
+    currentShape.selectable = true;
+    currentShape.evented = true;
+    
+    // Agregar medición a la lista de puntos
+    asPuntos.push({
+      x1: startPoint.x,
+      y1: startPoint.y,
+      x2: pointer.x,
+      y2: pointer.y,
+      distancia: Math.sqrt(dx*dx + dy*dy)
+    });
+    
+    currentShape = null;
+    startPoint = null;
+    asFabric.renderAll();
+  });
+}
+
+// ============================================================
+// PANEL DE AVANCE SEMANAL DENTRO DEL VISOR
+// ============================================================
+function mostrarPanelAvanceSemanal() {
+  const existing = document.getElementById('as-panel-visor');
+  if (existing) existing.remove();
+  
+  const panel = document.createElement('div');
+  panel.id = 'as-panel-visor';
+  panel.className = 'as-panel-visor';
+  
+  panel.innerHTML = `
+    <div class="header">
+      <span class="titulo">📏 Avance Semanal</span>
+      <button class="btn-cerrar" onclick="cerrarPanelAvanceSemanal()">✕</button>
+    </div>
+    
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">🎯 Selecciona una zona</label>
+      <select id="as-selector-zona" class="selector-zona">
+        <option value="">Cargando zonas...</option>
+      </select>
+    </div>
+    
+    <div class="medicion-box">
+      <div style="font-size:11px;color:#666;">📊 Porcentaje de avance</div>
+      <input type="range" id="as-porcentaje-slider" class="porcentaje-slider" min="0" max="100" value="0">
+      <div style="display:flex;justify-content:space-between;">
+        <span id="as-porcentaje-valor" class="porcentaje-valor">0%</span>
+        <span id="as-color-preview" class="color-preview">🔴</span>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">📝 Comentario (opcional)</label>
+      <input type="text" id="as-comentario" class="campo-comentario" placeholder="Ej: Avance en instalación">
+    </div>
+    
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">📸 Foto (opcional)</label>
+      <input type="file" id="as-foto" class="campo-foto" accept=".jpg,.jpeg,.png" multiple>
+    </div>
+    
+    <button id="as-btn-reportar" class="btn-reportar" onclick="reportarAvanceSemanal()">
+      ✅ Reportar Avance
+    </button>
+
+    <div class="fotos-zona-box" style="margin-top:14px;">
+      <div style="font-weight:700;font-size:12px;margin-bottom:6px;">📷 Fotos de la zona seleccionada</div>
+      <div id="as-fotos-zona" class="fotos-zona-grid">
+        <div class="sin-fotos" style="font-size:11.5px;color:#888;">Selecciona una zona para ver sus fotos.</div>
+      </div>
+    </div>
+
+    <div class="ultimos-reportes">
+      <div class="titulo">📋 Últimos reportes</div>
+      <div id="as-ultimos-reportes" class="lista">
+        <div class="sin-reportes">Sin reportes</div>
+      </div>
+    </div>
+  `;
+  
+  document.querySelector('#visor-pdf-container > div:nth-child(2)').appendChild(panel);
+  
+  // Slider de porcentaje
+  const slider = document.getElementById('as-porcentaje-slider');
+  slider.addEventListener('input', function() {
+    const val = parseInt(this.value);
+    document.getElementById('as-porcentaje-valor').textContent = val + '%';
+    const color = val === 0 ? '🔴' : val === 100 ? '🟢' : '🟡';
+    document.getElementById('as-color-preview').textContent = color;
+  });
+
+  // Al seleccionar una zona, mostrar sus fotos de evidencia
+  const selectorZona = document.getElementById('as-selector-zona');
+  selectorZona.addEventListener('change', function() {
+    asZonaSeleccionada = this.value;
+    mostrarFotosDeZona(this.value);
+  });
+}
+
+// ============================================================
+// MOSTRAR FOTOS DE LA ZONA SELECCIONADA (Avance Semanal)
+// ============================================================
+async function mostrarFotosDeZona(zonaId) {
+  const cont = document.getElementById('as-fotos-zona');
+  if (!cont) return;
+
+  if (!zonaId) {
+    cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#888;">Selecciona una zona para ver sus fotos.</div>';
+    return;
+  }
+
+  cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#888;">Cargando fotos…</div>';
+
+  const token = localStorage.getItem('obra360_token');
+  if (!token) return;
+
+  try {
+    const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zonaId}/estatus?limit=30`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) throw new Error('Error al cargar historial de la zona');
+
+    const data = await resp.json();
+    const historial = data.historial || [];
+    
+    // "Aplana" todas las fotos de todos los reportes en una sola lista de miniaturas
+    const todasLasFotos = [];
+    historial.forEach(h => {
+      const fotos = (h.fotos && h.fotos.length) ? h.fotos : (h.foto_url ? [h.foto_url] : []);
+      fotos.forEach(url => {
+        todasLasFotos.push({ url, porcentaje: h.porcentaje, usuario: h.usuario, fecha: h.fecha });
+      });
+    });
+
+    if (todasLasFotos.length === 0) {
+      cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#888;">Esta zona no tiene fotos registradas todavía.</div>';
+      return;
+    }
+
+    window.asFotosZonaActual = todasLasFotos;
+
+    cont.innerHTML = todasLasFotos.map((f, i) => `
+      <img src="${f.url}" alt="Evidencia ${f.porcentaje}%"
+           title="${f.porcentaje}% · ${f.usuario} · ${new Date(f.fecha).toLocaleString()}"
+           onclick="abrirLightboxFoto(${i})">
+    `).join('');
+  } catch (error) {
+    console.error('Error cargando fotos de la zona:', error);
+    cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#a72e21;">Error al cargar las fotos.</div>';
+  }
+}
+
+// ============================================================
+// LIGHTBOX: visor grande de fotos de Avance Semanal
+// ============================================================
+let asLightboxIndex = 0;
+
+function abrirLightboxFoto(index) {
+  const fotos = window.asFotosZonaActual || [];
+  if (!fotos.length) return;
+  asLightboxIndex = index;
+  pintarLightboxFoto();
+  document.getElementById('as-lightbox').style.display = 'flex';
+}
+
+function pintarLightboxFoto() {
+  const fotos = window.asFotosZonaActual || [];
+  if (!fotos.length) return;
+  const f = fotos[asLightboxIndex];
+  document.getElementById('as-lightbox-img').src = f.url;
+  document.getElementById('as-lightbox-caption').textContent =
+    `${f.porcentaje}% · ${f.usuario} · ${new Date(f.fecha).toLocaleString()} · Foto ${asLightboxIndex + 1} de ${fotos.length}`;
+  document.getElementById('as-lightbox-prev').style.display = fotos.length > 1 ? 'block' : 'none';
+  document.getElementById('as-lightbox-next').style.display = fotos.length > 1 ? 'block' : 'none';
+}
+
+function cambiarFotoLightbox(delta, event) {
+  if (event) event.stopPropagation();
+  const fotos = window.asFotosZonaActual || [];
+  if (!fotos.length) return;
+  asLightboxIndex = (asLightboxIndex + delta + fotos.length) % fotos.length;
+  pintarLightboxFoto();
+}
+
+function cerrarLightboxFoto(event) {
+  if (event) event.stopPropagation();
+  document.getElementById('as-lightbox').style.display = 'none';
+}
+
+function cerrarPanelAvanceSemanal() {
+  const panel = document.getElementById('as-panel-visor');
+  if (panel) panel.remove();
+}
+
+// ============================================================
+// CARGAR ZONAS EN EL SELECTOR (Avance Semanal)
+// ============================================================
+async function cargarZonasAvanceSemanal() {
+  const select = document.getElementById('as-selector-zona');
+  if (!select) return;
+  
+  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+  const token = localStorage.getItem('obra360_token');
+  
+  if (!proyectoId || !token || !asPlanoActualId) {
+    select.innerHTML = '<option value="">No hay zonas disponibles</option>';
+    return;
+  }
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/zonas_semanales?plano_id=${asPlanoActualId}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) throw new Error('Error al cargar zonas');
+    const data = await resp.json();
+    asZonas = data.zonas || [];
+
+    const zonaPrevia = asZonaSeleccionada;
+
+    select.innerHTML = '<option value="">Seleccionar zona...</option>';
+    asZonas.forEach(z => {
+      const option = document.createElement('option');
+      option.value = z.id;
+      const color = z.ultimo_estatus?.color || '⚪';
+      const pct = z.ultimo_estatus?.porcentaje || 0;
+      option.textContent = `${color} ${z.nombre} (${pct}%)`;
+      select.appendChild(option);
+    });
+    
+    if (asZonas.length === 0) {
+      select.innerHTML = '<option value="">No hay zonas dibujadas</option>';
+    }
+
+    // Si ya había una zona seleccionada (ej. tras reportar avance), se conserva y se refrescan sus fotos
+    if (zonaPrevia && asZonas.some(z => String(z.id) === String(zonaPrevia))) {
+      select.value = zonaPrevia;
+      mostrarFotosDeZona(zonaPrevia);
+    } else {
+      asZonaSeleccionada = null;
+      mostrarFotosDeZona('');
+    }
+
+    // Cargar últimos reportes
+    cargarUltimosReportesAvanceSemanal();
+  } catch (error) {
+    console.error('Error cargando zonas:', error);
+    select.innerHTML = '<option value="">Error al cargar zonas</option>';
+  }
+}
+
+// ============================================================
+// CARGAR ÚLTIMOS REPORTES (Avance Semanal)
+// ============================================================
+async function cargarUltimosReportesAvanceSemanal() {
+  const container = document.getElementById('as-ultimos-reportes');
+  if (!container) return;
+  
+  const token = localStorage.getItem('obra360_token');
+  if (!token) return;
+  
+  try {
+    // Obtener los últimos reportes de todas las zonas
+    let todosLosReportes = [];
+    for (const zona of asZonas) {
+      const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zona.id}/estatus?limit=1`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.historial && data.historial.length > 0) {
+          todosLosReportes.push({
+            zona: zona.nombre,
+            reporte: data.historial[0]
+          });
+        }
+      }
+    }
+    
+    // Ordenar por fecha (más reciente primero) y mostrar los últimos 3
+    todosLosReportes.sort((a, b) => new Date(b.reporte.fecha) - new Date(a.reporte.fecha));
+    const ultimos = todosLosReportes.slice(0, 3);
+    
+    if (ultimos.length === 0) {
+      container.innerHTML = '<div class="sin-reportes">Sin reportes</div>';
+      return;
+    }
+    
+    container.innerHTML = ultimos.map(item => `
+      <div class="reporte-item">
+        <span><strong>${item.zona}</strong> ${item.reporte.color} ${item.reporte.porcentaje}%</span>
+        <span style="color:#999;font-size:10px;">${item.reporte.usuario}</span>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error cargando últimos reportes:', error);
+    container.innerHTML = '<div class="sin-reportes">Error al cargar reportes</div>';
+  }
+}
+
+// ============================================================
+// REPORTAR AVANCE (Avance Semanal)
+// ============================================================
+async function reportarAvanceSemanal() {
+  const zonaId = document.getElementById('as-selector-zona').value;
+  if (!zonaId) {
+    alert('⚠️ Por favor, selecciona una zona');
+    return;
+  }
+  
+  const porcentaje = parseInt(document.getElementById('as-porcentaje-slider').value);
+  const comentario = document.getElementById('as-comentario').value.trim();
+  const fotoInput = document.getElementById('as-foto');
+  
+  const token = localStorage.getItem('obra360_token');
+  if (!token) {
+    alert('❌ No hay sesión activa');
+    return;
+  }
+  
+  try {
+    // 1. Subir TODAS las fotos seleccionadas (una por una al mismo endpoint)
+    const fotosUrls = [];
+    if (fotoInput.files && fotoInput.files.length > 0) {
+      for (const file of fotoInput.files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const uploadResp = await fetch(`${GATE_API_URL}/zonas_semanales/${zonaId}/foto`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+        const uploadData = await uploadResp.json();
+        if (uploadData.success) {
+          fotosUrls.push(uploadData.foto_url);
+        }
+      }
+    }
+    
+    // 2. Reportar estatus con TODAS las fotos subidas
+    const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zonaId}/estatus`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        porcentaje: porcentaje,
+        comentario: comentario,
+        fotos: fotosUrls
+      })
+    });
+    
+    const data = await resp.json();
+    if (data.success) {
+      const textoFotos = fotosUrls.length > 0 ? ` (${fotosUrls.length} foto${fotosUrls.length > 1 ? 's' : ''})` : '';
+      alert(`✅ Reporte guardado: ${porcentaje}% ${data.color}${textoFotos}`);
+      // Limpiar campos
+      document.getElementById('as-comentario').value = '';
+      document.getElementById('as-foto').value = '';
+      // Recargar zonas y reportes
+      cargarZonasAvanceSemanal();
+      // Recargar tabla de mediciones
+      cargarReportesAvanceSemanal();
+    } else {
+      alert('❌ Error: ' + (data.detail || 'Error desconocido'));
+    }
+  } catch (error) {
+    console.error('Error reportando avance:', error);
+    alert('❌ Error de conexión');
+  }
+}
+
+// ============================================================
+// CARGAR REPORTES EN LA TABLA (Avance Semanal)
+// ============================================================
+async function cargarReportesAvanceSemanal() {
+  const tbody = document.getElementById('body-avance_semanal');
+  const visible = document.getElementById('visible-avance_semanal');
+  const count = document.getElementById('count-avance_semanal');
+  
+  const token = localStorage.getItem('obra360_token');
+  if (!token) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--texto-secundario);">No hay sesión activa</td></tr>';
+    return;
+  }
+  
+  try {
+    // Obtener todos los reportes de todas las zonas del plano actual
+    let todosLosReportes = [];
+    for (const zona of asZonas) {
+      const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zona.id}/estatus?limit=50`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.historial) {
+          data.historial.forEach(h => {
+            todosLosReportes.push({
+              zona_id: zona.id,
+              nombre: zona.nombre,
+              ...h
+            });
+          });
+        }
+      }
+    }
+    
+    // Ordenar por fecha (más reciente primero)
+    todosLosReportes.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    
+    if (todosLosReportes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--texto-secundario);">No hay reportes de avance</td></tr>';
+      if (visible) visible.textContent = '0';
+      if (count) count.textContent = '0 registros';
+      return;
+    }
+    
+    tbody.innerHTML = todosLosReportes.map(r => `
+      <tr>
+        <td class="cell">${r.zona_id.substring(0, 8)}</td>
+        <td class="cell">${r.nombre}</td>
+        <td class="cell num">${r.porcentaje}%</td>
+        <td class="cell">${r.color}</td>
+        <td class="cell">${r.estatus}</td>
+        <td class="cell">${r.usuario}</td>
+        <td class="cell">${new Date(r.fecha).toLocaleString()}</td>
+        <td class="cell">${r.comentario || '—'}</td>
+        <td class="cell">${r.foto_url ? '📷' : '—'}</td>
+      </tr>
+    `).join('');
+    
+    if (visible) visible.textContent = todosLosReportes.length;
+    if (count) count.textContent = todosLosReportes.length + ' registros';
+  } catch (error) {
+    console.error('Error cargando reportes:', error);
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:#a72e21;">Error al cargar reportes</td></tr>';
+  }
+}
+
+// ============================================================
+// INICIALIZAR AVANCE SEMANAL AL ABRIR EL MÓDULO
+// ============================================================
+// (La función se llama desde navegarA cuando se selecciona avance_semanal)
+
+// ============================================================
+// INICIALIZAR FABRIC AL CARGAR LA PÁGINA
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+  const canvasEl = document.getElementById('fabric-canvas');
+  if (canvasEl) {
+    asFabric = new fabric.Canvas('fabric-canvas', {
+      selection: false,
+      backgroundColor: 'transparent'
+    });
+    configurarEventosFabricAvanceSemanal();
+  }
+});
+
+// ============================================================
+// SOBRESCRIBIR LA FUNCIÓN navegarA PARA QUE CARGUE AVANCE SEMANAL
+// ============================================================
+// (Ya está hecho arriba con el case 'avance_semanal')
 </script>
+<!-- LIGHTBOX: visor grande de foto de Avance Semanal -->
+<div id="as-lightbox" style="display:none;position:fixed;inset:0;background:rgba(10,15,20,.92);z-index:5000;align-items:center;justify-content:center;padding:20px;" onclick="cerrarLightboxFoto(event)">
+  <button onclick="cerrarLightboxFoto(event)" style="position:absolute;top:16px;right:20px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;">✕</button>
+  <button id="as-lightbox-prev" onclick="cambiarFotoLightbox(-1, event)" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:26px;width:44px;height:44px;border-radius:50%;cursor:pointer;">‹</button>
+  <button id="as-lightbox-next" onclick="cambiarFotoLightbox(1, event)" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:26px;width:44px;height:44px;border-radius:50%;cursor:pointer;">›</button>
+  <div style="max-width:92vw;max-height:88vh;text-align:center;" onclick="event.stopPropagation()">
+    <img id="as-lightbox-img" src="" style="max-width:92vw;max-height:78vh;border-radius:6px;box-shadow:0 10px 40px rgba(0,0,0,.5);">
+    <div id="as-lightbox-caption" style="color:#fff;font-size:13px;margin-top:10px;"></div>
+  </div>
+</div>
+
 </body>
 </html>
