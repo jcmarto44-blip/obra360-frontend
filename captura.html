@@ -3132,6 +3132,15 @@ async function cargarPDFAvanceSemanal(url) {
         backgroundColor: 'transparent'
       });
       configurarEventosFabricAvanceSemanal();
+      
+      // BUG REAL CORREGIDO: Fabric.js envuelve el <canvas> original en su
+      // propio <div> ("wrapperEl") con position:relative por defecto — el
+      // position:absolute;top:50%;left:50% que tenía el <canvas> en el HTML
+      // se ignora una vez que Fabric toma el control. Sin esto, la capa de
+      // dibujo (zonas, líneas) queda desalineada del PDF.
+      asFabric.wrapperEl.style.position = 'absolute';
+      asFabric.wrapperEl.style.top = '50%';
+      asFabric.wrapperEl.style.left = '50%';
     }
     asFabric.setWidth(viewport.width);
     asFabric.setHeight(viewport.height);
@@ -3152,9 +3161,9 @@ async function cargarPDFAvanceSemanal(url) {
     const scaleY = (containerHeight * 0.9) / viewport.height;
     const scale = Math.min(scaleX, scaleY, 1);
     
-    canvas.style.transform = `scale(${scale})`;
+    canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
     canvas.style.transformOrigin = 'center center';
-    asFabric.wrapperEl.style.transform = `scale(${scale})`;
+    asFabric.wrapperEl.style.transform = `translate(-50%, -50%) scale(${scale})`;
     asFabric.wrapperEl.style.transformOrigin = 'center center';
     
   } catch (error) {
@@ -3884,19 +3893,15 @@ async function cargarReportesAvanceSemanal() {
 // ============================================================
 // (La función se llama desde navegarA cuando se selecciona avance_semanal)
 
-// ============================================================
-// INICIALIZAR FABRIC AL CARGAR LA PÁGINA
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-  const canvasEl = document.getElementById('fabric-canvas');
-  if (canvasEl) {
-    asFabric = new fabric.Canvas('fabric-canvas', {
-      selection: false,
-      backgroundColor: 'transparent'
-    });
-    configurarEventosFabricAvanceSemanal();
-  }
-});
+// NOTA: Fabric.js YA NO se inicializa aquí en DOMContentLoaded (se quitó).
+// BUG REAL CORREGIDO: esa inicialización duplicada se ejecutaba apenas
+// cargaba la página, ANTES de que el usuario abriera el visor — y como
+// nunca configuraba la posición del wrapper (position/top/left), y
+// cargarPDFAvanceSemanal() solo inicializa Fabric si "asFabric" todavía
+// no existe (`if (!asFabric)`), esta duplicada le "ganaba" siempre y el
+// fix de posicionamiento de más arriba nunca llegaba a aplicarse. Fabric
+// ahora se inicializa SOLO una vez, dentro de cargarPDFAvanceSemanal(),
+// ya con la posición correcta.
 
 // ============================================================
 // SOBRESCRIBIR LA FUNCIÓN navegarA PARA QUE CARGUE AVANCE SEMANAL
