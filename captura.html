@@ -415,6 +415,10 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 .as-panel-visor .btn-reportar:hover {
   background: #218838;
 }
+.as-tool-btn.as-tool-activa {
+  background: #FF6B00 !important;
+  border-color: #FF6B00 !important;
+}
 .as-panel-visor .fotos-zona-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -593,24 +597,22 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
     </div>
 
     <div class="area" id="area-documentos">Documentos</div>
-    <div class="menu-item" data-tab="planos">
-      <span class="ico"><i class="bi bi-file-earmark-pdf"></i></span> Planos del Proyecto
-    </div>
 
-    <!-- ===== NUEVO SUBMÓDULO: AVANCE SEMANAL ===== -->
-    <div class="grupo-toggle" data-grupo="avance_semanal" style="padding-left:14px;font-size:12px;margin-top:4px;border-top:1px solid #d3d8de;padding-top:6px;">
-      <span class="ico"><i class="bi bi-calendar-week" style="color:#1b4b8f;"></i></span>
-      <span style="color:#1b4b8f;font-weight:600;">📏 Avance Semanal</span>
-      <span class="chev">▾</span>
+    <!-- ===== 📐 PLANOS DEL PROYECTO (padre único) ===== -->
+    <div class="grupo-toggle open" data-grupo="planos_proyecto">
+      <span class="ico"><i class="bi bi-file-earmark-pdf"></i></span> 📐 Planos del Proyecto <span class="chev">▾</span>
     </div>
-    <div class="grupo-body submenu" id="grupo-avance_semanal" style="padding-left:24px;">
-      <div class="menu-item" data-tab="avance_semanal" data-visible-para="Desarrollador,Constructora" style="font-size:12px;">
-        <span class="ico"><i class="bi bi-calendar-check"></i></span> 📅 Registrar Avance
+    <div class="grupo-body open submenu" id="grupo-planos_proyecto">
+      <div class="menu-item" data-tab="planos">
+        <span class="ico"><i class="bi bi-file-earmark-pdf"></i></span> 📄 Ver Planos
+      </div>
+      <div class="menu-item" data-tab="avance_semanal" data-visible-para="Desarrollador,Constructora">
+        <span class="ico"><i class="bi bi-calendar-week"></i></span> 📅 Avance Semanal
       </div>
     </div>
-    <!-- ===== FIN SUBMÓDULO AVANCE SEMANAL ===== -->
+    <!-- ===== FIN PLANOS DEL PROYECTO ===== -->
 
-    <!-- ===== MÓDULO FOTOGRÁFICO ===== -->
+    <!-- ===== 📷 FOTOGRÁFICO (separado, fuera de Planos del Proyecto) ===== -->
     <div class="menu-item" data-tab="fotografico">
       <span class="ico"><i class="bi bi-camera"></i></span> Fotográfico
     </div>
@@ -844,6 +846,23 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <!-- ================= VISOR PDF (NUEVO) ================= -->
 <div id="visor-pdf-container" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;z-index:9999;flex-direction:column;">
   <div style="background:#16213e;padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;border-bottom:2px solid #0f3460;min-height:52px;">
+    <div id="as-toolbar-dibujo" style="display:none;gap:6px;align-items:center;flex-wrap:wrap;">
+      <button id="as-btn-modo-seleccionar" onclick="cambiarHerramientaAvanceSemanal('select')" class="as-tool-btn as-tool-activa" style="background:#0f3460;color:#fff;border:1px solid #1b4b8f;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+        <i class="bi bi-cursor"></i> Seleccionar
+      </button>
+      <button id="as-btn-modo-poligono" onclick="cambiarHerramientaAvanceSemanal('poligono')" class="as-tool-btn" style="background:#0f3460;color:#fff;border:1px solid #1b4b8f;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+        <i class="bi bi-pentagon"></i> Dibujar Zona
+      </button>
+      <button id="as-btn-guardar-zona" onclick="guardarZonaPoligono()" style="display:none;background:#28a745;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+        <i class="bi bi-check-lg"></i> Guardar Zona
+      </button>
+      <button id="as-btn-cancelar-zona" onclick="cancelarDibujoZona()" style="display:none;background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <span id="as-instruccion-dibujo" style="color:#f0ad4e;font-size:10.5px;display:none;">
+        Da clic para poner puntos. Mínimo 3. Doble clic o "Guardar Zona" para terminar.
+      </span>
+    </div>
     <button onclick="cerrarVisorCompleto()" style="background:#dc3545;color:#fff;border:none;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;">
       <i class="bi bi-x-lg"></i> Cerrar
     </button>
@@ -1404,21 +1423,6 @@ const MODULOS = {
     datos:[]
   },
 
-  avance_semanal: {
-    label: "📏 Avance Semanal",
-    endpoint: "avance_semanal",
-    columnas: [
-      {key: "zona_id", label: "Zona", hidden: true},
-      {key: "nombre", label: "Nombre"},
-      {key: "porcentaje", label: "% Avance", tipo: "num"},
-      {key: "color", label: "Color"},
-      {key: "estatus", label: "Estatus"},
-      {key: "usuario", label: "Usuario"},
-      {key: "fecha", label: "Fecha"},
-      {key: "comentario", label: "Comentario"},
-    ],
-    datos: []
-  },
 };
 
 let moduloActivo = "presupuestal";
@@ -2070,13 +2074,15 @@ async function cargarPermisoAvanceSemanal() {
     });
     if (!resp.ok) return;
     const data = await resp.json();
-    window.permisoAvanceSemanal = !!(data.cliente && data.cliente.acceso_avance_semanal);
+
+    // El ADMINISTRADOR siempre tiene acceso a todo, para poder supervisar
+    // la plataforma — los permisos por cliente no le aplican a él.
+    const esAdmin = data.es_admin === true || (data.cliente && data.cliente.usuario === 'adminjc');
+    window.permisoAvanceSemanal = esAdmin ? true : !!(data.cliente && data.cliente.acceso_avance_semanal);
 
     if (!window.permisoAvanceSemanal) {
-      const toggle = document.querySelector('.grupo-toggle[data-grupo="avance_semanal"]');
-      const body = document.getElementById('grupo-avance_semanal');
-      if (toggle) toggle.style.display = 'none';
-      if (body) body.style.display = 'none';
+      const item = document.querySelector('.menu-item[data-tab="avance_semanal"]');
+      if (item) item.style.display = 'none';
     }
   } catch (error) {
     console.error('Error cargando permiso de Avance Semanal:', error);
@@ -2640,7 +2646,7 @@ async function confirmarSubidaPlanos(){
     return;
   }
 
-  let exitos = 0, errores = 0;
+  let exitos = 0, errores = 0, detalleErrores = [];
   for(const item of planosLote){
     if(!item.clave_base || !item.sufijo) { errores++; continue; }
     try{
@@ -2654,14 +2660,25 @@ async function confirmarSubidaPlanos(){
         headers: { "Authorization": `Bearer ${token}` },
         body: formData
       });
-      if(resp.ok) exitos++; else errores++;
+      if(resp.ok) {
+        exitos++;
+      } else {
+        errores++;
+        const errData = await resp.json().catch(() => ({}));
+        detalleErrores.push(`${item.file.name}: ${errData.detail || resp.status}`);
+      }
     }catch(err){
       errores++;
+      detalleErrores.push(`${item.file.name}: ${err.message}`);
     }
   }
 
   cerrarModalPlanos();
-  alert(`✅ ${exitos} plano(s) subido(s) correctamente.` + (errores ? ` ⚠️ ${errores} con error.` : ""));
+  let mensaje = `✅ ${exitos} plano(s) subido(s) correctamente.`;
+  if (errores) {
+    mensaje += ` ⚠️ ${errores} con error:\n` + detalleErrores.join('\n');
+  }
+  alert(mensaje);
   cargarPlanos();
 }
 
@@ -3054,6 +3071,12 @@ function abrirVisorAvanceSemanal(url, planoId, planoClave) {
   asZonas = [];
   asPuntos = [];
   
+  // Solo Gerente/Superintendente ven la barra de herramientas de dibujo
+  // (coincide con la restricción que ya exige el backend en crear_zona)
+  const toolbar = document.getElementById('as-toolbar-dibujo');
+  if (toolbar) toolbar.style.display = esGerenteOSuper() ? 'flex' : 'none';
+  cambiarHerramientaAvanceSemanal('select');
+  
   // Cargar el PDF
   cargarPDFAvanceSemanal(url);
   
@@ -3155,9 +3178,18 @@ function configurarEventosFabricAvanceSemanal() {
       });
       asFabric.add(currentShape);
     }
+    
+    if (asHerramienta === 'poligono') {
+      agregarPuntoPoligono(pointer.x, pointer.y);
+    }
   });
   
   asFabric.on('mouse:move', function(opt) {
+    if (asHerramienta === 'poligono' && asPuntosPoligono.length > 0) {
+      const pointer = asFabric.getPointer(opt.e);
+      redibujarPoligonoEnProgreso(pointer.x, pointer.y);
+    }
+    
     if (asHerramienta === 'select' || !startPoint || !currentShape) return;
     
     const pointer = asFabric.getPointer(opt.e);
@@ -3181,6 +3213,12 @@ function configurarEventosFabricAvanceSemanal() {
     }
     
     asFabric.renderAll();
+  });
+  
+  asFabric.on('mouse:dblclick', function() {
+    if (asHerramienta === 'poligono' && asPuntosPoligono.length >= 3) {
+      guardarZonaPoligono();
+    }
   });
   
   asFabric.on('mouse:up', function(opt) {
@@ -3213,6 +3251,198 @@ function configurarEventosFabricAvanceSemanal() {
     startPoint = null;
     asFabric.renderAll();
   });
+}
+
+// ============================================================
+// DIBUJAR ZONA (Polígono) — Gerente/Superintendente, en PC
+// ============================================================
+let asPuntosPoligono = [];       // puntos del polígono que se está dibujando ahora
+let asMarcadoresPoligono = [];   // círculos fabric de cada punto (temporal)
+let asLineaPoligonoTemp = null;  // línea fabric que sigue al mouse (temporal)
+let asPoligonosDibujados = [];   // polígonos fabric ya guardados, pintados en el canvas
+
+function cambiarHerramientaAvanceSemanal(modo) {
+  // Si estaba dibujando y cambia de herramienta sin guardar, se cancela
+  if (asHerramienta === 'poligono' && modo !== 'poligono') {
+    limpiarDibujoPoligonoTemporal();
+  }
+  
+  asHerramienta = modo;
+  
+  document.getElementById('as-btn-modo-seleccionar')?.classList.toggle('as-tool-activa', modo === 'select');
+  document.getElementById('as-btn-modo-poligono')?.classList.toggle('as-tool-activa', modo === 'poligono');
+  
+  const instruccion = document.getElementById('as-instruccion-dibujo');
+  const btnGuardar = document.getElementById('as-btn-guardar-zona');
+  const btnCancelar = document.getElementById('as-btn-cancelar-zona');
+  
+  if (modo === 'poligono') {
+    if (instruccion) instruccion.style.display = 'inline';
+    if (btnCancelar) btnCancelar.style.display = 'inline-block';
+    if (asFabric) asFabric.selection = false;
+  } else {
+    if (instruccion) instruccion.style.display = 'none';
+    if (btnGuardar) btnGuardar.style.display = 'none';
+    if (btnCancelar) btnCancelar.style.display = 'none';
+    if (asFabric) asFabric.selection = true;
+  }
+}
+
+function agregarPuntoPoligono(x, y) {
+  asPuntosPoligono.push({ x, y });
+  
+  const punto = new fabric.Circle({
+    left: x - 4, top: y - 4, radius: 4,
+    fill: '#FF6B00', stroke: '#fff', strokeWidth: 1,
+    selectable: false, evented: false
+  });
+  asFabric.add(punto);
+  asMarcadoresPoligono.push(punto);
+  
+  document.getElementById('info-puntos').textContent = `📍 Puntos: ${asPuntosPoligono.length}`;
+  
+  const btnGuardar = document.getElementById('as-btn-guardar-zona');
+  if (btnGuardar) btnGuardar.style.display = asPuntosPoligono.length >= 3 ? 'inline-block' : 'none';
+  
+  asFabric.renderAll();
+}
+
+function redibujarPoligonoEnProgreso(mouseX, mouseY) {
+  if (asLineaPoligonoTemp) {
+    asFabric.remove(asLineaPoligonoTemp);
+    asLineaPoligonoTemp = null;
+  }
+  
+  const puntos = asPuntosPoligono.map(p => ({ x: p.x, y: p.y }));
+  puntos.push({ x: mouseX, y: mouseY });
+  
+  asLineaPoligonoTemp = new fabric.Polyline(puntos, {
+    fill: 'rgba(255,107,0,0.15)',
+    stroke: '#FF6B00',
+    strokeWidth: 2,
+    strokeDashArray: [4, 4],
+    selectable: false,
+    evented: false
+  });
+  asFabric.add(asLineaPoligonoTemp);
+  asFabric.renderAll();
+}
+
+function limpiarDibujoPoligonoTemporal() {
+  asMarcadoresPoligono.forEach(m => asFabric.remove(m));
+  asMarcadoresPoligono = [];
+  if (asLineaPoligonoTemp) {
+    asFabric.remove(asLineaPoligonoTemp);
+    asLineaPoligonoTemp = null;
+  }
+  asPuntosPoligono = [];
+  document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
+  const btnGuardar = document.getElementById('as-btn-guardar-zona');
+  if (btnGuardar) btnGuardar.style.display = 'none';
+  asFabric.renderAll();
+}
+
+function cancelarDibujoZona() {
+  limpiarDibujoPoligonoTemporal();
+}
+
+async function guardarZonaPoligono() {
+  if (asPuntosPoligono.length < 3) {
+    alert('⚠️ Necesitas al menos 3 puntos para formar una zona.');
+    return;
+  }
+  
+  const nombre = prompt('Nombre de la zona/etapa (ej. "Zona III-A", "Etapa 09"):');
+  if (!nombre || !nombre.trim()) {
+    return; // no cancela el dibujo, solo no guarda todavía
+  }
+  
+  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+  const token = localStorage.getItem('obra360_token');
+  
+  if (!asPlanoActualId) {
+    alert('⚠️ No hay un plano abierto.');
+    return;
+  }
+  
+  const poligono = asPuntosPoligono.map(p => [p.x, p.y]);
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/zonas_semanales`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        plano_id: Number(asPlanoActualId),
+        nombre: nombre.trim(),
+        poligono: poligono,
+        tipo: 'poligono'
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo guardar la zona');
+    
+    limpiarDibujoPoligonoTemporal();
+    alert(`✅ Zona "${nombre.trim()}" guardada correctamente.`);
+    
+    // Recargar zonas (repinta en el canvas + refresca el selector del panel)
+    await cargarZonasAvanceSemanal();
+    cambiarHerramientaAvanceSemanal('select');
+  } catch (error) {
+    alert('❌ Error guardando la zona: ' + error.message);
+  }
+}
+
+// Pinta en el canvas todas las zonas ya guardadas de este plano (según su
+// color de último estatus), y permite hacer clic en una para seleccionarla
+// en el desplegable del panel lateral.
+function dibujarZonasEnCanvas(zonas) {
+  asPoligonosDibujados.forEach(p => asFabric.remove(p));
+  asPoligonosDibujados = [];
+  
+  if (!asFabric || !zonas) return;
+  
+  const coloresFill = {
+    '🔴': 'rgba(220,53,69,0.28)',
+    '🟡': 'rgba(255,193,7,0.28)',
+    '🟢': 'rgba(40,167,69,0.28)'
+  };
+  const coloresStroke = {
+    '🔴': '#dc3545',
+    '🟡': '#ffc107',
+    '🟢': '#28a745'
+  };
+  
+  zonas.forEach(zona => {
+    if (!zona.poligono || zona.poligono.length < 3) return;
+    
+    const colorEmoji = zona.ultimo_estatus?.color || '⚪';
+    const puntos = zona.poligono.map(pt => ({ x: pt[0], y: pt[1] }));
+    
+    const poly = new fabric.Polygon(puntos, {
+      fill: coloresFill[colorEmoji] || 'rgba(150,150,150,0.25)',
+      stroke: coloresStroke[colorEmoji] || '#888',
+      strokeWidth: 2,
+      selectable: false,
+      hoverCursor: 'pointer'
+    });
+    
+    poly.on('mousedown', () => {
+      if (asHerramienta !== 'select') return;
+      const select = document.getElementById('as-selector-zona');
+      if (select) {
+        select.value = zona.id;
+        select.dispatchEvent(new Event('change'));
+      }
+    });
+    
+    asFabric.add(poly);
+    asPoligonosDibujados.push(poly);
+  });
+  
+  asFabric.renderAll();
 }
 
 // ============================================================
@@ -3413,6 +3643,7 @@ async function cargarZonasAvanceSemanal() {
     if (!resp.ok) throw new Error('Error al cargar zonas');
     const data = await resp.json();
     asZonas = data.zonas || [];
+    dibujarZonasEnCanvas(asZonas);
 
     const zonaPrevia = asZonaSeleccionada;
 
