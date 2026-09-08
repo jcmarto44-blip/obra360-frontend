@@ -443,6 +443,15 @@ if (window.pdfjsLib) {
           height: viewport.height
         });
         asvFabric.selection = false;
+
+        // Mismo fix que en captura.html: Fabric.js envuelve el <canvas>
+        // en su propio <div> ("wrapperEl") que no hereda el
+        // position:absolute;top:50%;left:50% del <canvas> original —
+        // sin esto, las zonas dibujadas quedan desalineadas del PDF.
+        asvFabric.wrapperEl.style.position = 'absolute';
+        asvFabric.wrapperEl.style.top = '50%';
+        asvFabric.wrapperEl.style.left = '50%';
+        asvFabric.wrapperEl.style.transform = 'translate(-50%, -50%)';
       } catch (error) {
         console.error('Error cargando PDF:', error);
         alert('❌ No se pudo cargar el PDF.');
