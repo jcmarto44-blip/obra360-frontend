@@ -881,6 +881,16 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+<script>
+// BUG REAL CORREGIDO: sin esto, pdf.js intenta crear su worker como un
+// blob: URL en tiempo de ejecución, y el CSP (script-src sin 'blob:')
+// lo bloquea — cae en "fake worker" y el PDF nunca se termina de pintar
+// (pantalla en negro). Apuntando el worker a un archivo real por HTTPS
+// (mismo dominio ya permitido en el CSP) se evita ese camino bloqueado.
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+}
+</script>
 
 <script>
 /* =====================================================================
