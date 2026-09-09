@@ -981,29 +981,13 @@ const LABELS_DATOS_INICIO = {
 
 const CAMPOS_TIPO_FECHA_INICIO = new Set(["inicio", "fin"]);
 
-// ============================================================
-// ⭐⭐⭐ CORRECCIÓN: YA NO LLAMA A /reporte ⭐⭐⭐
-// Ahora usa los datos de localStorage o valores por defecto.
-// El error 404 desaparece porque ya no se hace la petición.
-// ============================================================
 async function cargarDatosInicio(){
-  // Si hay datos guardados en localStorage (desde Portal_Cliente), los usamos
-  // Si no, dejamos los campos con valores por defecto ("—" o vacío)
-  
-  // No hacemos ninguna petición a /reporte para evitar el 404
-  // Los datos del proyecto ya están en localStorage o los carga el usuario manualmente
-  
   const proyecto = localStorage.getItem("obra360_proyecto_nombre");
   if (!proyecto) return;
-  
-  // Solo actualizar el campo de proyecto si es necesario
   const datoProyecto = document.getElementById("dato-proyecto");
   if (datoProyecto && datoProyecto.value === "—") {
     datoProyecto.value = proyecto;
   }
-  
-  // Los demás campos los deja como están (el usuario los llena manualmente
-  // o ya estaban guardados en localStorage en una sesión anterior)
 }
 
 async function guardarDatosInicio(){
@@ -3001,6 +2985,10 @@ function cerrarVisorCompleto() {
   asZonaSeleccionada = null;
 }
 
+// ============================================================
+// ⭐⭐⭐ CARGA DEL PDF - CORREGIDO ⭐⭐⭐
+// AHORA FABRIC Y EL PDF TIENEN EXACTAMENTE EL MISMO TAMAÑO
+// ============================================================
 async function cargarPDFAvanceSemanal(url) {
   const canvas = document.getElementById('pdf-canvas');
   const ctx = canvas.getContext('2d');
@@ -3010,6 +2998,7 @@ async function cargarPDFAvanceSemanal(url) {
     const pdf = await loadingTask.promise;
     const page = await pdf.getPage(1);
     
+    // Calcular la escala para que quepa en pantalla
     const viewportBase = page.getViewport({ scale: 1 });
     const viewerArea = document.querySelector('#visor-pdf-container > div:nth-child(2)');
     const containerWidth = viewerArea.clientWidth || window.innerWidth;
@@ -3018,10 +3007,18 @@ async function cargarPDFAvanceSemanal(url) {
     const scaleY = (containerHeight * 0.92) / viewportBase.height;
     const scaleAjuste = Math.min(scaleX, scaleY);
     
+    // Obtener el viewport del PDF con la escala calculada
     const viewport = page.getViewport({ scale: scaleAjuste });
+    
+    // ============================================================
+    // PDF CANVAS - TAMAÑO REAL
+    // ============================================================
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     
+    // ============================================================
+    // FABRIC CANVAS - EXACTAMENTE EL MISMO TAMAÑO
+    // ============================================================
     if (!asFabric) {
       asFabric = new fabric.Canvas('fabric-canvas', {
         selection: false,
@@ -3035,17 +3032,46 @@ async function cargarPDFAvanceSemanal(url) {
       asFabric.wrapperEl.style.transform = 'translate(-50%, -50%)';
       asFabric.wrapperEl.style.zIndex = '10';
     }
-    asFabric.setWidth(viewport.width);
-    asFabric.setHeight(viewport.height);
+    
+    // ⭐⭐⭐ PUNTO CLAVE: AMBOS CANVAS TIENEN EL MISMO TAMAÑO ⭐⭐⭐
+    const ancho = viewport.width;
+    const alto = viewport.height;
+    
+    asFabric.setWidth(ancho);
+    asFabric.setHeight(alto);
+    
+    // Forzar el canvas de Fabric al mismo tamaño
+    const fabricEl = document.getElementById('fabric-canvas');
+    fabricEl.width = ancho;
+    fabricEl.height = alto;
+    
+    // Forzar el wrapper al mismo tamaño
+    asFabric.wrapperEl.style.width = ancho + 'px';
+    asFabric.wrapperEl.style.height = alto + 'px';
+    
     asFabric.clear();
     
+    // ============================================================
+    // RENDERIZAR EL PDF
+    // ============================================================
     const renderContext = {
       canvasContext: ctx,
       viewport: viewport
     };
     await page.render(renderContext).promise;
     
-    requestAnimationFrame(() => { if (asFabric) asFabric.calcOffset(); });
+    // Redibujar las zonas guardadas
+    if (asZonas && asZonas.length > 0) {
+      dibujarZonasEnCanvas(asZonas);
+    }
+    
+    // Recalcular la posición de Fabric (para que los clics coincidan)
+    requestAnimationFrame(() => { 
+      if (asFabric) {
+        asFabric.calcOffset();
+        asFabric.renderAll();
+      }
+    });
     
   } catch (error) {
     console.error('Error cargando PDF:', error);
@@ -3056,6 +3082,9 @@ async function cargarPDFAvanceSemanal(url) {
 function configurarEventosFabricAvanceSemanal() {
   if (!asFabric) return;
   
+  // ============================================================
+  // FUNCIÓN PARA OBTENER LA POSICIÓN REAL DEL MOUSE
+  // ============================================================
   function obtenerPointerReal(evt) {
     const canvasEl = asFabric.upperCanvasEl;
     const rect = canvasEl.getBoundingClientRect();
