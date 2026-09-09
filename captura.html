@@ -3079,12 +3079,12 @@ async function cargarPDFAvanceSemanal(url) {
   }
 }
 
+// ============================================================
+// ⭐⭐⭐ FUNCIÓN CORREGIDA - ESTO ES LO QUE FALTABA ⭐⭐⭐
+// ============================================================
 function configurarEventosFabricAvanceSemanal() {
   if (!asFabric) return;
   
-  // ============================================================
-  // FUNCIÓN PARA OBTENER LA POSICIÓN REAL DEL MOUSE
-  // ============================================================
   function obtenerPointerReal(evt) {
     const canvasEl = asFabric.upperCanvasEl;
     const rect = canvasEl.getBoundingClientRect();
@@ -3114,18 +3114,26 @@ function configurarEventosFabricAvanceSemanal() {
       startPoint = { x: pointer.x, y: pointer.y };
       shapeEnArrastre = new fabric.Rect({
         left: pointer.x, top: pointer.y, width: 0, height: 0,
-        fill: 'rgba(255,107,0,0.2)', stroke: '#FF6B00', strokeWidth: 2,
-        strokeDashArray: [4, 4], selectable: false, evented: false
+        fill: 'rgba(255,107,0,0.35)', // ⭐ MÁS OPACO
+        stroke: '#FF6B00',
+        strokeWidth: 3, // ⭐ MÁS GRUESO
+        strokeDashArray: [4, 4],
+        selectable: false, evented: false
       });
       asFabric.add(shapeEnArrastre);
+      asFabric.renderAll(); // ⭐ FORZAR REDIBUJO INMEDIATO
     } else if (asHerramienta === 'circulo') {
       startPoint = { x: pointer.x, y: pointer.y };
       shapeEnArrastre = new fabric.Circle({
         left: pointer.x, top: pointer.y, radius: 0, originX: 'center', originY: 'center',
-        fill: 'rgba(255,107,0,0.2)', stroke: '#FF6B00', strokeWidth: 2,
-        strokeDashArray: [4, 4], selectable: false, evented: false
+        fill: 'rgba(255,107,0,0.35)', // ⭐ MÁS OPACO
+        stroke: '#FF6B00',
+        strokeWidth: 3, // ⭐ MÁS GRUESO
+        strokeDashArray: [4, 4],
+        selectable: false, evented: false
       });
       asFabric.add(shapeEnArrastre);
+      asFabric.renderAll(); // ⭐ FORZAR REDIBUJO INMEDIATO
     }
   });
   
@@ -3160,6 +3168,8 @@ function configurarEventosFabricAvanceSemanal() {
       const radio = Math.sqrt(dx*dx + dy*dy);
       shapeEnArrastre.set({ radius: radio });
     }
+    
+    // ⭐⭐⭐ ESTO ES LO QUE FALTABA EN TU VERSIÓN ⭐⭐⭐
     asFabric.renderAll();
   });
   
@@ -3180,6 +3190,7 @@ function configurarEventosFabricAvanceSemanal() {
       asFabric.remove(shapeEnArrastre);
       shapeEnArrastre = null;
       startPoint = null;
+      asFabric.renderAll();
       return;
     }
     
