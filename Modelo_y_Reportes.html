@@ -8,8 +8,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 <script>
-// Mismo fix que en captura.html: sin esto, pdf.js intenta un worker
-// como blob: URL, bloqueado por el CSP, y el PDF nunca se pinta.
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
 }
@@ -76,13 +74,6 @@ if (window.pdfjsLib) {
   .btn-avance { background: var(--mr-primary); color: white; }
   .btn-avance:hover { background: #123a70; color: white; }
 
-  /* ============================================================
-     CANDADO DE PERMISOS
-     Si el admin no le dio acceso a este módulo al cliente, la
-     tarjeta se muestra atenuada y el botón, al dar clic, no hace
-     absolutamente nada (sin mensajes, sin alertas — tal como se
-     pidió: "nada de mensajes, solo no sucede nada").
-     ============================================================ */
   .modulo-card.bloqueada { opacity: 0.55; filter: grayscale(0.4); }
   .modulo-card.bloqueada .modulo-btn { cursor: default; }
   .modulo-card.bloqueada .modulo-btn:hover { transform: none; }
@@ -122,7 +113,6 @@ if (window.pdfjsLib) {
 
   <div class="cards-grid">
 
-    <!-- 📅 AVANCE SEMANAL -->
     <div class="modulo-card" id="card-avance-semanal">
       <div class="modulo-icono">📅</div>
       <div class="modulo-titulo">Avance Semanal</div>
@@ -134,7 +124,6 @@ if (window.pdfjsLib) {
       </button>
     </div>
 
-    <!-- 📊 VER REPORTE (Power BI) -->
     <div class="modulo-card" id="card-ver-reporte">
       <div class="modulo-icono">📊</div>
       <div class="modulo-titulo">Ver Reporte</div>
@@ -146,7 +135,6 @@ if (window.pdfjsLib) {
       </a>
     </div>
 
-    <!-- 🧊 VER MODELO 3D -->
     <div class="modulo-card" id="card-modelo-3d">
       <div class="modulo-icono">🧊</div>
       <div class="modulo-titulo">Ver Modelo 3D</div>
@@ -160,15 +148,9 @@ if (window.pdfjsLib) {
 
   </div>
 
-  <!-- ============================================================
-       VISOR DE PANTALLA COMPLETA: AVANCE SEMANAL
-       Selector de plano → PDF con zonas dibujadas → seleccionar zona →
-       miniaturas de fotos → clic en foto = se amplía → botón Cerrar
-       regresa a las tarjetas de Modelo y Reportes.
-       ============================================================ -->
+  <!-- VISOR AVANCE SEMANAL -->
   <div id="asvVisor" style="display:none;position:fixed;inset:0;background:#1a1a2e;z-index:4000;flex-direction:column;">
 
-    <!-- Barra superior -->
     <div style="background:#16213e;padding:10px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:2px solid #0f3460;">
       <span style="color:#fff;font-weight:700;font-size:14px;"><i class="bi bi-calendar-week me-1"></i>Avance Semanal</span>
 
@@ -183,7 +165,6 @@ if (window.pdfjsLib) {
       </button>
     </div>
 
-    <!-- Cuerpo: PDF a la izquierda, panel de zona/fotos a la derecha -->
     <div style="flex:1;display:flex;overflow:hidden;">
 
       <div style="flex:1;position:relative;overflow:auto;background:#1a1a2e;display:flex;align-items:center;justify-content:center;">
@@ -219,7 +200,7 @@ if (window.pdfjsLib) {
     </div>
   </div>
 
-  <!-- LIGHTBOX: foto ampliada -->
+  <!-- LIGHTBOX -->
   <div id="asvLightbox" style="display:none;position:fixed;inset:0;background:rgba(10,15,20,.92);z-index:5000;align-items:center;justify-content:center;padding:20px;" onclick="cerrarLightboxAsv(event)">
     <button onclick="cerrarLightboxAsv(event)" style="position:absolute;top:16px;right:20px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;">✕</button>
     <button id="asvLightboxPrev" onclick="cambiarFotoLightboxAsv(-1, event)" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:26px;width:44px;height:44px;border-radius:50%;cursor:pointer;">‹</button>
@@ -273,7 +254,6 @@ if (window.pdfjsLib) {
 
     // ============================================================
     // PERMISOS DEL CLIENTE
-    // (Avance Semanal / Ver Reporte / Modelo 3D — los decide el admin)
     // ============================================================
     let permisos = {
       avance_semanal: false,
@@ -284,12 +264,6 @@ if (window.pdfjsLib) {
     async function cargarPermisos() {
       try {
         const data = await apiFetch('/verificar_token');
-
-        // El ADMINISTRADOR (adminjc) siempre ve y supervisa TODO — los
-        // permisos por cliente (Avance Semanal / Ver Reporte / Modelo 3D)
-        // son un candado para EMPRESAS CLIENTE, no para el admin de la
-        // plataforma. Antes esto no se distinguía y por eso el admin
-        // quedaba bloqueado igual que un cliente sin accesos marcados.
         const esAdmin = data.es_admin === true || (data.cliente && data.cliente.usuario === 'adminjc');
 
         if (esAdmin) {
@@ -312,9 +286,6 @@ if (window.pdfjsLib) {
       aplicarCandados();
     }
 
-    // Marca visualmente las tarjetas sin acceso (atenuadas). El clic en
-    // cada botón, más abajo, está guardado para no hacer nada si el
-    // permiso correspondiente es false — sin mensajes ni alertas.
     function aplicarCandados() {
       document.getElementById('card-avance-semanal').classList.toggle('bloqueada', !permisos.avance_semanal);
       document.getElementById('card-ver-reporte').classList.toggle('bloqueada', !permisos.ver_reporte);
@@ -322,18 +293,14 @@ if (window.pdfjsLib) {
     }
 
     // ============================================================
-    // 📅 AVANCE SEMANAL — visor de pantalla completa (self-contained,
-    // no navega a otra página; PDF + zonas + fotos + lightbox, todo aquí)
+    // 📅 AVANCE SEMANAL — CANVAS PURO (SIN FABRIC)
     // ============================================================
     document.getElementById('btnAvanceSemanal').addEventListener('click', function(e) {
       e.preventDefault();
-      if (!permisos.avance_semanal) return; // sin permiso: no pasa nada
+      if (!permisos.avance_semanal) return;
       abrirVisorAvanceSemanalCompleto();
     });
 
-    // ============================================================
-    // ⭐ VARIABLES PARA CANVAS PURO (sin Fabric.js)
-    // ============================================================
     let asvPdfDoc = null;
     let asvZonas = [];
     let asvFotosZonaActual = [];
@@ -427,7 +394,7 @@ if (window.pdfjsLib) {
     });
 
     // ============================================================
-    // ⭐ CARGA DEL PDF CON CANVAS PURO (sin Fabric.js)
+    // ⭐ CARGA DEL PDF CON CANVAS PURO
     // ============================================================
     async function cargarPdfAsv(url) {
       document.getElementById('asvSinPlano').style.display = 'none';
@@ -435,8 +402,7 @@ if (window.pdfjsLib) {
         const loadingTask = pdfjsLib.getDocument(url);
         asvPdfDoc = await loadingTask.promise;
         const page = await asvPdfDoc.getPage(1);
-        
-        // Calcular escala para que quepa en pantalla
+
         const viewportBase = page.getViewport({ scale: 1 });
         const viewerArea = document.querySelector('#asvVisor > div:nth-child(2)');
         const containerWidth = viewerArea ? viewerArea.clientWidth : window.innerWidth * 0.7;
@@ -444,7 +410,7 @@ if (window.pdfjsLib) {
         const scaleX = (containerWidth * 0.85) / viewportBase.width;
         const scaleY = (containerHeight * 0.85) / viewportBase.height;
         const scaleAjuste = Math.min(scaleX, scaleY, 2.0);
-        
+
         const viewport = page.getViewport({ scale: scaleAjuste });
         asvViewport = viewport;
 
@@ -454,25 +420,21 @@ if (window.pdfjsLib) {
         pdfCanvas.style.display = 'block';
         asvCanvas = pdfCanvas;
         asvCtx = pdfCanvas.getContext('2d');
-        
-        // Renderizar PDF
+
         await page.render({ canvasContext: asvCtx, viewport: viewport }).promise;
-        
-        // Crear offscreen canvas para redibujado rápido
+
         asvOffscreenCanvas = document.createElement('canvas');
         asvOffscreenCanvas.width = viewport.width;
         asvOffscreenCanvas.height = viewport.height;
         asvOffscreenCtx = asvOffscreenCanvas.getContext('2d');
         asvOffscreenCtx.drawImage(pdfCanvas, 0, 0);
-        
-        // Configurar eventos de clic para seleccionar zonas
+
         configurarEventosCanvasAsv(pdfCanvas);
-        
-        // Si ya hay zonas cargadas, redibujarlas
+
         if (asvZonas && asvZonas.length > 0) {
           redibujarTodoAsv();
         }
-        
+
       } catch (error) {
         console.error('Error cargando PDF:', error);
         alert('❌ No se pudo cargar el PDF.');
@@ -480,20 +442,17 @@ if (window.pdfjsLib) {
     }
 
     // ============================================================
-    // ⭐ REDIBUJAR TODO (PDF + Zonas + Selección)
+    // ⭐ REDIBUJAR TODO
     // ============================================================
     function redibujarTodoAsv() {
       if (!asvCtx || !asvViewport) return;
-      
-      // 1. Limpiar canvas
+
       asvCtx.clearRect(0, 0, asvViewport.width, asvViewport.height);
-      
-      // 2. Dibujar PDF desde offscreen
+
       if (asvOffscreenCanvas) {
         asvCtx.drawImage(asvOffscreenCanvas, 0, 0);
       }
-      
-      // 3. Dibujar todas las zonas
+
       asvZonas.forEach(zona => {
         const isSelected = (zona.id === asvZonaSeleccionada);
         dibujarZonaAsv(asvCtx, zona, isSelected);
@@ -501,57 +460,66 @@ if (window.pdfjsLib) {
     }
 
     // ============================================================
-    // ⭐ DIBUJAR UNA ZONA CON CANVAS 2D API
+    // ⭐ DIBUJAR ZONA CON COLORES CORREGIDOS (NARANJA PARA SIN ESTATUS)
     // ============================================================
     function dibujarZonaAsv(ctx, zona, isSelected) {
       if (!zona.poligono || zona.poligono.length < 2) return;
-      
-      // Determinar color según el último estatus
-      const color = zona.ultimo_estatus?.color || '⚪';
-      const fillColor = color === '🔴' ? 'rgba(220,53,69,0.3)' :
-                        color === '🟡' ? 'rgba(255,193,7,0.3)' :
-                        'rgba(40,167,69,0.3)';
-      const strokeColor = color === '🔴' ? '#dc3545' :
-                          color === '🟡' ? '#ffc107' :
-                          '#28a745';
-      
+
+      // ✅ OBTENER COLOR SEGÚN ESTATUS
+      const color = zona.ultimo_estatus?.color || null;
+
+      let fillColor, strokeColor;
+
+      if (color === '🔴') {
+        fillColor = 'rgba(220,53,69,0.3)';
+        strokeColor = '#dc3545';
+      } else if (color === '🟡') {
+        fillColor = 'rgba(255,193,7,0.3)';
+        strokeColor = '#ffc107';
+      } else if (color === '🟢') {
+        fillColor = 'rgba(40,167,69,0.3)';
+        strokeColor = '#28a745';
+      } else {
+        // ✅ SIN ESTATUS → NARANJA
+        fillColor = 'rgba(255,140,0,0.25)';
+        strokeColor = '#FF8C00';
+      }
+
       const puntos = zona.poligono;
       const isLine = (zona.tipo === 'linea' || puntos.length < 3);
-      
+
       ctx.beginPath();
       ctx.moveTo(puntos[0][0], puntos[0][1]);
       for (let i = 1; i < puntos.length; i++) {
         ctx.lineTo(puntos[i][0], puntos[i][1]);
       }
-      
+
       if (!isLine && puntos.length >= 3) {
         ctx.closePath();
         ctx.fillStyle = fillColor;
         ctx.fill();
       }
-      
-      // Borde más grueso si está seleccionada
+
       const lineWidth = isSelected ? 4 : 2;
       ctx.strokeStyle = isSelected ? '#000' : strokeColor;
       ctx.lineWidth = lineWidth;
       ctx.stroke();
-      
-      // Mostrar nombre de la zona
+
       const centroX = puntos.reduce((sum, p) => sum + p[0], 0) / puntos.length;
       const centroY = puntos.reduce((sum, p) => sum + p[1], 0) / puntos.length;
-      
+
       ctx.fillStyle = isSelected ? '#000' : '#1a2634';
       ctx.font = isSelected ? 'bold 12px Arial' : 'bold 11px Arial';
       ctx.textAlign = 'center';
       ctx.fillText(zona.nombre || 'Zona', centroX, centroY - 5);
-      
-      // Mostrar porcentaje
-      const pct = zona.ultimo_estatus?.porcentaje || 0;
+
+      // ✅ Mostrar porcentaje o "Sin avance"
+      const pct = zona.ultimo_estatus?.porcentaje ?? 0;
+      const pctDisplay = color ? `${pct}%` : '⏳ Sin avance';
       ctx.fillStyle = isSelected ? '#333' : '#555';
       ctx.font = isSelected ? '11px Arial' : '10px Arial';
-      ctx.fillText(pct + '%', centroX, centroY + 15);
-      
-      // Si está seleccionada, dibujar un borde resaltado
+      ctx.fillText(pctDisplay, centroX, centroY + 15);
+
       if (isSelected) {
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 1;
@@ -600,14 +568,13 @@ if (window.pdfjsLib) {
     }
 
     function detectarZonaClickeadaAsv(px, py) {
-      // Recorrer zonas de atrás hacia adelante (últimas dibujadas encima)
       for (let i = asvZonas.length - 1; i >= 0; i--) {
         const zona = asvZonas[i];
         if (!zona.poligono || zona.poligono.length < 2) continue;
-        
+
         const tipo = zona.tipo || 'poligono';
         const pts = zona.poligono;
-        
+
         let dentro = false;
         if (tipo === 'rectangulo' && pts.length >= 4) {
           const minX = Math.min(pts[0][0], pts[1][0], pts[2][0], pts[3][0]);
@@ -622,7 +589,7 @@ if (window.pdfjsLib) {
         } else {
           dentro = puntoEnPoligonoAsv(px, py, pts);
         }
-        
+
         if (dentro) return zona;
       }
       return null;
@@ -638,20 +605,17 @@ if (window.pdfjsLib) {
         const scaleY = canvas.height / rect.height;
         const mouseX = (e.clientX - rect.left) * scaleX;
         const mouseY = (e.clientY - rect.top) * scaleY;
-        
+
         const zonaClickeada = detectarZonaClickeadaAsv(mouseX, mouseY);
         if (zonaClickeada) {
           asvZonaSeleccionada = zonaClickeada.id;
-          // Actualizar selector en el panel
           const select = document.getElementById('asvSelectorZona');
           if (select) {
             select.value = zonaClickeada.id;
             select.dispatchEvent(new Event('change'));
           }
-          // Redibujar para mostrar selección
           redibujarTodoAsv();
         } else {
-          // Si se hace clic fuera, deseleccionar
           asvZonaSeleccionada = null;
           redibujarTodoAsv();
         }
@@ -659,7 +623,7 @@ if (window.pdfjsLib) {
     }
 
     // ============================================================
-    // ⭐ CARGAR ZONAS DESDE EL BACKEND
+    // ⭐ CARGAR ZONAS DESDE EL BACKEND (CON SELECTOR CORREGIDO)
     // ============================================================
     async function cargarZonasAsv(planoId) {
       try {
@@ -668,13 +632,14 @@ if (window.pdfjsLib) {
         asvZonas = data.zonas || [];
 
         const select = document.getElementById('asvSelectorZona');
+        // ✅ SELECTOR CORREGIDO: NARANJA para zonas sin estatus
         select.innerHTML = '<option value="">Selecciona una zona...</option>' + asvZonas.map(z => {
-          const color = z.ultimo_estatus?.color || '⚪';
+          const color = z.ultimo_estatus?.color || '🟧';
           const pct = z.ultimo_estatus?.porcentaje ?? 0;
-          return `<option value="${z.id}">${color} ${z.nombre} (${pct}%)</option>`;
+          const label = z.ultimo_estatus ? `${color} ${z.nombre} (${pct}%)` : `🟧 ${z.nombre} (⏳ Sin avance)`;
+          return `<option value="${z.id}">${label}</option>`;
         }).join('');
 
-        // Redibujar zonas en el canvas
         if (asvCtx && asvViewport) {
           redibujarTodoAsv();
         }
@@ -792,7 +757,7 @@ if (window.pdfjsLib) {
 
     document.getElementById('btnReporte').addEventListener('click', function(e) {
       if (!permisos.ver_reporte) {
-        e.preventDefault(); // sin permiso: no pasa nada
+        e.preventDefault();
       }
     });
 
@@ -800,7 +765,7 @@ if (window.pdfjsLib) {
     // 🧊 VER MODELO 3D
     // ============================================================
     async function abrirModalRevit() {
-      if (!permisos.modelo_3d) return; // sin permiso: no pasa nada
+      if (!permisos.modelo_3d) return;
       try {
         const proyectoId = localStorage.getItem('obra360_proyecto_id');
         const clienteId = localStorage.getItem('obra360_cliente_id');
