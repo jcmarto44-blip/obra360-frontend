@@ -3201,12 +3201,36 @@ async function cargarPDFAvanceSemanal(url) {
 function configurarEventosFabricAvanceSemanal() {
   if (!asFabric) return;
   
+  // ============================================================
+  // BUG REAL CORREGIDO (de nuevo, más a fondo): asFabric.getPointer()
+  // sigue devolviendo coordenadas mal calculadas incluso con calcOffset(),
+  // porque Fabric guarda internamente un "offset" que no siempre se
+  // actualiza cuando el canvas se reposiciona con CSS externo (top/left/
+  // transform), a pesar de llamar calcOffset(). En vez de confiar en el
+  // cálculo interno de Fabric, este helper mide DIRECTO del navegador
+  // — con getBoundingClientRect() — en dónde está el canvas AHORA MISMO
+  // en la pantalla, y convierte el clic a coordenadas del dibujo. Esto
+  // es 100% confiable sin importar transforms, scroll o repintados.
+  // ============================================================
+  function obtenerPointerReal(evt) {
+    const canvasEl = asFabric.upperCanvasEl;
+    const rect = canvasEl.getBoundingClientRect();
+    const clientX = evt.clientX !== undefined ? evt.clientX : (evt.touches && evt.touches[0] ? evt.touches[0].clientX : 0);
+    const clientY = evt.clientY !== undefined ? evt.clientY : (evt.touches && evt.touches[0] ? evt.touches[0].clientY : 0);
+    const scaleX = canvasEl.width / rect.width;
+    const scaleY = canvasEl.height / rect.height;
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+  
   let startPoint = null;
   let shapeEnArrastre = null;
   
   asFabric.on('mouse:down', function(opt) {
     if (asHerramienta === 'select') return;
-    const pointer = asFabric.getPointer(opt.e);
+    const pointer = obtenerPointerReal(opt.e);
     
     if (asHerramienta === 'poligono' || asHerramienta === 'linea') {
       agregarPuntoPoligono(pointer.x, pointer.y);
@@ -3234,7 +3258,7 @@ function configurarEventosFabricAvanceSemanal() {
   });
   
   asFabric.on('mouse:move', function(opt) {
-    const pointer = asFabric.getPointer(opt.e);
+    const pointer = obtenerPointerReal(opt.e);
     
     if ((asHerramienta === 'poligono' || asHerramienta === 'linea') && asPuntosPoligono.length > 0) {
       redibujarPoligonoEnProgreso(pointer.x, pointer.y);
