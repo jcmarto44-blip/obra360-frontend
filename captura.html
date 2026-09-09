@@ -3110,7 +3110,7 @@ function cerrarVisorCompleto() {
 }
 
 // ============================================================
-// CARGAR PDF (Avance Semanal)
+// CARGAR PDF (Avance Semanal) - CORREGIDO CON Z-INDEX
 // ============================================================
 async function cargarPDFAvanceSemanal(url) {
   const canvas = document.getElementById('pdf-canvas');
@@ -3165,6 +3165,14 @@ async function cargarPDFAvanceSemanal(url) {
       asFabric.wrapperEl.style.top = '50%';
       asFabric.wrapperEl.style.left = '50%';
       asFabric.wrapperEl.style.transform = 'translate(-50%, -50%)';
+      
+      // ============================================================
+      // ⭐⭐⭐ CORRECCIÓN FINAL: Z-INDEX PARA QUE EL DIBUJO ESTÉ ENCIMA DEL PDF ⭐⭐⭐
+      // Esto asegura que Fabric (y su wrapper) esté SIEMPRE por encima
+      // del PDF, sin importar el orden en el DOM.
+      // ============================================================
+      asFabric.wrapperEl.style.zIndex = '10';
+      // ============================================================
     }
     asFabric.setWidth(viewport.width);
     asFabric.setHeight(viewport.height);
