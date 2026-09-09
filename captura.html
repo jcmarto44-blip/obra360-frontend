@@ -760,7 +760,7 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
         </div>
         <div style="display:flex;gap:6px;">
           <button id="as-btn-abrir-visor" class="as-btn-abrir-visor">
-            👁️ Abrir Visor
+            <i class="bi bi-eye-fill"></i> Abrir Visor
           </button>
         </div>
       </div>
@@ -779,7 +779,7 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
           <input type="date" id="as-nuevo-ciclo-inicio" style="padding:5px 8px;border:1px solid var(--gris-borde);border-radius:5px;font-size:12.5px;">
           <span style="font-size:12.5px;">al</span>
           <input type="date" id="as-nuevo-ciclo-cierre" style="padding:5px 8px;border:1px solid var(--gris-borde);border-radius:5px;font-size:12.5px;">
-          <button class="as-btn-abrir-visor" style="padding:5px 12px;font-size:12px;" onclick="crearNuevoCicloAvanceSemanal()">✅ Iniciar Ciclo</button>
+          <button class="as-btn-abrir-visor" style="padding:5px 12px;font-size:12px;" onclick="crearNuevoCicloAvanceSemanal()"><i class="bi bi-check-lg"></i> Iniciar Ciclo</button>
         </div>
       </div>
 
@@ -848,21 +848,21 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 <div id="visor-pdf-container" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a2e;z-index:9999;flex-direction:column;">
   <div style="background:#16213e;padding:8px 12px;display:flex;gap:4px;flex-wrap:wrap;align-items:center;border-bottom:2px solid #0f3460;min-height:52px;">
     <div id="as-toolbar-dibujo" style="display:none;gap:6px;align-items:center;flex-wrap:wrap;">
-      <button id="as-btn-modo-seleccionar" onclick="cambiarHerramientaAvanceSemanal('select')" class="as-tool-btn as-tool-activa" style="background:#333;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
-        <i class="bi bi-cursor"></i> Seleccionar
-      </button>
-      <button id="as-btn-modo-poligono" onclick="cambiarHerramientaAvanceSemanal('poligono')" class="as-tool-btn" style="background:#333;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
-        <i class="bi bi-pentagon"></i> Dibujar Zona
-      </button>
+      <select id="as-selector-herramienta" onchange="cambiarHerramientaAvanceSemanal(this.value)" style="background:#333;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+        <option value="select"><i class="bi bi-cursor"></i> Seleccionar</option>
+        <option value="poligono">Polígono</option>
+        <option value="rectangulo">Rectángulo</option>
+        <option value="cuadrado">Cuadrado</option>
+        <option value="circulo">Círculo</option>
+        <option value="linea">Línea</option>
+      </select>
       <button id="as-btn-guardar-zona" onclick="guardarZonaPoligono()" style="display:none;background:#000;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
-        <i class="bi bi-check-lg"></i> Guardar Zona
+        <i class="bi bi-check-lg"></i> Guardar
       </button>
       <button id="as-btn-cancelar-zona" onclick="cancelarDibujoZona()" style="display:none;background:#fff;color:#000;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
-      <span id="as-instruccion-dibujo" style="color:#ccc;font-size:10.5px;display:none;">
-        Da clic para poner puntos. Mínimo 3. Doble clic o "Guardar Zona" para terminar.
-      </span>
+      <span id="as-instruccion-dibujo" style="color:#ccc;font-size:10.5px;display:none;"></span>
     </div>
     <button onclick="cerrarVisorCompleto()" style="background:#000;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;">
       <i class="bi bi-x-lg"></i> Cerrar
@@ -2960,7 +2960,7 @@ async function cargarSemanasAvanceSemanal() {
         const btnCerrar = document.createElement('button');
         btnCerrar.className = 'as-btn-abrir-visor';
         btnCerrar.style.cssText = 'background:#000;color:#fff;border:1px solid #333;padding:5px 12px;font-size:12px;';
-        btnCerrar.textContent = '🔴 Cerrar Ciclo';
+        btnCerrar.innerHTML = '<i class="bi bi-lock-fill"></i> Cerrar Ciclo';
         btnCerrar.onclick = cerrarCicloAvanceSemanal;
         acciones.appendChild(btnCerrar);
       }
@@ -2977,7 +2977,7 @@ async function cargarSemanasAvanceSemanal() {
         const btnNuevo = document.createElement('button');
         btnNuevo.className = 'as-btn-abrir-visor';
         btnNuevo.style.cssText = 'padding:5px 12px;font-size:12px;';
-        btnNuevo.textContent = '🆕 Nuevo Ciclo';
+        btnNuevo.innerHTML = '<i class="bi bi-plus-circle"></i> Nuevo Ciclo';
         btnNuevo.onclick = () => { formNuevo.style.display = 'flex'; };
         acciones.appendChild(btnNuevo);
       }
@@ -3177,6 +3177,18 @@ async function cargarPDFAvanceSemanal(url) {
     };
     await page.render(renderContext).promise;
     
+    // ============================================================
+    // BUG REAL CORREGIDO: Fabric.js calcula "dónde está el canvas en la
+    // pantalla" UNA SOLA VEZ, cuando se crea o la primera vez que haces
+    // clic — y esa medición se queda guardada en memoria. Como nosotros
+    // movemos el canvas después (position:absolute; top:50%; left:50%),
+    // Fabric seguía usando la posición VIEJA (antes de moverlo) para
+    // traducir tus clics a coordenadas del dibujo — por eso los puntos
+    // caían arriba, fuera del plano. calcOffset() le dice a Fabric
+    // "vuelve a medir dónde estás ahora mismo".
+    // ============================================================
+    requestAnimationFrame(() => { if (asFabric) asFabric.calcOffset(); });
+    
   } catch (error) {
     console.error('Error cargando PDF:', error);
     alert('❌ No se pudo cargar el PDF.');
@@ -3189,127 +3201,155 @@ async function cargarPDFAvanceSemanal(url) {
 function configurarEventosFabricAvanceSemanal() {
   if (!asFabric) return;
   
-  let isDrawing = false;
   let startPoint = null;
-  let currentShape = null;
+  let shapeEnArrastre = null;
   
   asFabric.on('mouse:down', function(opt) {
     if (asHerramienta === 'select') return;
-    
     const pointer = asFabric.getPointer(opt.e);
     
-    if (asHerramienta === 'line' || asHerramienta === 'measure') {
-      startPoint = { x: pointer.x, y: pointer.y };
-      currentShape = new fabric.Line([pointer.x, pointer.y, pointer.x, pointer.y], {
-        stroke: '#FF6B00',
-        strokeWidth: 2,
-        strokeDashArray: [5, 5],
-        selectable: false,
-        evented: false
-      });
-      asFabric.add(currentShape);
+    if (asHerramienta === 'poligono' || asHerramienta === 'linea') {
+      agregarPuntoPoligono(pointer.x, pointer.y);
+      return;
     }
     
-    if (asHerramienta === 'poligono') {
-      agregarPuntoPoligono(pointer.x, pointer.y);
+    // Rectángulo / Cuadrado / Círculo: arranca el arrastre
+    if (asHerramienta === 'rectangulo' || asHerramienta === 'cuadrado') {
+      startPoint = { x: pointer.x, y: pointer.y };
+      shapeEnArrastre = new fabric.Rect({
+        left: pointer.x, top: pointer.y, width: 0, height: 0,
+        fill: 'rgba(255,107,0,0.2)', stroke: '#FF6B00', strokeWidth: 2,
+        strokeDashArray: [4, 4], selectable: false, evented: false
+      });
+      asFabric.add(shapeEnArrastre);
+    } else if (asHerramienta === 'circulo') {
+      startPoint = { x: pointer.x, y: pointer.y };
+      shapeEnArrastre = new fabric.Circle({
+        left: pointer.x, top: pointer.y, radius: 0, originX: 'center', originY: 'center',
+        fill: 'rgba(255,107,0,0.2)', stroke: '#FF6B00', strokeWidth: 2,
+        strokeDashArray: [4, 4], selectable: false, evented: false
+      });
+      asFabric.add(shapeEnArrastre);
     }
   });
   
   asFabric.on('mouse:move', function(opt) {
-    if (asHerramienta === 'poligono' && asPuntosPoligono.length > 0) {
-      const pointer = asFabric.getPointer(opt.e);
-      redibujarPoligonoEnProgreso(pointer.x, pointer.y);
-    }
-    
-    if (asHerramienta === 'select' || !startPoint || !currentShape) return;
-    
     const pointer = asFabric.getPointer(opt.e);
     
-    if (asHerramienta === 'line' || asHerramienta === 'measure') {
-      currentShape.set({
-        x2: pointer.x,
-        y2: pointer.y
-      });
-      
-      // Calcular distancia
-      const dx = pointer.x - startPoint.x;
-      const dy = pointer.y - startPoint.y;
-      const distanciaPx = Math.sqrt(dx*dx + dy*dy);
-      // Escala aproximada (1:100)
-      const escala = 100;
-      const pxPorMetro = 100 / (escala / 100);
-      const metros = distanciaPx / pxPorMetro;
-      
-      document.getElementById('info-medida').textContent = `📏 Distancia: ${metros.toFixed(2)} m`;
+    if ((asHerramienta === 'poligono' || asHerramienta === 'linea') && asPuntosPoligono.length > 0) {
+      redibujarPoligonoEnProgreso(pointer.x, pointer.y);
+      return;
     }
     
+    if (!startPoint || !shapeEnArrastre) return;
+    
+    if (asHerramienta === 'rectangulo') {
+      shapeEnArrastre.set({
+        left: Math.min(startPoint.x, pointer.x),
+        top: Math.min(startPoint.y, pointer.y),
+        width: Math.abs(pointer.x - startPoint.x),
+        height: Math.abs(pointer.y - startPoint.y)
+      });
+    } else if (asHerramienta === 'cuadrado') {
+      const lado = Math.max(Math.abs(pointer.x - startPoint.x), Math.abs(pointer.y - startPoint.y));
+      const dirX = pointer.x >= startPoint.x ? 1 : -1;
+      const dirY = pointer.y >= startPoint.y ? 1 : -1;
+      shapeEnArrastre.set({
+        left: dirX > 0 ? startPoint.x : startPoint.x - lado,
+        top: dirY > 0 ? startPoint.y : startPoint.y - lado,
+        width: lado, height: lado
+      });
+    } else if (asHerramienta === 'circulo') {
+      const dx = pointer.x - startPoint.x, dy = pointer.y - startPoint.y;
+      const radio = Math.sqrt(dx*dx + dy*dy);
+      shapeEnArrastre.set({ radius: radio });
+    }
     asFabric.renderAll();
   });
   
   asFabric.on('mouse:dblclick', function() {
     if (asHerramienta === 'poligono' && asPuntosPoligono.length >= 3) {
       guardarZonaPoligono();
+    } else if (asHerramienta === 'linea' && asPuntosPoligono.length >= 2) {
+      guardarZonaPoligono();
     }
   });
   
-  asFabric.on('mouse:up', function(opt) {
-    if (asHerramienta === 'select' || !startPoint || !currentShape) return;
+  asFabric.on('mouse:up', function() {
+    if (!startPoint || !shapeEnArrastre) return;
     
-    const pointer = asFabric.getPointer(opt.e);
-    const dx = pointer.x - startPoint.x;
-    const dy = pointer.y - startPoint.y;
-    
-    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
-      asFabric.remove(currentShape);
-      currentShape = null;
+    const tooShort = (shapeEnArrastre.width < 5 && shapeEnArrastre.height < 5) ||
+                      (asHerramienta === 'circulo' && shapeEnArrastre.radius < 5);
+    if (tooShort) {
+      asFabric.remove(shapeEnArrastre);
+      shapeEnArrastre = null;
       startPoint = null;
       return;
     }
     
-    currentShape.selectable = true;
-    currentShape.evented = true;
-    
-    // Agregar medición a la lista de puntos
-    asPuntos.push({
-      x1: startPoint.x,
-      y1: startPoint.y,
-      x2: pointer.x,
-      y2: pointer.y,
-      distancia: Math.sqrt(dx*dx + dy*dy)
-    });
-    
-    currentShape = null;
+    guardarFormaArrastrada(asHerramienta, shapeEnArrastre);
+    shapeEnArrastre = null;
     startPoint = null;
-    asFabric.renderAll();
   });
 }
 
 // ============================================================
-// DIBUJAR ZONA (Polígono) — Gerente/Superintendente, en PC
+// TECLADO: ESC cancela el dibujo actual · SUPR borra el último punto
+// (aplica a Polígono y Línea, que se construyen punto por punto)
 // ============================================================
-let asPuntosPoligono = [];       // puntos del polígono que se está dibujando ahora
+document.addEventListener('keydown', function(e) {
+  const visorAbierto = document.getElementById('visor-pdf-container').style.display !== 'none';
+  if (!visorAbierto) return;
+  
+  if (e.key === 'Escape') {
+    limpiarDibujoPoligonoTemporal();
+  } else if ((e.key === 'Delete' || e.key === 'Backspace') && asPuntosPoligono.length > 0) {
+    e.preventDefault();
+    quitarUltimoPuntoPoligono();
+  }
+});
+
+// ============================================================
+// HERRAMIENTAS DE DIBUJO — Gerente/Superintendente, en PC
+// Polígono / Rectángulo / Cuadrado / Círculo (áreas y símbolos)
+// Línea (instalaciones: tuberías, cableado, ductos)
+// ============================================================
+let asPuntosPoligono = [];       // puntos del polígono/línea que se está dibujando ahora
 let asMarcadoresPoligono = [];   // círculos fabric de cada punto (temporal)
 let asLineaPoligonoTemp = null;  // línea fabric que sigue al mouse (temporal)
 let asPoligonosDibujados = [];   // polígonos fabric ya guardados, pintados en el canvas
 
+const INSTRUCCIONES_HERRAMIENTA = {
+  poligono: 'Clic para poner puntos (mín. 3). Doble clic o "Guardar" para cerrar. ESC cancela, SUPR borra el último punto.',
+  linea: 'Clic para poner puntos de la línea (mín. 2). Doble clic o "Guardar" para terminar. ESC cancela, SUPR borra el último punto.',
+  rectangulo: 'Clic y arrastra para dibujar el rectángulo. Suelta para terminar. ESC cancela.',
+  cuadrado: 'Clic y arrastra para dibujar el cuadrado. Suelta para terminar. ESC cancela.',
+  circulo: 'Clic en el centro y arrastra para definir el tamaño. Suelta para terminar. ESC cancela.'
+};
+
 function cambiarHerramientaAvanceSemanal(modo) {
   // Si estaba dibujando y cambia de herramienta sin guardar, se cancela
-  if (asHerramienta === 'poligono' && modo !== 'poligono') {
+  if ((asHerramienta === 'poligono' || asHerramienta === 'linea') && modo !== asHerramienta) {
     limpiarDibujoPoligonoTemporal();
   }
   
   asHerramienta = modo;
   
-  document.getElementById('as-btn-modo-seleccionar')?.classList.toggle('as-tool-activa', modo === 'select');
-  document.getElementById('as-btn-modo-poligono')?.classList.toggle('as-tool-activa', modo === 'poligono');
+  const select = document.getElementById('as-selector-herramienta');
+  if (select) select.value = modo;
   
   const instruccion = document.getElementById('as-instruccion-dibujo');
   const btnGuardar = document.getElementById('as-btn-guardar-zona');
   const btnCancelar = document.getElementById('as-btn-cancelar-zona');
   
-  if (modo === 'poligono') {
-    if (instruccion) instruccion.style.display = 'inline';
+  if (modo === 'poligono' || modo === 'linea') {
+    if (instruccion) { instruccion.textContent = INSTRUCCIONES_HERRAMIENTA[modo]; instruccion.style.display = 'inline'; }
     if (btnCancelar) btnCancelar.style.display = 'inline-block';
+    if (asFabric) asFabric.selection = false;
+  } else if (modo === 'rectangulo' || modo === 'cuadrado' || modo === 'circulo') {
+    if (instruccion) { instruccion.textContent = INSTRUCCIONES_HERRAMIENTA[modo]; instruccion.style.display = 'inline'; }
+    if (btnGuardar) btnGuardar.style.display = 'none';
+    if (btnCancelar) btnCancelar.style.display = 'none';
     if (asFabric) asFabric.selection = false;
   } else {
     if (instruccion) instruccion.style.display = 'none';
@@ -3332,9 +3372,23 @@ function agregarPuntoPoligono(x, y) {
   
   document.getElementById('info-puntos').textContent = `📍 Puntos: ${asPuntosPoligono.length}`;
   
+  const minimo = asHerramienta === 'linea' ? 2 : 3;
   const btnGuardar = document.getElementById('as-btn-guardar-zona');
-  if (btnGuardar) btnGuardar.style.display = asPuntosPoligono.length >= 3 ? 'inline-block' : 'none';
+  if (btnGuardar) btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
   
+  asFabric.renderAll();
+}
+
+function quitarUltimoPuntoPoligono() {
+  if (asPuntosPoligono.length === 0) return;
+  asPuntosPoligono.pop();
+  const marcador = asMarcadoresPoligono.pop();
+  if (marcador) asFabric.remove(marcador);
+  document.getElementById('info-puntos').textContent = `📍 Puntos: ${asPuntosPoligono.length}`;
+  const minimo = asHerramienta === 'linea' ? 2 : 3;
+  const btnGuardar = document.getElementById('as-btn-guardar-zona');
+  if (btnGuardar) btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
+  if (asLineaPoligonoTemp) { asFabric.remove(asLineaPoligonoTemp); asLineaPoligonoTemp = null; }
   asFabric.renderAll();
 }
 
@@ -3348,7 +3402,7 @@ function redibujarPoligonoEnProgreso(mouseX, mouseY) {
   puntos.push({ x: mouseX, y: mouseY });
   
   asLineaPoligonoTemp = new fabric.Polyline(puntos, {
-    fill: 'rgba(255,107,0,0.15)',
+    fill: asHerramienta === 'linea' ? 'transparent' : 'rgba(255,107,0,0.15)',
     stroke: '#FF6B00',
     strokeWidth: 2,
     strokeDashArray: [4, 4],
@@ -3367,36 +3421,33 @@ function limpiarDibujoPoligonoTemporal() {
     asLineaPoligonoTemp = null;
   }
   asPuntosPoligono = [];
-  document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
+  const infoPuntos = document.getElementById('info-puntos');
+  if (infoPuntos) infoPuntos.textContent = '📍 Puntos: 0';
   const btnGuardar = document.getElementById('as-btn-guardar-zona');
   if (btnGuardar) btnGuardar.style.display = 'none';
-  asFabric.renderAll();
+  if (asFabric) asFabric.renderAll();
 }
 
 function cancelarDibujoZona() {
   limpiarDibujoPoligonoTemporal();
 }
 
-async function guardarZonaPoligono() {
-  if (asPuntosPoligono.length < 3) {
-    alert('⚠️ Necesitas al menos 3 puntos para formar una zona.');
-    return;
-  }
-  
+// Pide nombre + comentario y guarda en el backend. Se usa para TODAS las
+// formas (polígono, línea, rectángulo, cuadrado, círculo).
+async function guardarFormaEnBackend(tipo, puntos) {
   const nombre = prompt('Nombre de la zona/etapa (ej. "Zona III-A", "Etapa 09"):');
   if (!nombre || !nombre.trim()) {
-    return; // no cancela el dibujo, solo no guarda todavía
+    return false; // no cancela el dibujo, solo no guarda todavía
   }
+  const comentario = prompt('Comentario (opcional):') || '';
   
   const proyectoId = localStorage.getItem('obra360_proyecto_id');
   const token = localStorage.getItem('obra360_token');
   
   if (!asPlanoActualId) {
     alert('⚠️ No hay un plano abierto.');
-    return;
+    return false;
   }
-  
-  const poligono = asPuntosPoligono.map(p => [p.x, p.y]);
   
   try {
     const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/zonas_semanales`, {
@@ -3408,22 +3459,59 @@ async function guardarZonaPoligono() {
       body: JSON.stringify({
         plano_id: Number(asPlanoActualId),
         nombre: nombre.trim(),
-        poligono: poligono,
-        tipo: 'poligono'
+        poligono: puntos,
+        tipo: tipo,
+        comentario: comentario.trim()
       })
     });
     const data = await resp.json();
-    if (!resp.ok) throw new Error(data.detail || 'No se pudo guardar la zona');
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo guardar');
     
-    limpiarDibujoPoligonoTemporal();
-    alert(`✅ Zona "${nombre.trim()}" guardada correctamente.`);
-    
-    // Recargar zonas (repinta en el canvas + refresca el selector del panel)
+    alert(`✅ "${nombre.trim()}" guardada correctamente.`);
     await cargarZonasAvanceSemanal();
-    cambiarHerramientaAvanceSemanal('select');
+    return true;
   } catch (error) {
-    alert('❌ Error guardando la zona: ' + error.message);
+    alert('❌ Error guardando: ' + error.message);
+    return false;
   }
+}
+
+// Guarda Polígono o Línea (herramientas de varios puntos, clic por clic)
+async function guardarZonaPoligono() {
+  const minimo = asHerramienta === 'linea' ? 2 : 3;
+  if (asPuntosPoligono.length < minimo) {
+    alert(`⚠️ Necesitas al menos ${minimo} puntos.`);
+    return;
+  }
+  
+  const puntos = asPuntosPoligono.map(p => [p.x, p.y]);
+  const guardado = await guardarFormaEnBackend(asHerramienta, puntos);
+  if (guardado) {
+    limpiarDibujoPoligonoTemporal();
+    cambiarHerramientaAvanceSemanal('select');
+  }
+}
+
+// Guarda Rectángulo, Cuadrado o Círculo (herramientas de arrastre)
+async function guardarFormaArrastrada(tipo, fabricShape) {
+  let puntos;
+  if (tipo === 'circulo') {
+    const cx = fabricShape.left, cy = fabricShape.top, r = fabricShape.radius;
+    const n = 28;
+    puntos = [];
+    for (let i = 0; i < n; i++) {
+      const ang = (i / n) * 2 * Math.PI;
+      puntos.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang)]);
+    }
+  } else {
+    const x1 = fabricShape.left, y1 = fabricShape.top;
+    const x2 = x1 + fabricShape.width, y2 = y1 + fabricShape.height;
+    puntos = [[x1, y1], [x2, y1], [x2, y2], [x1, y2]];
+  }
+  
+  asFabric.remove(fabricShape);
+  const guardado = await guardarFormaEnBackend(tipo, puntos);
+  cambiarHerramientaAvanceSemanal('select');
 }
 
 // Pinta en el canvas todas las zonas ya guardadas de este plano (según su
@@ -3447,20 +3535,34 @@ function dibujarZonasEnCanvas(zonas) {
   };
   
   zonas.forEach(zona => {
-    if (!zona.poligono || zona.poligono.length < 3) return;
+    const minimo = zona.tipo === 'linea' ? 2 : 3;
+    if (!zona.poligono || zona.poligono.length < minimo) return;
     
     const colorEmoji = zona.ultimo_estatus?.color || '⚪';
     const puntos = zona.poligono.map(pt => ({ x: pt[0], y: pt[1] }));
     
-    const poly = new fabric.Polygon(puntos, {
-      fill: coloresFill[colorEmoji] || 'rgba(150,150,150,0.25)',
-      stroke: coloresStroke[colorEmoji] || '#888',
-      strokeWidth: 2,
-      selectable: false,
-      hoverCursor: 'pointer'
-    });
+    let forma;
+    if (zona.tipo === 'linea') {
+      // La línea NO se cierra ni se rellena — solo trazo, para
+      // representar tuberías, cableado, ductos.
+      forma = new fabric.Polyline(puntos, {
+        fill: 'transparent',
+        stroke: coloresStroke[colorEmoji] || '#888',
+        strokeWidth: 3,
+        selectable: false,
+        hoverCursor: 'pointer'
+      });
+    } else {
+      forma = new fabric.Polygon(puntos, {
+        fill: coloresFill[colorEmoji] || 'rgba(150,150,150,0.25)',
+        stroke: coloresStroke[colorEmoji] || '#888',
+        strokeWidth: 2,
+        selectable: false,
+        hoverCursor: 'pointer'
+      });
+    }
     
-    poly.on('mousedown', () => {
+    forma.on('mousedown', () => {
       if (asHerramienta !== 'select') return;
       const select = document.getElementById('as-selector-zona');
       if (select) {
@@ -3469,8 +3571,8 @@ function dibujarZonasEnCanvas(zonas) {
       }
     });
     
-    asFabric.add(poly);
-    asPoligonosDibujados.push(poly);
+    asFabric.add(forma);
+    asPoligonosDibujados.push(forma);
   });
   
   asFabric.renderAll();
@@ -3494,14 +3596,14 @@ function mostrarPanelAvanceSemanal() {
     </div>
     
     <div style="margin-bottom:12px;">
-      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">🎯 Selecciona una zona</label>
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;color:var(--texto-secundario);"><i class="bi bi-geo-alt"></i> Selecciona una zona</label>
       <select id="as-selector-zona" class="selector-zona">
         <option value="">Cargando zonas...</option>
       </select>
     </div>
     
     <div class="medicion-box">
-      <div style="font-size:11px;color:#666;">📊 Porcentaje de avance</div>
+      <div style="font-size:11px;color:var(--texto-secundario);"><i class="bi bi-bar-chart"></i> Porcentaje de avance</div>
       <input type="range" id="as-porcentaje-slider" class="porcentaje-slider" min="0" max="100" value="0">
       <div style="display:flex;justify-content:space-between;">
         <span id="as-porcentaje-valor" class="porcentaje-valor">0%</span>
@@ -3510,28 +3612,28 @@ function mostrarPanelAvanceSemanal() {
     </div>
     
     <div style="margin-bottom:12px;">
-      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">📝 Comentario (opcional)</label>
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;color:var(--texto-secundario);"><i class="bi bi-pencil"></i> Comentario (opcional)</label>
       <input type="text" id="as-comentario" class="campo-comentario" placeholder="Ej: Avance en instalación">
     </div>
     
     <div style="margin-bottom:12px;">
-      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;">📸 Foto (opcional)</label>
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;color:var(--texto-secundario);"><i class="bi bi-camera"></i> Foto (opcional)</label>
       <input type="file" id="as-foto" class="campo-foto" accept=".jpg,.jpeg,.png" multiple>
     </div>
     
     <button id="as-btn-reportar" class="btn-reportar" onclick="reportarAvanceSemanal()">
-      ✅ Reportar Avance
+      <i class="bi bi-check-lg"></i> Reportar Avance
     </button>
 
     <div class="fotos-zona-box" style="margin-top:14px;">
-      <div style="font-weight:700;font-size:12px;margin-bottom:6px;">📷 Fotos de la zona seleccionada</div>
+      <div style="font-weight:700;font-size:12px;margin-bottom:6px;color:var(--texto-secundario);"><i class="bi bi-camera"></i> Fotos de la zona seleccionada</div>
       <div id="as-fotos-zona" class="fotos-zona-grid">
         <div class="sin-fotos" style="font-size:11.5px;color:#888;">Selecciona una zona para ver sus fotos.</div>
       </div>
     </div>
 
     <div class="ultimos-reportes">
-      <div class="titulo">📋 Últimos reportes</div>
+      <div class="titulo" style="color:var(--texto-secundario);"><i class="bi bi-list-ul"></i> Últimos reportes</div>
       <div id="as-ultimos-reportes" class="lista">
         <div class="sin-reportes">Sin reportes</div>
       </div>
