@@ -17,7 +17,7 @@ if (window.pdfjsLib) {
   script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://formspree.io 'unsafe-inline' 'unsafe-eval';
   style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';
   img-src 'self' data: https://*.supabase.co;
-  connect-src 'self' https://analisis-reportes-obra-360-1.onrender.com https://*.supabase.co https://formspree.io https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://obrA360-launcher-api.vercel.app;
+  connect-src 'self' https://analisis-reportes-obra-360-1.onrender.com https://*.supabase.co https://formspree.io https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://obra360-frontend.vercel.app;
   font-src 'self' https://cdn.jsdelivr.net;
   frame-src 'self';
   worker-src 'self' blob: https://cdnjs.cloudflare.com;
@@ -758,7 +758,7 @@ if (window.pdfjsLib) {
     // 🧊 VER MODELO 3D CON LAUNCHER (Vercel → PC)
     // ============================================================
 
-    const LAUNCHER_API_URL = "https://obrA360-launcher-api.vercel.app"; // ← TU URL REAL EN VERCEL
+    const LAUNCHER_API_URL = "https://obra360-frontend.vercel.app"; // ← ✅ CORREGIDO
     const PC_ID = "PC-001"; // ← EL ID DE TU PC (cámbialo si es necesario)
 
     async function abrirModelo3DConLauncher() {
