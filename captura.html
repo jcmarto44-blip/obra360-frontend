@@ -300,15 +300,15 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 }
 .as-btn-abrir-visor {
   padding: 6px 16px;
-  background: var(--azul-header);
+  background: #000;
   color: #fff;
-  border: none;
+  border: 1px solid #333;
   border-radius: 4px;
   font-weight: 600;
   cursor: pointer;
 }
 .as-btn-abrir-visor:hover {
-  background: var(--azul-header-dark);
+  background: #333;
 }
 .as-resumen {
   background: #fff;
@@ -401,9 +401,9 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 .as-panel-visor .btn-reportar {
   width: 100%;
   padding: 10px;
-  background: #28a745;
+  background: #000;
   color: #fff;
-  border: none;
+  border: 1px solid #333;
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
@@ -414,7 +414,7 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
   cursor: not-allowed;
 }
 .as-panel-visor .btn-reportar:hover {
-  background: #218838;
+  background: #333;
 }
 .as-tool-btn.as-tool-activa {
   background: #000 !important;
@@ -2959,7 +2959,7 @@ async function cargarSemanasAvanceSemanal() {
       if (esGerenteOSuper()) {
         const btnCerrar = document.createElement('button');
         btnCerrar.className = 'as-btn-abrir-visor';
-        btnCerrar.style.cssText = 'background:#a72e21;padding:5px 12px;font-size:12px;';
+        btnCerrar.style.cssText = 'background:#000;color:#fff;border:1px solid #333;padding:5px 12px;font-size:12px;';
         btnCerrar.textContent = '🔴 Cerrar Ciclo';
         btnCerrar.onclick = cerrarCicloAvanceSemanal;
         acciones.appendChild(btnCerrar);
@@ -3121,7 +3121,31 @@ async function cargarPDFAvanceSemanal(url) {
     const pdf = await loadingTask.promise;
     const page = await pdf.getPage(1);
     
-    const viewport = page.getViewport({ scale: 1.5 });
+    // ============================================================
+    // BUG REAL CORREGIDO: antes se renderizaba el PDF a un tamaño fijo
+    // (scale 1.5) — que en planos grandes daba canvases enormes, tipo
+    // 3888x2592 o más — y LUEGO se encogía con transform:scale() por
+    // CSS para que cupiera en pantalla. El problema: Fabric.js calcula
+    // en dónde diste clic usando el tamaño INTERNO real del canvas, no
+    // el tamaño visual encogido — así que los puntos se dibujaban en
+    // coordenadas correctas del canvas gigante, pero MUY lejos de donde
+    // el ojo humano veía el clic (fuera del área visible = "no dibuja").
+    //
+    // El fix: calcular primero cuánto cabe en pantalla, y pedirle a
+    // pdf.js que renderice DIRECTO a ese tamaño final. Así el canvas
+    // nunca es más grande que lo que se ve, y ya no hace falta ningún
+    // scale() por CSS — las coordenadas de clic y las de dibujo
+    // coinciden siempre, en cualquier tamaño de plano.
+    // ============================================================
+    const viewportBase = page.getViewport({ scale: 1 });
+    const viewerArea = document.querySelector('#visor-pdf-container > div:nth-child(2)');
+    const containerWidth = viewerArea.clientWidth || window.innerWidth;
+    const containerHeight = viewerArea.clientHeight || window.innerHeight;
+    const scaleX = (containerWidth * 0.92) / viewportBase.width;
+    const scaleY = (containerHeight * 0.92) / viewportBase.height;
+    const scaleAjuste = Math.min(scaleX, scaleY);
+    
+    const viewport = page.getViewport({ scale: scaleAjuste });
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     
@@ -3133,38 +3157,25 @@ async function cargarPDFAvanceSemanal(url) {
       });
       configurarEventosFabricAvanceSemanal();
       
-      // BUG REAL CORREGIDO: Fabric.js envuelve el <canvas> original en su
-      // propio <div> ("wrapperEl") con position:relative por defecto — el
-      // position:absolute;top:50%;left:50% que tenía el <canvas> en el HTML
-      // se ignora una vez que Fabric toma el control. Sin esto, la capa de
-      // dibujo (zonas, líneas) queda desalineada del PDF.
+      // Fabric.js envuelve el <canvas> original en su propio <div>
+      // ("wrapperEl") con position:relative por defecto — el
+      // position:absolute;top:50%;left:50% que tenía el <canvas> en el
+      // HTML se ignora una vez que Fabric toma el control.
       asFabric.wrapperEl.style.position = 'absolute';
       asFabric.wrapperEl.style.top = '50%';
       asFabric.wrapperEl.style.left = '50%';
+      asFabric.wrapperEl.style.transform = 'translate(-50%, -50%)';
     }
     asFabric.setWidth(viewport.width);
     asFabric.setHeight(viewport.height);
     asFabric.clear();
     
-    // Renderizar PDF
+    // Renderizar PDF ya al tamaño final (sin necesidad de escalar después)
     const renderContext = {
       canvasContext: ctx,
       viewport: viewport
     };
     await page.render(renderContext).promise;
-    
-    // Ajustar tamaño
-    const viewerArea = document.querySelector('#visor-pdf-container > div:nth-child(2)');
-    const containerWidth = viewerArea.clientWidth;
-    const containerHeight = viewerArea.clientHeight;
-    const scaleX = (containerWidth * 0.9) / viewport.width;
-    const scaleY = (containerHeight * 0.9) / viewport.height;
-    const scale = Math.min(scaleX, scaleY, 1);
-    
-    canvas.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    canvas.style.transformOrigin = 'center center';
-    asFabric.wrapperEl.style.transform = `translate(-50%, -50%) scale(${scale})`;
-    asFabric.wrapperEl.style.transformOrigin = 'center center';
     
   } catch (error) {
     console.error('Error cargando PDF:', error);
