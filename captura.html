@@ -460,6 +460,36 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
   #mod-inicio .modulos-grid{grid-template-columns:1fr;}
   .toolbar input[type="text"]{width:120px;}
 }
+
+/* ============================================================
+   NUEVOS ESTILOS PARA BOTONES DE DESHACER Y ELIMINAR
+   ============================================================ */
+.as-btn-des hacer {
+  background: #ffc107;
+  color: #000;
+  border: 1px solid #666;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+.as-btn-des hacer:hover {
+  background: #e0a800;
+}
+.as-btn-eliminar-zona {
+  background: #dc3545;
+  color: #fff;
+  border: 1px solid #666;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+}
+.as-btn-eliminar-zona:hover {
+  background: #b02a37;
+}
 </style>
 </head>
 <body>
@@ -810,12 +840,26 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
         <option value="circulo"><i class="bi bi-circle"></i> Círculo</option>
         <option value="linea"><i class="bi bi-slash"></i> Línea</option>
       </select>
-      <button id="as-btn-guardar-zona" onclick="guardarZonaPoligono()" style="display:none;background:#000;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
-        <i class="bi bi-check-lg"></i> Guardar
+
+      <!-- ============================================================
+           NUEVOS BOTONES: DESHACER, CANCELAR, GUARDAR, ELIMINAR ZONA
+           ============================================================ -->
+      <button id="as-btn-des hacer" onclick="deshacerUltimoPunto()" style="display:none;background:#ffc107;color:#000;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;">
+        <i class="bi bi-arrow-counterclockwise"></i> Deshacer
       </button>
-      <button id="as-btn-cancelar-zona" onclick="cancelarDibujoZona()" style="display:none;background:#fff;color:#000;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+
+      <button id="as-btn-cancelar-zona" onclick="cancelarDibujoZona()" style="display:none;background:#dc3545;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
         <i class="bi bi-x-lg"></i> Cancelar
       </button>
+
+      <button id="as-btn-guardar-zona" onclick="guardarZonaPoligono()" style="display:none;background:#28a745;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;">
+        <i class="bi bi-check-lg"></i> Guardar
+      </button>
+
+      <button id="as-btn-eliminar-zona" onclick="eliminarZonaSeleccionada()" style="display:none;background:#dc3545;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;">
+        <i class="bi bi-trash3"></i> Eliminar Zona
+      </button>
+
       <span id="as-instruccion-dibujo" style="color:#ccc;font-size:10.5px;display:none;"></span>
     </div>
     <button onclick="cerrarVisorCompleto()" style="background:#000;color:#fff;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;margin-left:auto;">
@@ -2738,8 +2782,8 @@ let asPlanoActualClave = null;
 // Variables de dibujo
 let isDrawing = false;
 let startX = 0, startY = 0;
-let rectTemp = null; // {x, y, w, h} para dibujo temporal
-let circleTemp = null; // {cx, cy, radius} para círculo temporal
+let rectTemp = null;
+let circleTemp = null;
 
 // Variables para polígono/línea
 let asPuntosPoligono = [];
@@ -3016,7 +3060,6 @@ async function cargarPDFAvanceSemanal(url) {
     const page = await pdf.getPage(1);
     asPdfPage = page;
     
-    // Calcular la escala para que quepa en pantalla
     const viewportBase = page.getViewport({ scale: 1 });
     const viewerArea = document.querySelector('#visor-pdf-container > div:nth-child(2)');
     const containerWidth = viewerArea.clientWidth || window.innerWidth;
@@ -3028,32 +3071,26 @@ async function cargarPDFAvanceSemanal(url) {
     const viewport = page.getViewport({ scale: scaleAjuste });
     asViewport = viewport;
     
-    // Tamaño del canvas = tamaño del PDF
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     
-    // Guardar referencia al contexto
     asCanvas = canvas;
     asCtx = ctx;
     
-    // Renderizar PDF
     const renderContext = {
       canvasContext: ctx,
       viewport: viewport
     };
     await page.render(renderContext).promise;
     
-    // ⭐⭐⭐ CREAR OFFCANVAS PARA REDIBUJADO RÁPIDO ⭐⭐⭐
     asOffscreenCanvas = document.createElement('canvas');
     asOffscreenCanvas.width = viewport.width;
     asOffscreenCanvas.height = viewport.height;
     asOffscreenCtx = asOffscreenCanvas.getContext('2d');
     asOffscreenCtx.drawImage(canvas, 0, 0);
     
-    // Configurar eventos de dibujo en el canvas
     configurarEventosDibujo(canvas);
     
-    // Redibujar las zonas guardadas
     if (asZonas && asZonas.length > 0) {
       redibujarTodo(ctx, viewport);
     }
@@ -3071,21 +3108,18 @@ async function cargarPDFAvanceSemanal(url) {
 // ============================================================
 
 function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
-  // 1. Limpiar canvas
   ctx.clearRect(0, 0, viewport.width, viewport.height);
   
-  // 2. Dibujar PDF desde offscreen (rápido)
   if (asOffscreenCanvas && asOffscreenCtx) {
     ctx.drawImage(asOffscreenCanvas, 0, 0);
   }
   
-  // 3. Dibujar zonas guardadas
   asZonas.forEach(zona => {
     const isSelected = (zona.id === asZonaSeleccionada);
     dibujarZona(ctx, zona, isSelected);
   });
   
-  // 4. Dibujar rectángulo temporal (si existe)
+  // Rectángulo temporal
   if (tempRect || rectTemp) {
     const r = tempRect || rectTemp;
     if (r && r.w > 0 && r.h > 0) {
@@ -3105,13 +3139,12 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
       ctx.setLineDash([]);
       ctx.closePath();
       
-      // Mostrar área
       const area = (w * h) / 10000;
       document.getElementById('info-area').textContent = `📐 Área: ${area.toFixed(2)} M2`;
     }
   }
   
-  // 5. Dibujar círculo temporal (si existe)
+  // Círculo temporal
   if (tempCircle || circleTemp) {
     const c = tempCircle || circleTemp;
     if (c && c.radius > 0) {
@@ -3131,7 +3164,7 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
     }
   }
   
-  // 6. Dibujar puntos de polígono/línea
+  // Puntos de polígono/línea
   if (asPuntosPoligono.length > 0 && asHerramienta !== 'select') {
     asPuntosPoligono.forEach((p, i) => {
       ctx.beginPath();
@@ -3143,7 +3176,6 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
       ctx.stroke();
       ctx.closePath();
       
-      // Números de puntos
       ctx.fillStyle = '#000';
       ctx.font = '9px Arial';
       ctx.fillText(i + 1, p.x + 6, p.y - 6);
@@ -3152,20 +3184,31 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
 }
 
 // ============================================================
-// DIBUJAR UNA ZONA CON DETECCIÓN DE SELECCIÓN
+// ⭐⭐⭐ DIBUJAR ZONA CON COLORES CORREGIDOS ⭐⭐⭐
 // ============================================================
 
 function dibujarZona(ctx, zona, isSelected) {
   if (!zona.poligono || zona.poligono.length < 2) return;
   
-  // Determinar color según el último estatus
-  const color = zona.ultimo_estatus?.color || '⚪';
-  const fillColor = color === '🔴' ? 'rgba(220,53,69,0.3)' :
-                    color === '🟡' ? 'rgba(255,193,7,0.3)' :
-                    'rgba(40,167,69,0.3)';
-  const strokeColor = color === '🔴' ? '#dc3545' :
-                      color === '🟡' ? '#ffc107' :
-                      '#28a745';
+  // OBTENER COLOR SEGÚN ESTATUS
+  const color = zona.ultimo_estatus?.color || null;
+  
+  let fillColor, strokeColor;
+  
+  if (color === '🔴') {
+    fillColor = 'rgba(220,53,69,0.3)';
+    strokeColor = '#dc3545';
+  } else if (color === '🟡') {
+    fillColor = 'rgba(255,193,7,0.3)';
+    strokeColor = '#ffc107';
+  } else if (color === '🟢') {
+    fillColor = 'rgba(40,167,69,0.3)';
+    strokeColor = '#28a745';
+  } else {
+    // SIN ESTATUS → COLOR NARANJA (zona recién dibujada)
+    fillColor = 'rgba(255,140,0,0.25)';
+    strokeColor = '#FF8C00';
+  }
   
   const puntos = zona.poligono;
   const isLine = (zona.tipo === 'linea' || puntos.length < 3);
@@ -3182,13 +3225,11 @@ function dibujarZona(ctx, zona, isSelected) {
     ctx.fill();
   }
   
-  // Borde más grueso si está seleccionada
   const lineWidth = isSelected ? 4 : 2;
   ctx.strokeStyle = isSelected ? '#000' : strokeColor;
   ctx.lineWidth = lineWidth;
   ctx.stroke();
   
-  // Mostrar nombre de la zona
   const centroX = puntos.reduce((sum, p) => sum + p[0], 0) / puntos.length;
   const centroY = puntos.reduce((sum, p) => sum + p[1], 0) / puntos.length;
   
@@ -3197,13 +3238,12 @@ function dibujarZona(ctx, zona, isSelected) {
   ctx.textAlign = 'center';
   ctx.fillText(zona.nombre || 'Zona', centroX, centroY - 5);
   
-  // Mostrar porcentaje
-  const pct = zona.ultimo_estatus?.porcentaje || 0;
+  const pct = zona.ultimo_estatus?.porcentaje ?? 0;
+  const pctDisplay = color ? `${pct}%` : '⏳ Sin avance';
   ctx.fillStyle = isSelected ? '#333' : '#555';
   ctx.font = isSelected ? '11px Arial' : '10px Arial';
-  ctx.fillText(pct + '%', centroX, centroY + 15);
+  ctx.fillText(pctDisplay, centroX, centroY + 15);
   
-  // Si está seleccionada, dibujar un borde resaltado
   if (isSelected) {
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 1;
@@ -3258,7 +3298,6 @@ function puntoEnCirculo(px, py, cx, cy, radio) {
 }
 
 function detectarZonaClickeada(px, py) {
-  // Recorrer zonas de atrás hacia adelante (últimas dibujadas encima)
   for (let i = asZonas.length - 1; i >= 0; i--) {
     const zona = asZonas[i];
     if (!zona.poligono || zona.poligono.length < 2) continue;
@@ -3294,7 +3333,6 @@ function detectarZonaClickeada(px, py) {
 // ============================================================
 
 function configurarEventosDibujo(canvas) {
-  // Mouse down - iniciar dibujo o selección
   canvas.addEventListener('mousedown', function(e) {
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -3302,24 +3340,20 @@ function configurarEventosDibujo(canvas) {
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
     
-    // Si estamos en modo SELECT, detectar clic en zona
     if (asHerramienta === 'select') {
       const zonaClickeada = detectarZonaClickeada(mouseX, mouseY);
       if (zonaClickeada) {
         asZonaSeleccionada = zonaClickeada.id;
-        // Actualizar selector en el panel
         const select = document.getElementById('as-selector-zona');
         if (select) {
           select.value = zonaClickeada.id;
           select.dispatchEvent(new Event('change'));
         }
-        // Redibujar para mostrar selección
         if (asCtx && asViewport) {
           redibujarTodo(asCtx, asViewport);
         }
         return;
       } else {
-        // Si se hace clic fuera, deseleccionar
         asZonaSeleccionada = null;
         if (asCtx && asViewport) {
           redibujarTodo(asCtx, asViewport);
@@ -3346,8 +3380,10 @@ function configurarEventosDibujo(canvas) {
       if (btnGuardar) {
         btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
       }
+      // Mostrar botón Deshacer
+      const btnDeshacer = document.getElementById('as-btn-des hacer');
+      if (btnDeshacer) btnDeshacer.style.display = 'inline-block';
       redibujarTodo(asCtx, asViewport);
-      // Dibujar el punto
       asCtx.beginPath();
       asCtx.arc(startX, startY, 4, 0, 2 * Math.PI);
       asCtx.fillStyle = '#FF6B00';
@@ -3358,7 +3394,6 @@ function configurarEventosDibujo(canvas) {
     }
   });
   
-  // Mouse move - actualizar dibujo
   canvas.addEventListener('mousemove', function(e) {
     if (!isDrawing || asHerramienta === 'select') return;
     if (!asCtx || !asViewport) return;
@@ -3378,10 +3413,8 @@ function configurarEventosDibujo(canvas) {
       circleTemp.radius = Math.sqrt(dx*dx + dy*dy);
       redibujarTodo(asCtx, asViewport, null, circleTemp);
     } else if ((asHerramienta === 'poligono' || asHerramienta === 'linea') && asPuntosPoligono.length > 0) {
-      // Redibujar y mostrar línea temporal
       redibujarTodo(asCtx, asViewport);
       
-      // Dibujar puntos existentes
       asPuntosPoligono.forEach(p => {
         asCtx.beginPath();
         asCtx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
@@ -3392,7 +3425,6 @@ function configurarEventosDibujo(canvas) {
         asCtx.stroke();
       });
       
-      // Dibujar línea temporal
       if (asPuntosPoligono.length > 0) {
         asCtx.beginPath();
         asCtx.moveTo(asPuntosPoligono[0].x, asPuntosPoligono[0].y);
@@ -3409,7 +3441,6 @@ function configurarEventosDibujo(canvas) {
     }
   });
   
-  // Mouse up - finalizar dibujo
   canvas.addEventListener('mouseup', function(e) {
     if (!isDrawing) return;
     isDrawing = false;
@@ -3446,7 +3477,6 @@ function configurarEventosDibujo(canvas) {
     }
   });
   
-  // Doble clic - finalizar polígono/línea
   canvas.addEventListener('dblclick', function(e) {
     if (asHerramienta === 'poligono' || asHerramienta === 'linea') {
       const minimo = asHerramienta === 'linea' ? 2 : 3;
@@ -3456,35 +3486,144 @@ function configurarEventosDibujo(canvas) {
     }
   });
   
-  // Keydown: ESC cancela, SUPR borra último punto
+  // ============================================================
+  // ⭐⭐⭐ TECLAS RÁPIDAS PARA DESHACER Y ELIMINAR ⭐⭐⭐
+  // ============================================================
   document.addEventListener('keydown', function(e) {
     const visorAbierto = document.getElementById('visor-pdf-container').style.display !== 'none';
     if (!visorAbierto) return;
     
+    // ESC → Cancelar dibujo
     if (e.key === 'Escape') {
-      cancelarDibujoZona();
-    } else if ((e.key === 'Delete' || e.key === 'Backspace') && asPuntosPoligono.length > 0) {
       e.preventDefault();
-      asPuntosPoligono.pop();
-      document.getElementById('info-puntos').textContent = `📍 Puntos: ${asPuntosPoligono.length}`;
-      const minimo = asHerramienta === 'linea' ? 2 : 3;
-      const btnGuardar = document.getElementById('as-btn-guardar-zona');
-      if (btnGuardar) {
-        btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
-      }
-      redibujarTodo(asCtx, asViewport);
-      // Redibujar puntos restantes
-      asPuntosPoligono.forEach(p => {
-        asCtx.beginPath();
-        asCtx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
-        asCtx.fillStyle = '#FF6B00';
-        asCtx.fill();
-        asCtx.strokeStyle = '#fff';
-        asCtx.lineWidth = 1;
-        asCtx.stroke();
-      });
+      cancelarDibujoZona();
+      return;
+    }
+    
+    // Backspace o Delete → Borrar último punto (si estamos dibujando)
+    if ((e.key === 'Backspace' || e.key === 'Delete') && 
+        (asHerramienta === 'poligono' || asHerramienta === 'linea')) {
+      e.preventDefault();
+      deshacerUltimoPunto();
+      return;
+    }
+    
+    // Ctrl+Z → Deshacer último punto
+    if (e.ctrlKey && e.key === 'z' && 
+        (asHerramienta === 'poligono' || asHerramienta === 'linea')) {
+      e.preventDefault();
+      deshacerUltimoPunto();
+      return;
+    }
+    
+    // Delete en modo selección → Eliminar zona seleccionada
+    if (e.key === 'Delete' && asHerramienta === 'select' && asZonaSeleccionada) {
+      e.preventDefault();
+      eliminarZonaSeleccionada();
+      return;
     }
   });
+}
+
+// ============================================================
+// ⭐⭐⭐ FUNCIONES DE DESHACER Y ELIMINAR ⭐⭐⭐
+// ============================================================
+
+function deshacerUltimoPunto() {
+  if (asPuntosPoligono.length > 0) {
+    asPuntosPoligono.pop();
+    document.getElementById('info-puntos').textContent = `📍 Puntos: ${asPuntosPoligono.length}`;
+    
+    const minimo = asHerramienta === 'linea' ? 2 : 3;
+    const btnGuardar = document.getElementById('as-btn-guardar-zona');
+    if (btnGuardar) {
+      btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
+    }
+    
+    // Ocultar botón Deshacer si no hay puntos
+    const btnDeshacer = document.getElementById('as-btn-des hacer');
+    if (btnDeshacer) {
+      btnDeshacer.style.display = asPuntosPoligono.length > 0 ? 'inline-block' : 'none';
+    }
+    
+    redibujarTodo(asCtx, asViewport);
+    
+    asPuntosPoligono.forEach(p => {
+      asCtx.beginPath();
+      asCtx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+      asCtx.fillStyle = '#FF6B00';
+      asCtx.fill();
+      asCtx.strokeStyle = '#fff';
+      asCtx.lineWidth = 1;
+      asCtx.stroke();
+    });
+  } else {
+    cancelarDibujoZona();
+  }
+}
+
+function cancelarDibujoZona() {
+  asPuntosPoligono = [];
+  rectTemp = null;
+  circleTemp = null;
+  isDrawing = false;
+  document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
+  document.getElementById('info-area').textContent = '📐 Área: 0.00 M2';
+  
+  const btnGuardar = document.getElementById('as-btn-guardar-zona');
+  if (btnGuardar) btnGuardar.style.display = 'none';
+  
+  const btnCancelar = document.getElementById('as-btn-cancelar-zona');
+  if (btnCancelar) btnCancelar.style.display = 'none';
+  
+  const btnDeshacer = document.getElementById('as-btn-des hacer');
+  if (btnDeshacer) btnDeshacer.style.display = 'none';
+  
+  cambiarHerramientaAvanceSemanal('select');
+  
+  if (asCtx && asViewport) {
+    redibujarTodo(asCtx, asViewport);
+  }
+}
+
+async function eliminarZonaSeleccionada() {
+  if (!asZonaSeleccionada) {
+    alert('⚠️ Primero selecciona una zona haciendo clic en ella.');
+    return;
+  }
+  
+  const zona = asZonas.find(z => String(z.id) === String(asZonaSeleccionada));
+  if (!zona) {
+    alert('⚠️ La zona seleccionada ya no existe.');
+    return;
+  }
+  
+  if (!confirm(`⚠️ ¿Seguro que quieres eliminar la zona "${zona.nombre}"?\n\nEsta acción NO se puede deshacer.`)) {
+    return;
+  }
+  
+  const proyectoId = localStorage.getItem('obra360_proyecto_id');
+  const token = localStorage.getItem('obra360_token');
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/zonas_semanales/${asZonaSeleccionada}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!resp.ok) {
+      const data = await resp.json();
+      throw new Error(data.detail || 'Error al eliminar la zona');
+    }
+    
+    alert(`✅ Zona "${zona.nombre}" eliminada correctamente.`);
+    asZonaSeleccionada = null;
+    await cargarZonasAvanceSemanal();
+    redibujarTodo(asCtx, asViewport);
+  } catch (error) {
+    console.error('Error eliminando zona:', error);
+    alert('❌ Error al eliminar la zona: ' + error.message);
+  }
 }
 
 // ============================================================
@@ -3504,6 +3643,8 @@ function cambiarHerramientaAvanceSemanal(modo) {
   const instruccion = document.getElementById('as-instruccion-dibujo');
   const btnGuardar = document.getElementById('as-btn-guardar-zona');
   const btnCancelar = document.getElementById('as-btn-cancelar-zona');
+  const btnDeshacer = document.getElementById('as-btn-des hacer');
+  const btnEliminar = document.getElementById('as-btn-eliminar-zona');
   
   const instrucciones = {
     select: '🖱️ Haz clic en una zona para ver sus fotos',
@@ -3518,37 +3659,26 @@ function cambiarHerramientaAvanceSemanal(modo) {
     instruccion.style.display = 'inline';
   }
   
-  if (btnCancelar) {
-    btnCancelar.style.display = (modo === 'poligono' || modo === 'linea') ? 'inline-block' : 'none';
+  // Mostrar/ocultar botones según modo
+  if (modo === 'select') {
+    if (btnDeshacer) btnDeshacer.style.display = 'none';
+    if (btnCancelar) btnCancelar.style.display = 'none';
+    if (btnGuardar) btnGuardar.style.display = 'none';
+    if (btnEliminar) btnEliminar.style.display = 'inline-block';
+  } else {
+    if (btnDeshacer) btnDeshacer.style.display = 'none';
+    if (btnCancelar) btnCancelar.style.display = 'inline-block';
+    if (btnEliminar) btnEliminar.style.display = 'none';
+    // btnGuardar se muestra cuando hay suficientes puntos
   }
   
-  if (btnGuardar) {
-    btnGuardar.style.display = 'none';
-  }
-  
-  // Resetear puntos si se cambia de herramienta
   if (modo !== 'poligono' && modo !== 'linea') {
     asPuntosPoligono = [];
     document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
   }
   
-  // Limpiar dibujos temporales
   rectTemp = null;
   circleTemp = null;
-  if (asCtx && asViewport) {
-    redibujarTodo(asCtx, asViewport);
-  }
-}
-
-function cancelarDibujoZona() {
-  asPuntosPoligono = [];
-  rectTemp = null;
-  circleTemp = null;
-  isDrawing = false;
-  document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
-  document.getElementById('info-area').textContent = '📐 Área: 0.00 M2';
-  const btnGuardar = document.getElementById('as-btn-guardar-zona');
-  if (btnGuardar) btnGuardar.style.display = 'none';
   if (asCtx && asViewport) {
     redibujarTodo(asCtx, asViewport);
   }
@@ -3605,7 +3735,6 @@ async function guardarZonaPoligono(poligono, tipo) {
     
     alert(`✅ "${nombre.trim()}" guardada correctamente.`);
     
-    // Limpiar dibujo temporal
     asPuntosPoligono = [];
     rectTemp = null;
     circleTemp = null;
@@ -3613,8 +3742,9 @@ async function guardarZonaPoligono(poligono, tipo) {
     document.getElementById('info-area').textContent = '📐 Área: 0.00 M2';
     const btnGuardar = document.getElementById('as-btn-guardar-zona');
     if (btnGuardar) btnGuardar.style.display = 'none';
+    const btnDeshacer = document.getElementById('as-btn-des hacer');
+    if (btnDeshacer) btnDeshacer.style.display = 'none';
     
-    // Recargar zonas
     await cargarZonasAvanceSemanal();
     cambiarHerramientaAvanceSemanal('select');
   } catch (error) {
@@ -3646,7 +3776,6 @@ async function cargarZonasAvanceSemanal() {
     const data = await resp.json();
     asZonas = data.zonas || [];
     
-    // Redibujar zonas en el canvas
     if (asCtx && asViewport) {
       redibujarTodo(asCtx, asViewport);
     }
@@ -3657,9 +3786,10 @@ async function cargarZonasAvanceSemanal() {
     asZonas.forEach(z => {
       const option = document.createElement('option');
       option.value = z.id;
-      const color = z.ultimo_estatus?.color || '⚪';
+      const color = z.ultimo_estatus?.color || '🟧';
       const pct = z.ultimo_estatus?.porcentaje || 0;
-      option.textContent = `${color} ${z.nombre} (${pct}%)`;
+      const label = z.ultimo_estatus ? `${color} ${z.nombre} (${pct}%)` : `🟧 ${z.nombre} (⏳ Sin avance)`;
+      option.textContent = label;
       select.appendChild(option);
     });
     
@@ -3667,12 +3797,10 @@ async function cargarZonasAvanceSemanal() {
       select.innerHTML = '<option value="">No hay zonas dibujadas</option>';
     }
     
-    // Restaurar selección si existe
     if (zonaPrevia && asZonas.some(z => String(z.id) === String(zonaPrevia))) {
       select.value = zonaPrevia;
       asZonaSeleccionada = zonaPrevia;
       mostrarFotosDeZona(zonaPrevia);
-      // Redibujar para mostrar selección
       if (asCtx && asViewport) {
         redibujarTodo(asCtx, asViewport);
       }
@@ -3765,7 +3893,6 @@ function mostrarPanelAvanceSemanal() {
   selectorZona.addEventListener('change', function() {
     asZonaSeleccionada = this.value;
     if (asZonaSeleccionada) {
-      // Resaltar la zona en el canvas
       if (asCtx && asViewport) {
         redibujarTodo(asCtx, asViewport);
       }
