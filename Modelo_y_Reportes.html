@@ -17,7 +17,7 @@ if (window.pdfjsLib) {
   script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://formspree.io 'unsafe-inline' 'unsafe-eval';
   style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';
   img-src 'self' data: https://*.supabase.co;
-  connect-src 'self' https://analisis-reportes-obra-360-1.onrender.com https://*.supabase.co https://formspree.io https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://obra360-frontend.vercel.app;
+  connect-src 'self' https://analisis-reportes-obra-360-1.onrender.com https://*.supabase.co https://formspree.io https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://obra360-frontend.vercel.app https://obra360-launcher-api.onrender.com;
   font-src 'self' https://cdn.jsdelivr.net;
   frame-src 'self';
   worker-src 'self' blob: https://cdnjs.cloudflare.com;
@@ -755,10 +755,12 @@ if (window.pdfjsLib) {
     });
 
     // ============================================================
-    // 🧊 VER MODELO 3D CON LAUNCHER (Vercel → PC)
+    // 🧊 VER MODELO 3D CON LAUNCHER (Frontend → Render → PC)
     // ============================================================
 
-    const LAUNCHER_API_URL = "https://obra360-frontend.vercel.app"; // ← ✅ CORREGIDO
+    // ✅ CORREGIDO: apunta al backend real del launcher en Render,
+    // NO al propio dominio de Vercel (ahí no hay ningún endpoint /task).
+    const LAUNCHER_API_URL = "https://obra360-launcher-api.onrender.com";
     const PC_ID = "PC-001"; // ← EL ID DE TU PC (cámbialo si es necesario)
 
     async function abrirModelo3DConLauncher() {
@@ -783,7 +785,7 @@ if (window.pdfjsLib) {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Abriendo...';
         btn.disabled = true;
 
-        // Llamar al launcher en Vercel (endpoint /task)
+        // Llamar al launcher real en Render (endpoint /task)
         const response = await fetch(`${LAUNCHER_API_URL}/task`, {
           method: "POST",
           headers: {
@@ -792,7 +794,7 @@ if (window.pdfjsLib) {
           body: JSON.stringify({
             pcId: PC_ID,
             project: proyectoNombre,
-            view: "Vista 3D"
+            view: "Avance Semanal"
           })
         });
 
@@ -816,7 +818,7 @@ if (window.pdfjsLib) {
         }
       } catch (error) {
         console.error("Error conectando con el launcher:", error);
-        alert(`❌ No se pudo conectar con el launcher.\n\n${error.message}\n\nPosibles causas:\n- La PC con Revit no está encendida\n- El conector no está ejecutándose\n- El servicio de Vercel no está activo`);
+        alert(`❌ No se pudo abrir el Modelo 3D.\n\nEste proceso puede tardar entre 30 segundos y 1 minuto, dependiendo de tu conexión a internet.\n\nSi el problema persiste, verifica que:\n- La PC con Revit esté encendida\n- El conector (Launcher) esté ejecutándose\n\nIntenta de nuevo en unos momentos.`);
       }
     }
 
