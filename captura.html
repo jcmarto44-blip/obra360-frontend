@@ -890,12 +890,12 @@ if (window.pdfjsLib) {
 // FUNCIONES EXISTENTES (NO TOCAR)
 // ============================================================
 
-// ===== FIX EVM: constantes para leer directo de Supabase Storage (sin cache de Render) =====
+// ===== FIX: constantes para leer directo de Supabase Storage (sin cache de Render) =====
 const SUPABASE_URL_DIRECTO = "https://fhdzvawbaujajafvsweu.supabase.co";
 const SUPABASE_BUCKET_CSV = "archivos-csv";
 
-// Módulos que ya leen directo de Supabase (por ahora solo evm; después se agregan más)
-const MODULOS_LEEN_DE_SUPABASE = new Set(["evm"]);
+// ===== FIX: TODOS los módulos leen directo de Supabase (costo_plan queda aparte por su llave tipo+concepto) =====
+const MODULOS_LEEN_DE_SUPABASE = new Set(["evm", "presupuestal", "materiales", "mano_obra", "calidad", "control_pedidos", "requisiciones", "ordenes_compra", "pago_proveedores", "estimaciones"]);
 
 // Misma normalización que el backend (nombre_seguro) para que coincida con la carpeta en Supabase Storage
 function nombreSeguro(valor, porDefecto) {
@@ -1848,7 +1848,7 @@ Object.keys(MODULOS).forEach(modKey=>{
 
 const moduloDataCargada = new Set();
 
-// ===== FIX EVM: lee directo de Supabase Storage (sin cache de Render). Fallback a Render. =====
+// ===== FIX: lee directo de Supabase Storage (sin cache de Render). Fallback a Render. =====
 async function cargarModuloDesdeSupabaseCSV(tab){
   const mod = MODULOS[tab];
   if(!mod) return false;
@@ -1883,7 +1883,6 @@ async function cargarModuloDesdeSupabaseCSV(tab){
   const filasCsv = parsed.data || [];
   if(filasCsv.length === 0) return false;
 
-  // Mapear cada fila del CSV a un objeto {key: valor} usando los labels del módulo
   let cols, targetDatos, stKeyParaRender;
   if(mod.subtabs){
     stKeyParaRender = Object.keys(mod.subtabs)[0];
@@ -1907,7 +1906,6 @@ async function cargarModuloDesdeSupabaseCSV(tab){
     return row;
   });
 
-  // Reemplazo total (Supabase ya tiene el histórico completo fusionado por el backend)
   targetDatos.length = 0;
   targetDatos.push(...nuevasFilas);
 
@@ -1924,7 +1922,7 @@ async function cargarModuloDesdeServidor(tab){
   if(!mod || moduloDataCargada.has(tab)) return;
   moduloDataCargada.add(tab);
 
-  // ===== FIX EVM: primero intenta Supabase Storage directo (sin cache) =====
+  // ===== FIX: primero intenta Supabase Storage directo (sin cache) =====
   if (MODULOS_LEEN_DE_SUPABASE.has(tab)) {
     const ok = await cargarModuloDesdeSupabaseCSV(tab);
     if (ok) return;
@@ -2502,7 +2500,7 @@ async function guardarModuloActivo(){
     if(data.error){ alert("Error al guardar: "+data.error); return; }
     alert("✅ Guardado correctamente: "+nombreArchivo);
 
-    // ===== FIX EVM: al guardar, invalida cache y vuelve a leer directo de Supabase =====
+    // ===== FIX: al guardar, invalida cache y vuelve a leer directo de Supabase =====
     if (MODULOS_LEEN_DE_SUPABASE.has(modKey)) {
       moduloDataCargada.delete(modKey);
       await cargarModuloDesdeServidor(modKey);
