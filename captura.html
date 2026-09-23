@@ -878,6 +878,7 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script>
 if (window.pdfjsLib) {
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
@@ -888,6 +889,20 @@ if (window.pdfjsLib) {
 // ============================================================
 // FUNCIONES EXISTENTES (NO TOCAR)
 // ============================================================
+
+// ===== FIX EVM: constantes para leer directo de Supabase Storage (sin cache de Render) =====
+const SUPABASE_URL_DIRECTO = "https://fhdzvawbaujajafvsweu.supabase.co";
+const SUPABASE_BUCKET_CSV = "archivos-csv";
+
+// Módulos que ya leen directo de Supabase (por ahora solo evm; después se agregan más)
+const MODULOS_LEEN_DE_SUPABASE = new Set(["evm"]);
+
+// Misma normalización que el backend (nombre_seguro) para que coincida con la carpeta en Supabase Storage
+function nombreSeguro(valor, porDefecto) {
+  if (!valor) return porDefecto;
+  const limpio = String(valor).replace(/[^\p{L}\p{N}\-_]/gu, "").trim();
+  return limpio || porDefecto;
+}
 
 function getModeloGestion() {
   let modelo = localStorage.getItem('obra360_modelo_gestion');
@@ -1833,10 +1848,88 @@ Object.keys(MODULOS).forEach(modKey=>{
 
 const moduloDataCargada = new Set();
 
+// ===== FIX EVM: lee directo de Supabase Storage (sin cache de Render). Fallback a Render. =====
+async function cargarModuloDesdeSupabaseCSV(tab){
+  const mod = MODULOS[tab];
+  if(!mod) return false;
+
+  const proyectoRaw = localStorage.getItem("obra360_proyecto_nombre");
+  if(!proyectoRaw) return false;
+
+  const proyecto = nombreSeguro(proyectoRaw, "default");
+  const endpoint = mod.endpoint || tab;
+  const url = `${SUPABASE_URL_DIRECTO}/storage/v1/object/public/${SUPABASE_BUCKET_CSV}/${encodeURIComponent(proyecto)}/${endpoint}.csv?v=${Date.now()}`;
+
+  let csvTexto;
+  try {
+    const resp = await fetch(url, { cache: "no-store" });
+    if(!resp.ok) return false;
+    csvTexto = await resp.text();
+  } catch(err) {
+    console.error("No se pudo leer desde Supabase Storage:", err);
+    return false;
+  }
+
+  if(!csvTexto || csvTexto.trim() === "") return false;
+
+  let parsed;
+  try {
+    parsed = Papa.parse(csvTexto.trim(), { header: true, skipEmptyLines: true });
+  } catch(err) {
+    console.error("Error parseando CSV de Supabase:", err);
+    return false;
+  }
+
+  const filasCsv = parsed.data || [];
+  if(filasCsv.length === 0) return false;
+
+  // Mapear cada fila del CSV a un objeto {key: valor} usando los labels del módulo
+  let cols, targetDatos, stKeyParaRender;
+  if(mod.subtabs){
+    stKeyParaRender = Object.keys(mod.subtabs)[0];
+    const st = mod.subtabs[stKeyParaRender];
+    cols = st.columnas;
+    targetDatos = st.datos;
+  } else {
+    cols = mod.columnas;
+    targetDatos = mod.datos;
+  }
+
+  const nuevasFilas = filasCsv.map(record => {
+    const row = {};
+    cols.forEach(c=>{
+      if(c.calculado) return;
+      const val = record[c.label];
+      row[c.key] = (c.tipo === "num")
+        ? (val === "" || val === undefined || val === null ? "" : Number(val))
+        : (val === undefined || val === null ? "" : val);
+    });
+    return row;
+  });
+
+  // Reemplazo total (Supabase ya tiene el histórico completo fusionado por el backend)
+  targetDatos.length = 0;
+  targetDatos.push(...nuevasFilas);
+
+  if(mod.subtabs){
+    renderSubtab(tab, stKeyParaRender);
+  } else {
+    renderModulo(tab);
+  }
+  return true;
+}
+
 async function cargarModuloDesdeServidor(tab){
   const mod = MODULOS[tab];
   if(!mod || moduloDataCargada.has(tab)) return;
   moduloDataCargada.add(tab);
+
+  // ===== FIX EVM: primero intenta Supabase Storage directo (sin cache) =====
+  if (MODULOS_LEEN_DE_SUPABASE.has(tab)) {
+    const ok = await cargarModuloDesdeSupabaseCSV(tab);
+    if (ok) return;
+    // si falla, cae al fallback de Render abajo
+  }
 
   const proyecto = localStorage.getItem("obra360_proyecto_nombre");
   const token = localStorage.getItem("obra360_token");
@@ -1856,7 +1949,7 @@ async function cargarModuloDesdeServidor(tab){
   try{
     const modParam = encodeURIComponent(mod.endpoint || tab);
     const proyParam = encodeURIComponent(proyecto);
-    const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto=${proyParam}`, {
+    const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto=${proyParam}&_t=${Date.now()}`, {
       headers: token ? { "Authorization": `Bearer ${token}` } : {}
     });
     if(!resp.ok) return;
@@ -2237,7 +2330,13 @@ function confirmarMapeo(){
       }
       const idx = indice.get(llave);
       if (idx !== undefined) {
-        Object.keys(fila).forEach(k => { target.datos[idx][k] = fila[k]; });
+        // ===== FIX: merge selectivo — solo sobreescribe si el valor NO viene vacío =====
+        Object.keys(fila).forEach(k => {
+          const v = fila[k];
+          if (v !== undefined && v !== null && String(v).trim() !== "") {
+            target.datos[idx][k] = v;
+          }
+        });
         actualizadas++;
       } else {
         target.datos.push(fila);
@@ -2402,6 +2501,12 @@ async function guardarModuloActivo(){
     const data = await res.json();
     if(data.error){ alert("Error al guardar: "+data.error); return; }
     alert("✅ Guardado correctamente: "+nombreArchivo);
+
+    // ===== FIX EVM: al guardar, invalida cache y vuelve a leer directo de Supabase =====
+    if (MODULOS_LEEN_DE_SUPABASE.has(modKey)) {
+      moduloDataCargada.delete(modKey);
+      await cargarModuloDesdeServidor(modKey);
+    }
   }catch(err){
     alert("❌ Error de conexión al guardar. Revisa tu conexión o intenta de nuevo.");
   }
