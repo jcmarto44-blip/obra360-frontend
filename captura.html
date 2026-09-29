@@ -222,6 +222,32 @@ body{font-family:var(--font-ui);background:var(--gris-bg);color:var(--texto-oscu
 .toolbar .status{margin-left:auto;font-size:11.5px;color:var(--verde-ok);display:flex;align-items:center;gap:5px;}
 .toolbar .status .dot{width:7px;height:7px;border-radius:50%;background:var(--verde-ok);}
 
+/* ============================================================
+   NUEVO: BANNER DE ÚLTIMA SUBIDA (consecutivo)
+   ============================================================ */
+.ultima-subida-banner{
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-left: 4px solid #2e9e5b;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-size: 11.5px;
+  color: #1b5e20;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ultima-subida-banner .ico{font-size:14px;}
+.ultima-subida-banner b{color: #0d3d13;}
+.ultima-subida-banner .fecha{color:#388e3c;font-size:10.5px;}
+.ultima-subida-banner.sin-archivo{
+  background: #fff3e0;
+  border-color: #ffcc80;
+  border-left-color: #f57c00;
+  color: #e65100;
+}
+
 .grid-wrap{border:1px solid var(--gris-borde);border-radius:4px;overflow:auto;max-height:55vh;background:#fff;}
 table.grid{border-collapse:collapse;width:100%;font-size:12.3px;}
 table.grid thead th{
@@ -890,8 +916,7 @@ if (window.pdfjsLib) {
 const SUPABASE_URL_DIRECTO = "https://fhdzvawbaujajafvsweu.supabase.co";
 const SUPABASE_BUCKET_CSV = "archivos-csv";
 
-// ===== FIX 1: ya no se lee del CSV de Supabase Storage. Todos los módulos leen del endpoint /reporte,
-//             que lee directo de filas_modulo. Así Captura NUNCA muestra caché viejo. =====
+// ===== FIX 1: ya no se lee del CSV de Supabase Storage. Todos los módulos leen del endpoint /reporte. =====
 const MODULOS_LEEN_DE_SUPABASE = new Set([]);
 
 // Misma normalización que el backend (nombre_seguro) para que coincida con la carpeta en Supabase Storage
@@ -1060,14 +1085,50 @@ async function guardarDatosInicio(){
   formData.append("modulo", "general");
   formData.append("proyecto", proyecto);
 
+  // ===== FIX: mandar el token para que el backend sepa quién sube =====
+  const token = localStorage.getItem("obra360_token");
+  const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+
   try{
-    const res = await fetch(`${DATOS_INICIO_API_URL}/subir`, { method:"POST", body: formData });
+    const res = await fetch(`${DATOS_INICIO_API_URL}/subir`, { method:"POST", headers, body: formData });
     const data = await res.json();
     if(data.error){ alert("❌ Error al guardar: " + data.error); return; }
     alert("✅ Datos del proyecto guardados correctamente (visibles para admin y cliente).");
+    actualizarBannerUltimaSubida("general");
   }catch(err){
     alert("❌ Error de conexión al guardar los Datos Generales.");
   }
+}
+
+// ============================================================
+// NUEVO: CONSULTAR Y MOSTRAR EL ÚLTIMO ARCHIVO SUBIDO
+// ============================================================
+
+async function obtenerUltimoArchivo(modulo) {
+  const proyecto = localStorage.getItem("obra360_proyecto_nombre");
+  if (!proyecto) return null;
+  try {
+    const resp = await fetch(`${GATE_API_URL}/ultimo_archivo?proyecto=${encodeURIComponent(proyecto)}&modulo=${encodeURIComponent(modulo)}`);
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    return data && data.archivo ? data : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+async function actualizarBannerUltimaSubida(modulo) {
+  const banner = document.getElementById(`ultima-subida-${modulo}`);
+  if (!banner) return;
+  const info = await obtenerUltimoArchivo(modulo);
+  if (!info || !info.archivo) {
+    banner.classList.add("sin-archivo");
+    banner.innerHTML = `<span class="ico">⚠️</span> Aún no hay archivos subidos para este módulo.`;
+    return;
+  }
+  banner.classList.remove("sin-archivo");
+  const fecha = info.fecha_subida ? new Date(info.fecha_subida).toLocaleString('es-MX') : '';
+  banner.innerHTML = `<span class="ico">📄</span> Última subida: <b>${info.archivo}</b> <span class="fecha">${fecha ? '— ' + fecha : ''}</span>`;
 }
 
 // ============================================================
@@ -1577,6 +1638,9 @@ function construirModuloHTML(modKey){
         <div class="module-title-row">
           <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
         </div>
+        <div class="ultima-subida-banner sin-archivo" id="ultima-subida-${modKey}">
+          <span class="ico">⚠️</span> Cargando último archivo…
+        </div>
         <div class="info-banner">
           Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
         </div>
@@ -1623,6 +1687,9 @@ function construirModuloHTML(modKey){
     <div class="module" id="mod-${modKey}" data-mod="${modKey}">
       <div class="module-title-row">
         <div class="module-title">${mod.label} <span class="count" id="count-${modKey}">0 registros</span></div>
+      </div>
+      <div class="ultima-subida-banner sin-archivo" id="ultima-subida-${modKey}">
+        <span class="ico">⚠️</span> Cargando último archivo…
       </div>
       <div class="info-banner">
         Este módulo alimenta su propio archivo (<b>${(mod.endpoint||modKey)}.csv</b>) en el reporte de Power BI.
@@ -1845,8 +1912,7 @@ Object.keys(MODULOS).forEach(modKey=>{
 
 const moduloDataCargada = new Set();
 
-// ===== FIX 1: función eliminada/desactivada — ya no se lee del CSV de Supabase Storage =====
-// Se deja la función por compatibilidad, pero NUNCA se llama porque MODULOS_LEEN_DE_SUPABASE está vacío.
+// ===== FIX 1: ya no se lee del CSV de Supabase Storage =====
 async function cargarModuloDesdeSupabaseCSV(tab){
   return false;
 }
@@ -1855,8 +1921,6 @@ async function cargarModuloDesdeServidor(tab){
   const mod = MODULOS[tab];
   if(!mod || moduloDataCargada.has(tab)) return;
   moduloDataCargada.add(tab);
-
-  // ===== FIX 1: ya no se intenta leer de Supabase Storage. Se salta directo a /reporte. =====
 
   const proyecto = localStorage.getItem("obra360_proyecto_nombre");
   const token = localStorage.getItem("obra360_token");
@@ -2011,9 +2075,11 @@ function navegarA(tab){
     return;
   }
 
-  // ===== FIX 2: invalidar cache al entrar al módulo. Así siempre se recarga desde /reporte. =====
+  // ===== FIX 2: invalidar cache al entrar al módulo =====
   if (MODULOS[tab]) {
     moduloDataCargada.delete(tab);
+    // Actualizar el banner de última subida
+    actualizarBannerUltimaSubida(MODULOS[tab].endpoint || tab);
   }
   cargarModuloDesdeServidor(tab);
 }
@@ -2077,7 +2143,7 @@ async function cargarPermisoAvanceSemanal() {
 })();
 
 // ============================================================
-// IMPORTAR Y EXPORTAR (EXISTENTE)
+// IMPORTAR Y EXPORTAR
 // ============================================================
 
 document.getElementById("btn-importar").addEventListener("click", ()=>{
@@ -2261,10 +2327,7 @@ function confirmarMapeo(){
       }
       const idx = indice.get(llave);
       if (idx !== undefined) {
-        // ===== FIX 3: como Excel — todo lo que viene en el archivo (aunque venga vacío)
-        //              sobrescribe la fila existente. Lo que NO viene en el archivo, se conserva.
-        //              Si el archivo trae el valor, reemplaza (aunque sea "").
-        //              Si el archivo no trae la columna, se queda lo que ya había.
+        // ===== FIX 3: como Excel — lo que viene en el archivo sobrescribe (aunque venga vacío) =====
         Object.keys(fila).forEach(k => {
           const v = fila[k];
           if (v !== undefined) {
@@ -2293,11 +2356,9 @@ function confirmarMapeo(){
     msg += `✅ ${actualizadas} fila(s) actualizadas correctamente.\n`;
     if (nuevas) msg += `➕ ${nuevas} fila(s) nuevas agregadas.\n`;
     if (rechazadasSinNumero) {
-      msg += `⚠️ ${rechazadasSinNumero} fila(s) RECHAZADAS por no traer "${columnaLlaveObj.label}" (ej: ${numerosRechazados.join(", ")}${rechazadasSinNumero > numerosRechazados.length ? ", ..." : ""}).\n`;
-      msg += `Revisa tu archivo: total importado ${totalImportado} de ${totalArchivo} filas.`;
-    } else {
-      msg += `Total importado: ${totalImportado} de ${totalArchivo} filas. ✔️ Coincide completo.`;
+      msg += `⚠️ ${rechazadasSinNumero} fila(s) RECHAZADAS por no traer "${columnaLlaveObj.label}".\n`;
     }
+    msg += `Total importado: ${totalImportado} de ${totalArchivo} filas.`;
     alert(msg);
     return;
   }
@@ -2396,14 +2457,20 @@ async function guardarModuloActivo(){
 
     const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
     const uploadUrl = `${API_URL}/subir`;
+    const token = localStorage.getItem("obra360_token");
+    const headers = token ? { "Authorization": `Bearer ${token}` } : {};
 
     try{
       const res = await fetch(uploadUrl, {
-        method:"POST", body: formData
+        method:"POST", headers, body: formData
       });
       const data = await res.json();
       if(data.error){ alert("Error al guardar: "+data.error); return; }
-      alert("✅ Guardado correctamente: "+nombreArchivo);
+      alert("✅ Guardado correctamente: " + (data.archivo || nombreArchivo));
+      // Actualizar banner del último archivo
+      actualizarBannerUltimaSubida("costo_plan");
+      moduloDataCargada.delete(modKey);
+      await cargarModuloDesdeServidor(modKey);
     }catch(err){
       alert("❌ Error de conexión al guardar. Revisa tu conexión o intenta de nuevo.");
     }
@@ -2427,18 +2494,23 @@ async function guardarModuloActivo(){
 
   const API_URL = "https://analisis-reportes-obra-360-1.onrender.com";
   const uploadUrl = `${API_URL}/subir`;
+  // ===== FIX: mandar el token para que el backend sepa quién sube =====
+  const token = localStorage.getItem("obra360_token");
+  const headers = token ? { "Authorization": `Bearer ${token}` } : {};
 
   try{
     const res = await fetch(uploadUrl, {
-      method:"POST", body: formData
+      method:"POST", headers, body: formData
     });
     const data = await res.json();
     if(data.error){ alert("Error al guardar: "+data.error); return; }
-    alert("✅ Guardado correctamente: "+nombreArchivo);
+    alert("✅ Guardado correctamente: " + (data.archivo || nombreArchivo));
 
-    // ===== FIX 2: al guardar, invalida cache y recarga desde /reporte (que lee de filas_modulo) =====
+    // ===== FIX 2: al guardar, invalida cache y recarga desde /reporte =====
     moduloDataCargada.delete(modKey);
     await cargarModuloDesdeServidor(modKey);
+    // Actualizar banner del último archivo
+    actualizarBannerUltimaSubida(mod.endpoint||modKey);
   }catch(err){
     alert("❌ Error de conexión al guardar. Revisa tu conexión o intenta de nuevo.");
   }
@@ -2804,7 +2876,6 @@ async function guardarFotografico(){
 // ⭐⭐⭐ AVANCE SEMANAL - CANVAS PURO SIN FABRIC ⭐⭐⭐
 // ============================================================
 
-// Variables globales
 let asCanvas = null;
 let asCtx = null;
 let asOffscreenCanvas = null;
@@ -2817,17 +2888,14 @@ let asPlanoActualId = null;
 let asPlanoActualUrl = null;
 let asPlanoActualClave = null;
 
-// Variables de dibujo
 let isDrawing = false;
 let startX = 0, startY = 0;
 let rectTemp = null;
 let circleTemp = null;
 
-// Variables para polígono/línea
 let asPuntosPoligono = [];
 let asPoligonosDibujados = [];
 
-// Variables para el visor
 let asPdfPage = null;
 let asViewport = null;
 
@@ -3084,10 +3152,6 @@ function cerrarVisorCompleto() {
   asOffscreenCtx = null;
 }
 
-// ============================================================
-// ⭐⭐⭐ CARGA DEL PDF CON CANVAS PURO ⭐⭐⭐
-// ============================================================
-
 async function cargarPDFAvanceSemanal(url) {
   const canvas = document.getElementById('pdf-canvas');
   const ctx = canvas.getContext('2d');
@@ -3133,17 +3197,11 @@ async function cargarPDFAvanceSemanal(url) {
       redibujarTodo(ctx, viewport);
     }
     
-    console.log('✅ PDF cargado con Canvas Puro:', viewport.width, 'x', viewport.height);
-    
   } catch (error) {
     console.error('Error cargando PDF:', error);
     alert('❌ No se pudo cargar el PDF.');
   }
 }
-
-// ============================================================
-// REDIBUJAR TODO (PDF + Zonas + Dibujo temporal + Selección)
-// ============================================================
 
 function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
   ctx.clearRect(0, 0, viewport.width, viewport.height);
@@ -3157,7 +3215,6 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
     dibujarZona(ctx, zona, isSelected);
   });
   
-  // Rectángulo temporal
   if (tempRect || rectTemp) {
     const r = tempRect || rectTemp;
     if (r && r.w > 0 && r.h > 0) {
@@ -3182,7 +3239,6 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
     }
   }
   
-  // Círculo temporal
   if (tempCircle || circleTemp) {
     const c = tempCircle || circleTemp;
     if (c && c.radius > 0) {
@@ -3202,7 +3258,6 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
     }
   }
   
-  // Puntos de polígono/línea
   if (asPuntosPoligono.length > 0 && asHerramienta !== 'select') {
     asPuntosPoligono.forEach((p, i) => {
       ctx.beginPath();
@@ -3220,10 +3275,6 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
     });
   }
 }
-
-// ============================================================
-// ⭐⭐⭐ DIBUJAR ZONA CON COLORES CORREGIDOS ⭐⭐⭐
-// ============================================================
 
 function dibujarZona(ctx, zona, isSelected) {
   if (!zona.poligono || zona.poligono.length < 2) return;
@@ -3288,10 +3339,6 @@ function dibujarZona(ctx, zona, isSelected) {
     ctx.setLineDash([]);
   }
 }
-
-// ============================================================
-// DETECCIÓN DE CLIC EN ZONAS (SELECTOR)
-// ============================================================
 
 function puntoEnRectangulo(px, py, rect) {
   const x = rect.w > 0 ? rect.x : rect.x + rect.w;
@@ -3363,10 +3410,6 @@ function detectarZonaClickeada(px, py) {
   }
   return null;
 }
-
-// ============================================================
-// CONFIGURAR EVENTOS DE DIBUJO (Canvas Puro)
-// ============================================================
 
 function configurarEventosDibujo(canvas) {
   canvas.addEventListener('mousedown', function(e) {
@@ -3553,10 +3596,6 @@ function configurarEventosDibujo(canvas) {
   });
 }
 
-// ============================================================
-// ⭐⭐⭐ FUNCIONES DE DESHACER Y ELIMINAR ⭐⭐⭐
-// ============================================================
-
 function deshacerUltimoPunto() {
   if (asPuntosPoligono.length > 0) {
     asPuntosPoligono.pop();
@@ -3652,10 +3691,6 @@ async function eliminarZonaSeleccionada() {
     alert('❌ Error al eliminar la zona: ' + error.message);
   }
 }
-
-// ============================================================
-// HERRAMIENTAS Y FUNCIONES DE DIBUJO
-// ============================================================
 
 function cambiarHerramientaAvanceSemanal(modo) {
   if ((asHerramienta === 'poligono' || asHerramienta === 'linea') && modo !== asHerramienta) {
@@ -3777,10 +3812,6 @@ async function guardarZonaPoligono(poligono, tipo) {
   }
 }
 
-// ============================================================
-// CARGAR ZONAS DESDE EL BACKEND
-// ============================================================
-
 async function cargarZonasAvanceSemanal() {
   const select = document.getElementById('as-selector-zona');
   if (!select) return;
@@ -3840,10 +3871,6 @@ async function cargarZonasAvanceSemanal() {
     select.innerHTML = '<option value="">Error al cargar zonas</option>';
   }
 }
-
-// ============================================================
-// PANEL DE AVANCE SEMANAL
-// ============================================================
 
 function mostrarPanelAvanceSemanal() {
   const existing = document.getElementById('as-panel-visor');
@@ -3933,10 +3960,6 @@ function cerrarPanelAvanceSemanal() {
   if (panel) panel.remove();
 }
 
-// ============================================================
-// MOSTRAR FOTOS DE ZONA
-// ============================================================
-
 async function mostrarFotosDeZona(zonaId) {
   const cont = document.getElementById('as-fotos-zona');
   if (!cont) return;
@@ -3986,10 +4009,6 @@ async function mostrarFotosDeZona(zonaId) {
   }
 }
 
-// ============================================================
-// LIGHTBOX (EXISTENTE)
-// ============================================================
-
 let asLightboxIndex = 0;
 
 function abrirLightboxFoto(index) {
@@ -4023,10 +4042,6 @@ function cerrarLightboxFoto(event) {
   if (event) event.stopPropagation();
   document.getElementById('as-lightbox').style.display = 'none';
 }
-
-// ============================================================
-// ÚLTIMOS REPORTES
-// ============================================================
 
 async function cargarUltimosReportesAvanceSemanal() {
   const container = document.getElementById('as-ultimos-reportes');
@@ -4071,10 +4086,6 @@ async function cargarUltimosReportesAvanceSemanal() {
     container.innerHTML = '<div class="sin-reportes">Error al cargar reportes</div>';
   }
 }
-
-// ============================================================
-// REPORTAR AVANCE
-// ============================================================
 
 async function reportarAvanceSemanal() {
   const zonaId = document.getElementById('as-selector-zona').value;
@@ -4141,10 +4152,6 @@ async function reportarAvanceSemanal() {
     alert('❌ Error de conexión');
   }
 }
-
-// ============================================================
-// CARGAR REPORTES EN LA TABLA
-// ============================================================
 
 async function cargarReportesAvanceSemanal() {
   const tbody = document.getElementById('body-avance_semanal');
