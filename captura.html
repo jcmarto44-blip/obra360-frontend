@@ -841,9 +841,6 @@ kbd{background:#fff;border:1px solid var(--gris-borde);border-bottom-width:2px;b
         <option value="linea"><i class="bi bi-slash"></i> Línea</option>
       </select>
 
-      <!-- ============================================================
-           NUEVOS BOTONES: DESHACER, CANCELAR, GUARDAR, ELIMINAR ZONA
-           ============================================================ -->
       <button id="as-btn-des hacer" onclick="deshacerUltimoPunto()" style="display:none;background:#ffc107;color:#000;border:1px solid #666;padding:6px 10px;border-radius:4px;cursor:pointer;font-size:11px;font-weight:600;">
         <i class="bi bi-arrow-counterclockwise"></i> Deshacer
       </button>
@@ -890,12 +887,12 @@ if (window.pdfjsLib) {
 // FUNCIONES EXISTENTES (NO TOCAR)
 // ============================================================
 
-// ===== FIX: constantes para leer directo de Supabase Storage (sin cache de Render) =====
 const SUPABASE_URL_DIRECTO = "https://fhdzvawbaujajafvsweu.supabase.co";
 const SUPABASE_BUCKET_CSV = "archivos-csv";
 
-// ===== FIX: TODOS los módulos leen directo de Supabase (costo_plan queda aparte por su llave tipo+concepto) =====
-const MODULOS_LEEN_DE_SUPABASE = new Set(["evm", "presupuestal", "materiales", "mano_obra", "calidad", "control_pedidos", "requisiciones", "ordenes_compra", "pago_proveedores", "estimaciones"]);
+// ===== FIX 1: ya no se lee del CSV de Supabase Storage. Todos los módulos leen del endpoint /reporte,
+//             que lee directo de filas_modulo. Así Captura NUNCA muestra caché viejo. =====
+const MODULOS_LEEN_DE_SUPABASE = new Set([]);
 
 // Misma normalización que el backend (nombre_seguro) para que coincida con la carpeta en Supabase Storage
 function nombreSeguro(valor, porDefecto) {
@@ -1848,73 +1845,10 @@ Object.keys(MODULOS).forEach(modKey=>{
 
 const moduloDataCargada = new Set();
 
-// ===== FIX: lee directo de Supabase Storage (sin cache de Render). Fallback a Render. =====
+// ===== FIX 1: función eliminada/desactivada — ya no se lee del CSV de Supabase Storage =====
+// Se deja la función por compatibilidad, pero NUNCA se llama porque MODULOS_LEEN_DE_SUPABASE está vacío.
 async function cargarModuloDesdeSupabaseCSV(tab){
-  const mod = MODULOS[tab];
-  if(!mod) return false;
-
-  const proyectoRaw = localStorage.getItem("obra360_proyecto_nombre");
-  if(!proyectoRaw) return false;
-
-  const proyecto = nombreSeguro(proyectoRaw, "default");
-  const endpoint = mod.endpoint || tab;
-  const url = `${SUPABASE_URL_DIRECTO}/storage/v1/object/public/${SUPABASE_BUCKET_CSV}/${encodeURIComponent(proyecto)}/${endpoint}.csv?v=${Date.now()}`;
-
-  let csvTexto;
-  try {
-    const resp = await fetch(url, { cache: "no-store" });
-    if(!resp.ok) return false;
-    csvTexto = await resp.text();
-  } catch(err) {
-    console.error("No se pudo leer desde Supabase Storage:", err);
-    return false;
-  }
-
-  if(!csvTexto || csvTexto.trim() === "") return false;
-
-  let parsed;
-  try {
-    parsed = Papa.parse(csvTexto.trim(), { header: true, skipEmptyLines: true });
-  } catch(err) {
-    console.error("Error parseando CSV de Supabase:", err);
-    return false;
-  }
-
-  const filasCsv = parsed.data || [];
-  if(filasCsv.length === 0) return false;
-
-  let cols, targetDatos, stKeyParaRender;
-  if(mod.subtabs){
-    stKeyParaRender = Object.keys(mod.subtabs)[0];
-    const st = mod.subtabs[stKeyParaRender];
-    cols = st.columnas;
-    targetDatos = st.datos;
-  } else {
-    cols = mod.columnas;
-    targetDatos = mod.datos;
-  }
-
-  const nuevasFilas = filasCsv.map(record => {
-    const row = {};
-    cols.forEach(c=>{
-      if(c.calculado) return;
-      const val = record[c.label];
-      row[c.key] = (c.tipo === "num")
-        ? (val === "" || val === undefined || val === null ? "" : Number(val))
-        : (val === undefined || val === null ? "" : val);
-    });
-    return row;
-  });
-
-  targetDatos.length = 0;
-  targetDatos.push(...nuevasFilas);
-
-  if(mod.subtabs){
-    renderSubtab(tab, stKeyParaRender);
-  } else {
-    renderModulo(tab);
-  }
-  return true;
+  return false;
 }
 
 async function cargarModuloDesdeServidor(tab){
@@ -1922,12 +1856,7 @@ async function cargarModuloDesdeServidor(tab){
   if(!mod || moduloDataCargada.has(tab)) return;
   moduloDataCargada.add(tab);
 
-  // ===== FIX: primero intenta Supabase Storage directo (sin cache) =====
-  if (MODULOS_LEEN_DE_SUPABASE.has(tab)) {
-    const ok = await cargarModuloDesdeSupabaseCSV(tab);
-    if (ok) return;
-    // si falla, cae al fallback de Render abajo
-  }
+  // ===== FIX 1: ya no se intenta leer de Supabase Storage. Se salta directo a /reporte. =====
 
   const proyecto = localStorage.getItem("obra360_proyecto_nombre");
   const token = localStorage.getItem("obra360_token");
@@ -2082,6 +2011,10 @@ function navegarA(tab){
     return;
   }
 
+  // ===== FIX 2: invalidar cache al entrar al módulo. Así siempre se recarga desde /reporte. =====
+  if (MODULOS[tab]) {
+    moduloDataCargada.delete(tab);
+  }
   cargarModuloDesdeServidor(tab);
 }
 
@@ -2328,10 +2261,13 @@ function confirmarMapeo(){
       }
       const idx = indice.get(llave);
       if (idx !== undefined) {
-        // ===== FIX: merge selectivo — solo sobreescribe si el valor NO viene vacío =====
+        // ===== FIX 3: como Excel — todo lo que viene en el archivo (aunque venga vacío)
+        //              sobrescribe la fila existente. Lo que NO viene en el archivo, se conserva.
+        //              Si el archivo trae el valor, reemplaza (aunque sea "").
+        //              Si el archivo no trae la columna, se queda lo que ya había.
         Object.keys(fila).forEach(k => {
           const v = fila[k];
-          if (v !== undefined && v !== null && String(v).trim() !== "") {
+          if (v !== undefined) {
             target.datos[idx][k] = v;
           }
         });
@@ -2500,11 +2436,9 @@ async function guardarModuloActivo(){
     if(data.error){ alert("Error al guardar: "+data.error); return; }
     alert("✅ Guardado correctamente: "+nombreArchivo);
 
-    // ===== FIX: al guardar, invalida cache y vuelve a leer directo de Supabase =====
-    if (MODULOS_LEEN_DE_SUPABASE.has(modKey)) {
-      moduloDataCargada.delete(modKey);
-      await cargarModuloDesdeServidor(modKey);
-    }
+    // ===== FIX 2: al guardar, invalida cache y recarga desde /reporte (que lee de filas_modulo) =====
+    moduloDataCargada.delete(modKey);
+    await cargarModuloDesdeServidor(modKey);
   }catch(err){
     alert("❌ Error de conexión al guardar. Revisa tu conexión o intenta de nuevo.");
   }
@@ -3294,7 +3228,6 @@ function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
 function dibujarZona(ctx, zona, isSelected) {
   if (!zona.poligono || zona.poligono.length < 2) return;
   
-  // OBTENER COLOR SEGÚN ESTATUS
   const color = zona.ultimo_estatus?.color || null;
   
   let fillColor, strokeColor;
@@ -3309,7 +3242,6 @@ function dibujarZona(ctx, zona, isSelected) {
     fillColor = 'rgba(40,167,69,0.3)';
     strokeColor = '#28a745';
   } else {
-    // SIN ESTATUS → COLOR NARANJA (zona recién dibujada)
     fillColor = 'rgba(255,140,0,0.25)';
     strokeColor = '#FF8C00';
   }
@@ -3484,7 +3416,6 @@ function configurarEventosDibujo(canvas) {
       if (btnGuardar) {
         btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
       }
-      // Mostrar botón Deshacer
       const btnDeshacer = document.getElementById('as-btn-des hacer');
       if (btnDeshacer) btnDeshacer.style.display = 'inline-block';
       redibujarTodo(asCtx, asViewport);
@@ -3590,21 +3521,16 @@ function configurarEventosDibujo(canvas) {
     }
   });
   
-  // ============================================================
-  // ⭐⭐⭐ TECLAS RÁPIDAS PARA DESHACER Y ELIMINAR ⭐⭐⭐
-  // ============================================================
   document.addEventListener('keydown', function(e) {
     const visorAbierto = document.getElementById('visor-pdf-container').style.display !== 'none';
     if (!visorAbierto) return;
     
-    // ESC → Cancelar dibujo
     if (e.key === 'Escape') {
       e.preventDefault();
       cancelarDibujoZona();
       return;
     }
     
-    // Backspace o Delete → Borrar último punto (si estamos dibujando)
     if ((e.key === 'Backspace' || e.key === 'Delete') && 
         (asHerramienta === 'poligono' || asHerramienta === 'linea')) {
       e.preventDefault();
@@ -3612,7 +3538,6 @@ function configurarEventosDibujo(canvas) {
       return;
     }
     
-    // Ctrl+Z → Deshacer último punto
     if (e.ctrlKey && e.key === 'z' && 
         (asHerramienta === 'poligono' || asHerramienta === 'linea')) {
       e.preventDefault();
@@ -3620,7 +3545,6 @@ function configurarEventosDibujo(canvas) {
       return;
     }
     
-    // Delete en modo selección → Eliminar zona seleccionada
     if (e.key === 'Delete' && asHerramienta === 'select' && asZonaSeleccionada) {
       e.preventDefault();
       eliminarZonaSeleccionada();
@@ -3644,7 +3568,6 @@ function deshacerUltimoPunto() {
       btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
     }
     
-    // Ocultar botón Deshacer si no hay puntos
     const btnDeshacer = document.getElementById('as-btn-des hacer');
     if (btnDeshacer) {
       btnDeshacer.style.display = asPuntosPoligono.length > 0 ? 'inline-block' : 'none';
@@ -3763,7 +3686,6 @@ function cambiarHerramientaAvanceSemanal(modo) {
     instruccion.style.display = 'inline';
   }
   
-  // Mostrar/ocultar botones según modo
   if (modo === 'select') {
     if (btnDeshacer) btnDeshacer.style.display = 'none';
     if (btnCancelar) btnCancelar.style.display = 'none';
@@ -3773,7 +3695,6 @@ function cambiarHerramientaAvanceSemanal(modo) {
     if (btnDeshacer) btnDeshacer.style.display = 'none';
     if (btnCancelar) btnCancelar.style.display = 'inline-block';
     if (btnEliminar) btnEliminar.style.display = 'none';
-    // btnGuardar se muestra cuando hay suficientes puntos
   }
   
   if (modo !== 'poligono' && modo !== 'linea') {
