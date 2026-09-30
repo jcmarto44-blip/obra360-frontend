@@ -388,10 +388,6 @@
       .proyecto-url-container input { min-width: 120px; }
     }
 
-    /* ============================================================
-       NUEVO: PERMISOS DE ACCESO POR CLIENTE
-       (Avance Semanal / Ver Reporte / Ver Modelo 3D)
-       ============================================================ */
     .permisos-box {
       margin-top: 0.75rem;
       border-top: 1px solid #e9edf4;
@@ -433,9 +429,6 @@
       cursor: not-allowed;
     }
 
-    /* ============================================================
-       NUEVO: MODAL DE CREACIÓN DE CLIENTE (reemplaza los prompt())
-       ============================================================ */
     .modal-crear-cliente-box {
       background:#fff; width:100%; max-width:460px; border-radius:12px;
       box-shadow:0 20px 60px rgba(0,0,0,.3); overflow:hidden;
@@ -466,7 +459,6 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <div class="admin-header d-flex flex-wrap justify-content-between align-items-center">
     <div>
       <h1><i class="bi bi-gear-fill me-2"></i>Panel de Administración</h1>
@@ -486,13 +478,10 @@
     </div>
   </div>
 
-  <!-- TOAST -->
   <div class="toast-container" id="toast-container"></div>
 
-  <!-- CONTENIDO -->
   <div class="container-fluid px-4 py-4">
 
-    <!-- ESTADÍSTICAS RÁPIDAS -->
     <div class="row g-3 mb-4" id="stats-container">
       <div class="col-md-3">
         <div class="stats-card">
@@ -520,7 +509,6 @@
       </div>
     </div>
 
-    <!-- BOTONES DE ACCIÓN + SELECTORES -->
     <div class="d-flex flex-wrap gap-2 mb-4 align-items-center">
       <button class="btn btn-primary btn-action" onclick="agregarCliente()">
         <i class="bi bi-person-plus"></i>Agregar Cliente
@@ -547,7 +535,6 @@
       </button>
     </div>
 
-    <!-- LISTA DE CLIENTES -->
     <div id="lista-clientes">
       <div class="text-center py-5">
         <div class="loading-spinner"></div>
@@ -562,7 +549,6 @@
     </div>
   </div>
 
-  <!-- MODAL BITÁCORA -->
   <div class="modal-bitacora-overlay" id="modal-bitacora">
     <div class="modal-bitacora-box">
       <div class="modal-bitacora-head">
@@ -598,9 +584,6 @@
     </div>
   </div>
 
-  <!-- ============================================================
-       NUEVO: MODAL DE CREACIÓN DE CLIENTE CON PERMISOS
-       ============================================================ -->
   <div class="modal-bitacora-overlay" id="modal-crear-cliente">
     <div class="modal-crear-cliente-box">
       <div class="modal-bitacora-head">
@@ -644,9 +627,6 @@
   </div>
 
   <script>
-    // ============================================================
-    // CONFIGURACIÓN
-    // ============================================================
     const API_URL = 'https://analisis-reportes-obra-360-1.onrender.com';
     const TOKEN_KEY = 'obra360_token';
 
@@ -654,9 +634,6 @@
     let proyectosGlobal = {};
     let bitacoraClienteActual = null;
 
-    // ============================================================
-    // TOAST NOTIFICATIONS
-    // ============================================================
     function mostrarToast(mensaje, tipo = 'success') {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
@@ -671,9 +648,6 @@
       }, 4000);
     }
 
-    // ============================================================
-    // FUNCIONES DE AUTENTICACIÓN
-    // ============================================================
     function obtenerToken() {
       return localStorage.getItem(TOKEN_KEY);
     }
@@ -689,9 +663,6 @@
       }
     }
 
-    // ============================================================
-    // PETICIONES A LA API
-    // ============================================================
     async function apiFetch(endpoint, options = {}) {
       const token = obtenerToken();
       const headers = {
@@ -722,9 +693,6 @@
       return response.json();
     }
 
-    // ============================================================
-    // VERIFICAR SESIÓN
-    // ============================================================
     async function verificarSesion() {
       const token = obtenerToken();
       
@@ -752,10 +720,6 @@
         return false;
       }
     }
-
-    // ============================================================
-    // FUNCIONES DE NEGOCIO
-    // ============================================================
 
     async function obtenerClientes() {
       try {
@@ -801,10 +765,6 @@
       }
     }
 
-    // ============================================================
-    // NUEVO: ACTUALIZAR PERMISOS DE ACCESO DEL CLIENTE
-    // (Avance Semanal / Ver Reporte / Ver Modelo 3D)
-    // ============================================================
     async function actualizarPermisosCliente(clienteId, permisos) {
       try {
         return await apiFetch(`/admin/clientes/${clienteId}/permisos`, {
@@ -841,9 +801,6 @@
       }
     }
 
-    // ============================================================
-    // NUEVA FUNCIÓN: ACTUALIZAR URL DE PROYECTO
-    // ============================================================
     async function actualizarUrlProyecto(proyectoId, url) {
       try {
         return await apiFetch(`/admin/proyectos/${proyectoId}/url`, {
@@ -856,9 +813,6 @@
       }
     }
 
-    // ============================================================
-    // BITÁCORA
-    // ============================================================
     async function obtenerBitacora(clienteId, proyectoId) {
       const qs = proyectoId ? `?proyecto_id=${proyectoId}` : '';
       return await apiFetch(`/clientes/${clienteId}/bitacora${qs}`);
@@ -1009,9 +963,6 @@
       }
     }
 
-    // ============================================================
-    // RENDERIZAR LISTA Y ESTADÍSTICAS
-    // ============================================================
     async function cargarClientes() {
       const contenedor = document.getElementById('lista-clientes');
       contenedor.innerHTML = `
@@ -1066,14 +1017,13 @@
         for (const cliente of clientes) {
           const proyectos = cliente._proyectos || [];
           
-          // Construir HTML de proyectos con input URL y botón Guardar
           let proyectosHtml = '';
           if (proyectos.length > 0) {
             proyectosHtml = proyectos.map(p => {
               const urlValue = p.url || '';
               return `
                 <div style="margin-top:0.5rem; border-top:1px solid #e9edf4; padding-top:0.5rem;">
-                  <span class="badge-proyecto">${p.nombre_proyecto}</span>
+                  <span class="badge-proyecto">${p.nombre_proyecto}${p.codigo ? ' ' + p.codigo : ''}</span>
                   <div class="proyecto-url-container">
                     <label>URL:</label>
                     <input type="text" class="url-input" data-proyecto-id="${p.id}" value="${urlValue}" placeholder="Pega la URL del reporte">
@@ -1090,10 +1040,6 @@
           const estadoBadge = cliente.activo ? 'badge-activo' : 'badge-inactivo';
           const modeloLabel = cliente.modelo_gestion || 'Cliente';
 
-          // ============================================================
-          // NUEVO: bloque de permisos de acceso (Avance Semanal / Ver
-          // Reporte / Modelo 3D) — el admin decide qué contrató el cliente
-          // ============================================================
           const permisosHtml = `
             <div class="permisos-box">
               <div class="permisos-titulo"><i class="bi bi-shield-check"></i>Accesos contratados</div>
@@ -1177,9 +1123,6 @@
         html += '</div>';
         contenedor.innerHTML = html;
 
-        // ============================================================
-        // EVENTOS PARA GUARDAR URL CON BOTÓN
-        // ============================================================
         document.querySelectorAll('.btn-guardar-url').forEach(btn => {
           btn.addEventListener('click', async function(e) {
             e.stopPropagation();
@@ -1207,7 +1150,6 @@
           });
         });
 
-        // Guardar al presionar Enter en el input
         document.querySelectorAll('.url-input').forEach(input => {
           input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
@@ -1218,9 +1160,6 @@
           });
         });
 
-        // ============================================================
-        // NUEVO: EVENTOS PARA GUARDAR PERMISOS DE ACCESO POR CLIENTE
-        // ============================================================
         document.querySelectorAll('.btn-guardar-permisos').forEach(btn => {
           btn.addEventListener('click', async function(e) {
             e.stopPropagation();
@@ -1262,9 +1201,6 @@
       }
     }
 
-    // ============================================================
-    // SELECTOR DE CLIENTES Y PROYECTOS
-    // ============================================================
     function actualizarSelectorClientes() {
       const select = document.getElementById('selector-cliente');
       const currentValue = select.value;
@@ -1298,14 +1234,11 @@
       proyectos.forEach(p => {
         const option = document.createElement('option');
         option.value = p.id;
-        option.textContent = p.nombre_proyecto;
+        option.textContent = p.nombre_proyecto + (p.codigo ? ' ' + p.codigo : '');
         selectProyecto.appendChild(option);
       });
     }
 
-    // ============================================================
-    // IR A CAPTURA
-    // ============================================================
     function irACapturaDesdeSelector() {
       const clienteId = document.getElementById('selector-cliente').value;
       const proyectoId = document.getElementById('selector-proyecto').value;
@@ -1335,19 +1268,14 @@
 
       localStorage.setItem('obra360_proyecto_id', proyecto.id);
       localStorage.setItem('obra360_proyecto_nombre', proyecto.nombre_proyecto);
+      localStorage.setItem('obra360_proyecto_codigo', proyecto.codigo || '');
       localStorage.setItem('obra360_cliente_id', cliente.id);
+      localStorage.setItem('obra360_cliente_nombre', cliente.nombre);
       localStorage.setItem('obra360_token', obtenerToken());
 
       window.location.href = 'captura.html';
     }
 
-    // ============================================================
-    // ACCIONES
-    // ============================================================
-
-    // ============================================================
-    // NUEVO: MODAL DE CREACIÓN DE CLIENTE (reemplaza los prompt())
-    // ============================================================
     function agregarCliente() {
       document.getElementById('nc-nombre').value = '';
       document.getElementById('nc-modelo').value = '';
@@ -1460,7 +1388,7 @@
         }
 
         const proyectos = await obtenerProyectos(id);
-        const proyectoNombres = proyectos.map(p => `• ${p.nombre_proyecto}`).join('\n') || 'Ninguno';
+        const proyectoNombres = proyectos.map(p => `• ${p.nombre_proyecto}${p.codigo ? ' ' + p.codigo : ''}`).join('\n') || 'Ninguno';
 
         const estado = cliente.activo ? '✅ Activo' : '⛔ Inactivo';
         const accesos = [
@@ -1483,9 +1411,6 @@
       }
     }
 
-    // ============================================================
-    // INICIALIZAR
-    // ============================================================
     (async function init() {
       const autenticado = await verificarSesion();
       if (autenticado) {
