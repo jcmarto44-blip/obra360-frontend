@@ -886,16 +886,30 @@ function getProyectoId() {
   return localStorage.getItem("obra360_proyecto_id") || "";
 }
 
+// Mensaje de error legible a partir de la respuesta del servidor (detail puede ser texto o lista)
+function mensajeErrorApi(data, res) {
+  const d = data && (data.detail || data.error);
+  if (!d) return "error " + (res ? res.status : "desconocido");
+  return typeof d === "string" ? d : JSON.stringify(d);
+}
+
+// Normaliza nombres de columna: "Fecha Inicio", "fecha_inicio" y "fecha inicio" son la misma
+function normClave(s) {
+  return String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+// El servidor guarda las fechas como AAAA-MM-DD; en pantalla se ven como DD/MM/AAAA
+function isoADmy(v) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v ?? "").trim());
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : v;
+}
+
 function getProyectoNombre() {
   return localStorage.getItem("obra360_proyecto_nombre") || "—";
 }
 
 function getProyectoCodigo() {
   return localStorage.getItem("obra360_proyecto_codigo") || "";
-}
-
-function getToken() {
-  return localStorage.getItem("obra360_token") || "";
 }
 
 function nombreSeguro(valor, porDefecto) {
@@ -1026,6 +1040,8 @@ const LABELS_DATOS_INICIO = {
   monto:"Monto Total", ejercido:"Ejercido", disponible:"Disponible"
 };
 
+const CAMPOS_TIPO_FECHA_INICIO = new Set(["inicio", "fin"]);
+
 async function cargarDatosInicio(){
   const proyecto = getProyectoNombre();
   if (!proyecto) return;
@@ -1061,16 +1077,13 @@ async function guardarDatosInicio(){
   formData.append("modulo", "general");
   formData.append("proyecto_id", proyectoId);
 
-  const token = getToken();
+  const token = localStorage.getItem("obra360_token");
   const headers = token ? { "Authorization": `Bearer ${token}` } : {};
 
   try{
     const res = await fetch(`${DATOS_INICIO_API_URL}/subir`, { method:"POST", headers, body: formData, cache: "no-store" });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      alert("❌ Error al guardar: " + (data.detail || res.status));
-      return;
-    }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.error){ alert("❌ No se guardó: " + mensajeErrorApi(data, res)); return; }
     alert("✅ Datos del proyecto guardados correctamente (visibles para admin y cliente).");
     actualizarBannerUltimaSubida("general");
   }catch(err){
@@ -1085,14 +1098,9 @@ async function guardarDatosInicio(){
 async function obtenerUltimoArchivo(modulo) {
   const proyectoId = getProyectoId();
   if (!proyectoId) return null;
-  const token = getToken();
-  if (!token) return null;
   try {
     const url = `${GATE_API_URL}/ultimo_archivo?proyecto_id=${encodeURIComponent(proyectoId)}&modulo=${encodeURIComponent(modulo)}&_t=${Date.now()}`;
-    const resp = await fetch(url, {
-      headers: { "Authorization": `Bearer ${token}` },
-      cache: "no-store"
-    });
+    const resp = await fetch(url, { cache: "no-store" });
     if (!resp.ok) return null;
     const data = await resp.json();
     return data && data.archivo ? data : null;
@@ -1102,7 +1110,8 @@ async function obtenerUltimoArchivo(modulo) {
 }
 
 async function actualizarBannerUltimaSubida(modulo) {
-  const banner = document.getElementById(`ultima-subida-${modulo}`);
+  const modKey = (typeof MODULOS !== "undefined" && Object.keys(MODULOS).find(k => (MODULOS[k].endpoint || k) === modulo)) || modulo;
+  const banner = document.getElementById(`ultima-subida-${modKey}`) || document.getElementById(`ultima-subida-${modulo}`);
   if (!banner) return;
   const info = await obtenerUltimoArchivo(modulo);
   if (!info || !info.archivo) {
@@ -1114,13 +1123,15 @@ async function actualizarBannerUltimaSubida(modulo) {
   const proyectoId = info.proyecto_id || getProyectoId();
   const proyectoNombre = info.proyecto_nombre || getProyectoNombre();
   const fecha = info.fecha_actualizacion ? new Date(info.fecha_actualizacion).toLocaleString('es-MX') : '';
-  banner.innerHTML = `<span class="ico">📄</span> Proyecto: <b>${proyectoNombre} (ID: ${proyectoId})</b> | Módulo: <b>${modulo}</b> | Consecutivo: <b>${info.archivo}</b> <span class="fecha">${fecha ? '— ' + fecha : ''}</span>`;
+  const consec = info.consecutivo ? String(info.consecutivo).padStart(3, "0") : "";
+  const partes = [info.admin_archivo, info.usuario_archivo].filter(Boolean).join(" + ");
+  banner.innerHTML = `<span class="ico">📄</span> Proyecto: <b>${proyectoNombre} (ID: ${proyectoId})</b> | Módulo: <b>${modulo}</b> | Archivo actual: <b>${info.archivo}</b> (consecutivo <b>${consec}</b>)${partes ? " = " + partes : ""} <span class="fecha">${fecha ? '— ' + fecha : ''}</span>`;
 }
 </script>
 
 <script>
 // ============================================================
-// CONFIGURACIÓN DE MÓDULOS
+// CONFIGURACIÓN DE MÓDULOS (idéntico al original)
 // ============================================================
 
 const CONCEPTOS_PARTIDAS = [
@@ -1452,7 +1463,7 @@ async function validarSesionYProyecto(){
     return;
   }
 
-  const token = getToken();
+  const token = localStorage.getItem("obra360_token");
   if(!token){
     mostrarErrorGateFatal("No se encontró una sesión activa.");
     return;
@@ -1862,9 +1873,8 @@ async function cargarModuloDesdeServidor(tab){
   moduloDataCargada.add(tab);
 
   const proyectoId = getProyectoId();
-  const token = getToken();
+  const token = localStorage.getItem("obra360_token");
   if(!proyectoId) return;
-  if(!token) return;
 
   let cols, targetDatos, stKeyParaRender;
   if(mod.subtabs){
@@ -1880,24 +1890,33 @@ async function cargarModuloDesdeServidor(tab){
   try{
     const modParam = encodeURIComponent(mod.endpoint || tab);
     const resp = await fetch(`${GATE_API_URL}/reporte?modulo=${modParam}&proyecto_id=${encodeURIComponent(proyectoId)}&_t=${Date.now()}`, {
-      headers: { "Authorization": `Bearer ${token}` },
+      headers: token ? { "Authorization": `Bearer ${token}` } : {},
       cache: "no-store"
     });
     if(!resp.ok){
-      console.error("Error cargando /reporte para " + tab + ": " + resp.status);
+      const err = await resp.json().catch(()=>({}));
+      console.error("Error cargando " + tab, resp.status, err);
+      moduloDataCargada.delete(tab);
+      alert("⚠️ No se pudieron cargar los datos de " + mod.label + ": " + mensajeErrorApi(err, resp));
       return;
     }
     const data = await resp.json();
     if(!data || !Array.isArray(data.data)) return;
+    const mapaClaves = {};
+    Object.keys(data.data[0] || {}).forEach(k => { mapaClaves[normClave(k)] = k; });
 
     const nuevasFilas = data.data.map(record => {
       const row = {};
       cols.forEach(c=>{
         if(c.calculado) return;
-        const val = record[c.label];
-        row[c.key] = (c.tipo === "num")
-          ? (val === "" || val === undefined || val === null ? "" : Number(val))
-          : val;
+        const k = mapaClaves[normClave(c.label)] ?? mapaClaves[normClave(c.key)];
+        let val = (k === undefined) ? undefined : record[k];
+        if (c.tipo === "fecha") val = isoADmy(val);
+        if (c.tipo === "num") {
+          if (val === "" || val === undefined || val === null) val = "";
+          else { const n = Number(val); val = isNaN(n) ? val : n; }
+        }
+        row[c.key] = val;
       });
       return row;
     });
@@ -2043,7 +2062,7 @@ document.getElementById("mod-inicio").classList.remove("hidden");
 window.permisoAvanceSemanal = false;
 
 async function cargarPermisoAvanceSemanal() {
-  const token = getToken();
+  const token = localStorage.getItem('obra360_token');
   if (!token) return;
   try {
     const resp = await fetch(`${GATE_API_URL}/verificar_token?_t=${Date.now()}`, {
@@ -2094,21 +2113,60 @@ document.getElementById("btn-importar").addEventListener("click", ()=>{
 
 let filasArchivo = [], encabezadosArchivo = [];
 
+function fechaJsADmy(d){
+  const dd = String(d.getDate()).padStart(2, "0"), mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+function decodificarTexto(buffer){
+  try { return new TextDecoder("utf-8", {fatal:true}).decode(buffer); }
+  catch(e) { return new TextDecoder("windows-1252").decode(buffer); }
+}
+
+// Quita columnas sin nombre y sin datos (comas sobrantes al final) y filas vacías
+function prepararFilasImportadas(filas){
+  filas = filas.filter(f => f.some(v => String(v ?? "").trim() !== ""));
+  if(!filas.length) return filas;
+  const ancho = filas.reduce((m, f) => Math.max(m, f.length), 0);
+  filas = filas.map(f => { const c = f.slice(); while(c.length < ancho) c.push(""); return c; });
+  const mantener = [];
+  for(let j = 0; j < ancho; j++){
+    const tieneNombre = String(filas[0][j] ?? "").trim() !== "";
+    const tieneDatos = filas.slice(1).some(f => String(f[j] ?? "").trim() !== "");
+    if(tieneNombre || tieneDatos) mantener.push(j);
+  }
+  return filas.map(f => mantener.map(j => f[j]));
+}
+
 document.getElementById("file-importar").addEventListener("change", (e)=>{
   const file = e.target.files[0];
+  e.target.value = "";
   if(!file) return;
+  const esCsv = /\.csv$/i.test(file.name);
   const reader = new FileReader();
   reader.onload = (evt)=>{
-    const wb = XLSX.read(evt.target.result, {type:"binary", cellDates:true});
-    const hoja = wb.Sheets[wb.SheetNames[0]];
-    const filas = XLSX.utils.sheet_to_json(hoja, {header:1, defval:"", raw:false, dateNF:"dd/mm/yyyy"});
-    if(filas.length<1){ alert("El archivo no tiene datos."); return; }
+    let filas;
+    try{
+      if(esCsv){
+        const texto = decodificarTexto(evt.target.result).replace(/^\uFEFF/, "");
+        filas = Papa.parse(texto, {skipEmptyLines: "greedy"}).data.map(f => f.map(v => String(v ?? "").trim()));
+      } else {
+        const wb = XLSX.read(evt.target.result, {type:"array", cellDates:true});
+        const hoja = wb.Sheets[wb.SheetNames[0]];
+        filas = XLSX.utils.sheet_to_json(hoja, {header:1, defval:"", raw:true})
+          .map(f => f.map(v => v instanceof Date ? fechaJsADmy(v) : (v === null || v === undefined ? "" : v)));
+      }
+    }catch(err){
+      alert("❌ No se pudo leer el archivo: " + err.message);
+      return;
+    }
+    filas = prepararFilasImportadas(filas);
+    if(filas.length < 1){ alert("El archivo no tiene datos."); return; }
     encabezadosArchivo = filas[0];
     filasArchivo = filas.slice(1);
     abrirModalMapeo();
   };
-  reader.readAsBinaryString(file);
-  e.target.value = "";
+  reader.readAsArrayBuffer(file);
 });
 
 function sugerirColumna(encabezado, cols){
@@ -2331,9 +2389,11 @@ function datosAcsv(modKey, stKey){
     datos = mod.datos;
   }
   
-  const encabezado = cols.map(c=>c.label).join(",");
+  const esAdmin = localStorage.getItem("obra360_es_admin") === "1";
+  const colsEnviar = esAdmin ? cols : cols.filter(c => !c.hidden);
+  const encabezado = colsEnviar.map(c=>c.label).join(",");
   const filas = datos.map(row=>{
-    return cols.map(c=>{
+    return colsEnviar.map(c=>{
       let v = c.calculado ? c.calculado(row, datos) : row[c.key];
       v = (v===undefined||v===null) ? "" : v;
       v = String(v).replace(/"/g,'""');
@@ -2361,7 +2421,7 @@ async function guardarModuloActivo(){
   const mod = MODULOS[modKey];
   if(!mod) return;
 
-  const token = getToken();
+  const token = localStorage.getItem("obra360_token");
   const headers = token ? { "Authorization": `Bearer ${token}` } : {};
   const uploadUrl = `${GATE_API_URL}/subir`;
   
@@ -2407,11 +2467,8 @@ async function guardarModuloActivo(){
 
     try{
       const res = await fetch(uploadUrl, { method:"POST", headers, body: formData, cache: "no-store" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        alert("❌ Error al guardar: " + (data.detail || res.status));
-        return;
-      }
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || data.error){ alert("❌ No se guardó: " + mensajeErrorApi(data, res)); return; }
       alert("✅ Guardado correctamente: " + (data.archivo || nombreArchivo) + (data.fusionado ? " | Fusionado: " + data.fusionado : ""));
       actualizarBannerUltimaSubida("costo_plan");
       moduloDataCargada.delete(modKey);
@@ -2438,11 +2495,8 @@ async function guardarModuloActivo(){
 
   try{
     const res = await fetch(uploadUrl, { method:"POST", headers, body: formData, cache: "no-store" });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      alert("❌ Error al guardar: " + (data.detail || res.status));
-      return;
-    }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.error){ alert("❌ No se guardó: " + mensajeErrorApi(data, res)); return; }
     alert("✅ Guardado correctamente: " + (data.archivo || nombreArchivo) + (data.fusionado ? " | Fusionado: " + data.fusionado : ""));
 
     moduloDataCargada.delete(modKey);
@@ -2491,4 +2545,1676 @@ document.addEventListener("keydown",(e)=>{
   }
   if(e.key==="Escape"){ active.blur(); }
 });
+
+// ============================================================
+// PLANOS
+// ============================================================
+
+let planosCache = [];
+let planosLote = [];
+
+function getTokenParaPlanos(){
+  return localStorage.getItem("obra360_despacho_token") || localStorage.getItem("obra360_token");
+}
+
+async function cargarPlanos(){
+  const proyectoId = getProyectoId();
+  const token = getTokenParaPlanos();
+  const esDespacho = !!localStorage.getItem("obra360_despacho_token");
+
+  document.getElementById("planos-zona-subida").style.display = esDespacho ? "block" : "none";
+
+  const tbodyActual = document.getElementById("planos-body-actual");
+  const tbodyHistorico = document.getElementById("planos-body-historico");
+  tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr>`;
+  tbodyHistorico.innerHTML = `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr>`;
+
+  if(!proyectoId || !token){
+    tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:#a72e21;">No se encontró proyecto o sesión activa.</td></tr>`;
+    tbodyHistorico.innerHTML = "";
+    return;
+  }
+
+  try{
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/planos?_t=${Date.now()}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+      cache: "no-store"
+    });
+    if(!resp.ok){
+      tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:#a72e21;">No se pudo cargar los planos de este proyecto.</td></tr>`;
+      tbodyHistorico.innerHTML = "";
+      return;
+    }
+    planosCache = await resp.json();
+    renderizarPlanos();
+  }catch(err){
+    tbodyActual.innerHTML = `<tr><td colspan="5" style="padding:14px;color:#a72e21;">Error de conexión al cargar planos.</td></tr>`;
+    tbodyHistorico.innerHTML = "";
+  }
+}
+
+function filaPlano(p){
+  const fecha = (p.fecha_subida || "").split(".")[0].replace("T"," ");
+  return `<tr>
+    <td class="cell">${p.clave_base}-${p.sufijo}</td>
+    <td class="cell">${p.nombre_archivo}</td>
+    <td class="cell">${p.despacho}</td>
+    <td class="cell">${fecha}</td>
+    <td class="cell"><a href="${p.url}" target="_blank" rel="noopener"><button>⬇ Descargar</button></a></td>
+  </tr>`;
+}
+
+function renderizarPlanos(){
+  const actuales = planosCache.filter(p => p.estado === "actualizacion");
+  const historicos = planosCache.filter(p => p.estado === "historico");
+
+  const tbodyActual = document.getElementById("planos-body-actual");
+  const tbodyHistorico = document.getElementById("planos-body-historico");
+
+  tbodyActual.innerHTML = actuales.length
+    ? actuales.map(filaPlano).join("")
+    : `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Aún no hay planos subidos para este proyecto.</td></tr>`;
+
+  tbodyHistorico.innerHTML = historicos.length
+    ? historicos.map(filaPlano).join("")
+    : `<tr><td colspan="5" style="padding:14px;color:var(--texto-secundario);">Sin versiones anteriores todavía.</td></tr>`;
+}
+
+function cambiarSubtabPlanos(cual){
+  document.querySelectorAll('#mod-planos .subtab').forEach(t=>{
+    t.classList.toggle("active", t.dataset.sub === cual);
+  });
+  document.getElementById("planos-tab-actual").style.display = cual === "actual" ? "" : "none";
+  document.getElementById("planos-tab-historico").style.display = cual === "historico" ? "" : "none";
+}
+
+function detectarClaveDesdeNombre(filename){
+  const sinExt = filename.replace(/\.pdf$/i, "").trim();
+  const partes = sinExt.split(/[\s\-_]+/).filter(Boolean);
+  if(partes.length <= 1){
+    return { clave_base: sinExt || "PLANO", sufijo: "1" };
+  }
+  const sufijo = partes[partes.length - 1];
+  const clave_base = partes.slice(0, -1).join("-");
+  return { clave_base, sufijo };
+}
+
+document.getElementById("planos-input-archivos")?.addEventListener("change", (e)=>{
+  const archivos = Array.from(e.target.files || []);
+  if(archivos.length === 0) return;
+
+  planosLote = archivos.map(file=>{
+    const detectado = detectarClaveDesdeNombre(file.name);
+    return { file, clave_base: detectado.clave_base, sufijo: detectado.sufijo };
+  });
+
+  abrirModalPlanos();
+  e.target.value = "";
+});
+
+function abrirModalPlanos(){
+  const cont = document.getElementById("modal-planos-confirmar-body");
+  cont.innerHTML = planosLote.map((item, idx)=>`
+    <div class="map-row">
+      <div class="col-origen">${item.file.name}<small>${(item.file.size/1024).toFixed(0)} KB</small></div>
+      <span>→</span>
+      <input type="text" data-idx="${idx}" data-campo="clave_base" value="${item.clave_base}" style="width:110px;padding:5px 7px;border:1px solid var(--gris-borde);border-radius:3px;font-size:12px;" placeholder="Clave (ej. AR-01)">
+      <input type="text" data-idx="${idx}" data-campo="sufijo" value="${item.sufijo}" style="width:60px;padding:5px 7px;border:1px solid var(--gris-borde);border-radius:3px;font-size:12px;" placeholder="Sufijo">
+    </div>
+  `).join("");
+  document.getElementById("modal-planos-confirmar").classList.add("open");
+}
+
+function cerrarModalPlanos(){
+  document.getElementById("modal-planos-confirmar").classList.remove("open");
+  planosLote = [];
+}
+
+async function confirmarSubidaPlanos(){
+  document.querySelectorAll('#modal-planos-confirmar-body input').forEach(inp=>{
+    const idx = Number(inp.dataset.idx);
+    const campo = inp.dataset.campo;
+    if(planosLote[idx]) planosLote[idx][campo] = inp.value.trim();
+  });
+
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem("obra360_despacho_token");
+  if(!proyectoId || !token){
+    alert("❌ No se encontró sesión de despacho o proyecto.");
+    return;
+  }
+
+  let exitos = 0, errores = 0, detalleErrores = [];
+  for(const item of planosLote){
+    if(!item.clave_base || !item.sufijo) { errores++; continue; }
+    try{
+      const formData = new FormData();
+      formData.append("file", item.file, item.file.name);
+      formData.append("clave_base", item.clave_base);
+      formData.append("sufijo", item.sufijo);
+
+      const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/planos`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData,
+        cache: "no-store"
+      });
+      if(resp.ok) {
+        exitos++;
+      } else {
+        errores++;
+        const errData = await resp.json().catch(() => ({}));
+        detalleErrores.push(`${item.file.name}: ${errData.detail || resp.status}`);
+      }
+    }catch(err){
+      errores++;
+      detalleErrores.push(`${item.file.name}: ${err.message}`);
+    }
+  }
+
+  cerrarModalPlanos();
+  let mensaje = `✅ ${exitos} plano(s) subido(s) correctamente.`;
+  if (errores) {
+    mensaje += ` ⚠️ ${errores} con error:\n` + detalleErrores.join('\n');
+  }
+  alert(mensaje);
+  cargarPlanos();
+}
+
+// ============================================================
+// FOTOGRÁFICO
+// ============================================================
+
+let fotograficoLote = [];
+let fotograficoRegistrosServidor = [];
+
+function getRolActual(){
+  return localStorage.getItem("obra360_rol") || "";
+}
+
+function esSesionDeEquipo(){
+  return !localStorage.getItem("obra360_despacho_token") && !!getRolActual();
+}
+
+async function cargarFotografico(){
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem("obra360_token");
+  const zonaSubida = document.getElementById("fotografico-zona-subida");
+  const tbody = document.getElementById("fotografico-body");
+
+  zonaSubida.style.display = esSesionDeEquipo() ? "block" : "none";
+
+  if(!proyectoId || !token){
+    tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:#a72e21;">No se encontró proyecto o sesión activa.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:var(--texto-secundario);">Cargando…</td></tr>`;
+
+  try{
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/fotografico?_t=${Date.now()}`, {
+      headers: { "Authorization": `Bearer ${token}` },
+      cache: "no-store"
+    });
+    if(!resp.ok){
+      tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:#a72e21;">No se pudo cargar el avance fotográfico.</td></tr>`;
+      return;
+    }
+    const data = await resp.json();
+    fotograficoRegistrosServidor = data.registros || [];
+    renderizarFotografico();
+  }catch(err){
+    tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:#a72e21;">Error de conexión.</td></tr>`;
+  }
+}
+
+function renderizarFotografico(){
+  const tbody = document.getElementById("fotografico-body");
+  const count = document.getElementById("fotografico-count");
+
+  if(fotograficoRegistrosServidor.length === 0){
+    tbody.innerHTML = `<tr><td colspan="3" style="padding:14px;color:var(--texto-secundario);">Sin registros esta semana.</td></tr>`;
+  } else {
+    tbody.innerHTML = fotograficoRegistrosServidor.map(r => `
+      <tr>
+        <td class="cell num">${r.numero}</td>
+        <td class="cell">${r.colaborador_rol}</td>
+        <td class="cell" style="text-align:center;">✅</td>
+      </tr>
+    `).join("");
+  }
+  if(count) count.textContent = fotograficoRegistrosServidor.length + " registros esta semana";
+}
+
+document.getElementById("fotografico-input-archivos")?.addEventListener("change", (e)=>{
+  const archivos = Array.from(e.target.files || []);
+  if(archivos.length === 0) return;
+
+  const validas = archivos.filter(f => /\.(jpe?g|png)$/i.test(f.name));
+  if(validas.length < archivos.length){
+    alert("⚠️ Algunas imágenes no son JPEG/PNG y fueron ignoradas.");
+  }
+
+  fotograficoLote = validas.map(file => ({ file }));
+  renderizarFotograficoPendientes();
+  e.target.value = "";
+});
+
+function renderizarFotograficoPendientes(){
+  const cont = document.getElementById("fotografico-pendientes");
+  const btnGuardar = document.getElementById("fotografico-btn-guardar");
+  if(fotograficoLote.length === 0){
+    cont.innerHTML = "";
+    btnGuardar.style.display = "none";
+    return;
+  }
+  const rolActual = getRolActual();
+  let html = `<div class="grid-wrap" style="margin-top:10px;"><table class="grid">
+    <thead><tr><th>Número</th><th>Colaborador</th><th>Archivo</th><th>Listo para guardar</th></tr></thead><tbody>`;
+  fotograficoLote.forEach((item, idx)=>{
+    html += `<tr>
+      <td class="cell num">${idx+1}</td>
+      <td class="cell">${rolActual}</td>
+      <td class="cell">${item.file.name}</td>
+      <td class="cell" style="text-align:center;">✅</td>
+    </tr>`;
+  });
+  html += `</tbody></table></div>`;
+  cont.innerHTML = html;
+  btnGuardar.style.display = "inline-block";
+}
+
+async function guardarFotografico(){
+  if(fotograficoLote.length === 0) return;
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem("obra360_token");
+  if(!proyectoId || !token){
+    alert("❌ No se encontró proyecto o sesión activa.");
+    return;
+  }
+
+  const formData = new FormData();
+  fotograficoLote.forEach(item => formData.append("files", item.file, item.file.name));
+
+  const btn = document.getElementById("fotografico-btn-guardar");
+  btn.disabled = true;
+  btn.textContent = "Guardando…";
+
+  try{
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/fotografico`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData,
+      cache: "no-store"
+    });
+    const data = await resp.json();
+    if(!resp.ok){
+      alert("❌ " + (data.detail || "Error al guardar las fotos."));
+    } else {
+      const exitos = data.resultados.filter(r=>r.subido).length;
+      const errores = data.resultados.filter(r=>!r.subido).length;
+      alert(`✅ ${exitos} foto(s) guardada(s) correctamente.` + (errores ? ` ⚠️ ${errores} con error.` : ""));
+    }
+    fotograficoLote = [];
+    document.getElementById("fotografico-pendientes").innerHTML = "";
+    btn.style.display = "none";
+    cargarFotografico();
+  }catch(err){
+    alert("❌ Error de conexión al guardar las fotos.");
+  }finally{
+    btn.disabled = false;
+    btn.textContent = "💾 Guardar";
+  }
+}
+
+// ============================================================
+// AVANCE SEMANAL
+// ============================================================
+
+let asCanvas = null;
+let asCtx = null;
+let asOffscreenCanvas = null;
+let asOffscreenCtx = null;
+let asZonas = [];
+let asPuntos = [];
+let asZonaSeleccionada = null;
+let asHerramienta = 'select';
+let asPlanoActualId = null;
+let asPlanoActualUrl = null;
+let asPlanoActualClave = null;
+
+let isDrawing = false;
+let startX = 0, startY = 0;
+let rectTemp = null;
+let circleTemp = null;
+
+let asPuntosPoligono = [];
+let asPoligonosDibujados = [];
+
+let asPdfPage = null;
+let asViewport = null;
+
+async function cargarPlanosAvanceSemanal() {
+  const select = document.getElementById('as-selector-plano');
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem('obra360_token');
+  
+  if (!proyectoId || !token) {
+    select.innerHTML = '<option value="">No hay proyecto activo</option>';
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/planos?_t=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: "no-store"
+    });
+    if (!resp.ok) throw new Error('Error al cargar planos');
+    
+    const planos = await resp.json();
+    const actuales = planos.filter(p => p.estado === 'actualizacion');
+    
+    select.innerHTML = '<option value="">Seleccionar plano...</option>';
+    actuales.forEach(p => {
+      const option = document.createElement('option');
+      option.value = p.url;
+      option.dataset.id = p.id;
+      option.dataset.clave = `${p.clave_base}-${p.sufijo}`;
+      option.textContent = `${p.clave_base}-${p.sufijo} - ${p.nombre_archivo}`;
+      select.appendChild(option);
+    });
+    
+    if (actuales.length === 0) {
+      select.innerHTML = '<option value="">No hay planos disponibles</option>';
+    }
+    
+    await cargarSemanasAvanceSemanal();
+
+    if (window.asPlanoIdDesdeUrl) {
+      const optionDestino = Array.from(select.options).find(
+        opt => String(opt.dataset.id) === String(window.asPlanoIdDesdeUrl)
+      );
+      if (optionDestino) {
+        select.value = optionDestino.value;
+        const planoId = optionDestino.dataset.id;
+        const planoClave = optionDestino.dataset.clave;
+        asPlanoActualId = planoId;
+        asPlanoActualUrl = optionDestino.value;
+        asPlanoActualClave = planoClave;
+        abrirVisorAvanceSemanal(optionDestino.value, planoId, planoClave);
+      }
+      window.asPlanoIdDesdeUrl = null;
+    }
+  } catch (error) {
+    console.error('Error cargando planos:', error);
+    select.innerHTML = '<option value="">Error al cargar planos</option>';
+  }
+}
+
+let asSemanaActivaId = null;
+
+function esGerenteOSuper() {
+  const rol = (localStorage.getItem('obra360_rol') || '').toLowerCase();
+  return rol.includes('gerente') || rol.includes('super');
+}
+
+async function cargarSemanasAvanceSemanal() {
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem('obra360_token');
+  if (!proyectoId || !token) return;
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/semanas?_t=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: "no-store"
+    });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    const semanas = data.semanas || [];
+    const activa = semanas.find(s => s.activa);
+    asSemanaActivaId = activa ? activa.id : null;
+    
+    const resumen = document.getElementById('as-resumen');
+    const acciones = document.getElementById('as-ciclo-acciones');
+    const formNuevo = document.getElementById('as-nuevo-ciclo-form');
+    resumen.style.display = 'block';
+    acciones.innerHTML = '';
+    formNuevo.style.display = 'none';
+
+    if (activa) {
+      document.getElementById('as-semana-nombre').textContent = activa.nombre;
+      document.getElementById('as-semana-inicio').textContent = activa.fecha_inicio;
+      document.getElementById('as-semana-cierre').textContent = activa.fecha_cierre;
+      const estadoEl = document.getElementById('as-semana-estado');
+      estadoEl.textContent = '🔵 ACTIVO';
+      estadoEl.className = 'estado-activa';
+
+      if (esGerenteOSuper()) {
+        const btnCerrar = document.createElement('button');
+        btnCerrar.className = 'as-btn-abrir-visor';
+        btnCerrar.style.cssText = 'background:#000;color:#fff;border:1px solid #333;padding:5px 12px;font-size:12px;';
+        btnCerrar.innerHTML = '<i class="bi bi-lock-fill"></i> Cerrar Ciclo';
+        btnCerrar.onclick = cerrarCicloAvanceSemanal;
+        acciones.appendChild(btnCerrar);
+      }
+    } else {
+      document.getElementById('as-semana-nombre').textContent = 'Sin ciclo';
+      document.getElementById('as-semana-inicio').textContent = '—';
+      document.getElementById('as-semana-cierre').textContent = '—';
+      const estadoEl = document.getElementById('as-semana-estado');
+      estadoEl.textContent = '🔴 CERRADO';
+      estadoEl.className = 'estado-inactiva';
+
+      if (esGerenteOSuper()) {
+        const btnNuevo = document.createElement('button');
+        btnNuevo.className = 'as-btn-abrir-visor';
+        btnNuevo.style.cssText = 'padding:5px 12px;font-size:12px;';
+        btnNuevo.innerHTML = '<i class="bi bi-plus-circle"></i> Nuevo Ciclo';
+        btnNuevo.onclick = () => { formNuevo.style.display = 'flex'; };
+        acciones.appendChild(btnNuevo);
+      }
+    }
+
+    const btnReportar = document.getElementById('as-btn-reportar');
+    if (btnReportar) {
+      btnReportar.disabled = !activa;
+      btnReportar.title = activa ? '' : 'No hay un ciclo activo.';
+    }
+  } catch (error) {
+    console.error('Error cargando ciclo:', error);
+  }
+}
+
+async function crearNuevoCicloAvanceSemanal() {
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem('obra360_token');
+  const inicio = document.getElementById('as-nuevo-ciclo-inicio').value;
+  const cierre = document.getElementById('as-nuevo-ciclo-cierre').value;
+
+  if (!inicio || !cierre) {
+    alert('⚠️ Selecciona la fecha de inicio y de cierre del ciclo.');
+    return;
+  }
+  if (cierre < inicio) {
+    alert('⚠️ La fecha de cierre no puede ser antes que la de inicio.');
+    return;
+  }
+
+  const nombre = `Ciclo ${inicio} al ${cierre}`;
+
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/semanas`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ nombre, fecha_inicio: inicio, fecha_cierre: cierre })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo crear el ciclo');
+
+    alert(`✅ Ciclo iniciado: ${inicio} al ${cierre}`);
+    await cargarSemanasAvanceSemanal();
+  } catch (error) {
+    alert('❌ Error creando el ciclo: ' + error.message);
+  }
+}
+
+async function cerrarCicloAvanceSemanal() {
+  if (!asSemanaActivaId) return;
+  if (!confirm('⚠️ ¿Seguro que quieres cerrar el ciclo?\n\nUna vez cerrado, nadie podrá subir más avance hasta que se abra un ciclo nuevo.')) {
+    return;
+  }
+
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem('obra360_token');
+
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/semanas/${asSemanaActivaId}/cerrar`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo cerrar el ciclo');
+
+    alert('✅ Ciclo cerrado correctamente. Ya no se puede subir más avance.');
+    await cargarSemanasAvanceSemanal();
+  } catch (error) {
+    alert('❌ Error cerrando el ciclo: ' + error.message);
+  }
+}
+
+document.getElementById('as-btn-abrir-visor')?.addEventListener('click', function() {
+  const select = document.getElementById('as-selector-plano');
+  const url = select.value;
+  if (!url) {
+    alert('⚠️ Por favor, selecciona un plano');
+    return;
+  }
+  
+  const option = select.options[select.selectedIndex];
+  const planoId = option.dataset.id;
+  const planoClave = option.dataset.clave;
+  
+  asPlanoActualId = planoId;
+  asPlanoActualUrl = url;
+  asPlanoActualClave = planoClave;
+  
+  abrirVisorAvanceSemanal(url, planoId, planoClave);
+});
+
+function abrirVisorAvanceSemanal(url, planoId, planoClave) {
+  const container = document.getElementById('visor-pdf-container');
+  container.style.display = 'flex';
+  
+  asZonas = [];
+  asPuntos = [];
+  asPuntosPoligono = [];
+  rectTemp = null;
+  circleTemp = null;
+  
+  const toolbar = document.getElementById('as-toolbar-dibujo');
+  if (toolbar) toolbar.style.display = esGerenteOSuper() ? 'flex' : 'none';
+  cambiarHerramientaAvanceSemanal('select');
+  
+  cargarPDFAvanceSemanal(url);
+  
+  setTimeout(() => {
+    mostrarPanelAvanceSemanal();
+    cargarZonasAvanceSemanal();
+  }, 500);
+}
+
+function cerrarVisorCompleto() {
+  document.getElementById('visor-pdf-container').style.display = 'none';
+  asPlanoActualId = null;
+  asPlanoActualUrl = null;
+  asPlanoActualClave = null;
+  asZonaSeleccionada = null;
+  asPuntosPoligono = [];
+  rectTemp = null;
+  circleTemp = null;
+  isDrawing = false;
+  asOffscreenCanvas = null;
+  asOffscreenCtx = null;
+}
+
+async function cargarPDFAvanceSemanal(url) {
+  const canvas = document.getElementById('pdf-canvas');
+  const ctx = canvas.getContext('2d');
+  
+  try {
+    const loadingTask = pdfjsLib.getDocument(url);
+    const pdf = await loadingTask.promise;
+    const page = await pdf.getPage(1);
+    asPdfPage = page;
+    
+    const viewportBase = page.getViewport({ scale: 1 });
+    const viewerArea = document.querySelector('#visor-pdf-container > div:nth-child(2)');
+    const containerWidth = viewerArea.clientWidth || window.innerWidth;
+    const containerHeight = viewerArea.clientHeight || window.innerHeight;
+    const scaleX = (containerWidth * 0.92) / viewportBase.width;
+    const scaleY = (containerHeight * 0.92) / viewportBase.height;
+    const scaleAjuste = Math.min(scaleX, scaleY);
+    
+    const viewport = page.getViewport({ scale: scaleAjuste });
+    asViewport = viewport;
+    
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    
+    asCanvas = canvas;
+    asCtx = ctx;
+    
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    await page.render(renderContext).promise;
+    
+    asOffscreenCanvas = document.createElement('canvas');
+    asOffscreenCanvas.width = viewport.width;
+    asOffscreenCanvas.height = viewport.height;
+    asOffscreenCtx = asOffscreenCanvas.getContext('2d');
+    asOffscreenCtx.drawImage(canvas, 0, 0);
+    
+    configurarEventosDibujo(canvas);
+    
+    if (asZonas && asZonas.length > 0) {
+      redibujarTodo(ctx, viewport);
+    }
+    
+  } catch (error) {
+    console.error('Error cargando PDF:', error);
+    alert('❌ No se pudo cargar el PDF.');
+  }
+}
+
+function redibujarTodo(ctx, viewport, tempRect, tempCircle) {
+  ctx.clearRect(0, 0, viewport.width, viewport.height);
+  
+  if (asOffscreenCanvas && asOffscreenCtx) {
+    ctx.drawImage(asOffscreenCanvas, 0, 0);
+  }
+  
+  asZonas.forEach(zona => {
+    const isSelected = (zona.id === asZonaSeleccionada);
+    dibujarZona(ctx, zona, isSelected);
+  });
+  
+  if (tempRect || rectTemp) {
+    const r = tempRect || rectTemp;
+    if (r && r.w > 0 && r.h > 0) {
+      const x = r.w > 0 ? r.x : r.x + r.w;
+      const y = r.h > 0 ? r.y : r.y + r.h;
+      const w = Math.abs(r.w);
+      const h = Math.abs(r.h);
+      
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.fillStyle = 'rgba(255,107,0,0.3)';
+      ctx.fill();
+      ctx.strokeStyle = '#FF6B00';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.closePath();
+      
+      const area = (w * h) / 10000;
+      document.getElementById('info-area').textContent = `📐 Área: ${area.toFixed(2)} M2`;
+    }
+  }
+  
+  if (tempCircle || circleTemp) {
+    const c = tempCircle || circleTemp;
+    if (c && c.radius > 0) {
+      ctx.beginPath();
+      ctx.arc(c.cx, c.cy, c.radius, 0, 2 * Math.PI);
+      ctx.fillStyle = 'rgba(255,107,0,0.3)';
+      ctx.fill();
+      ctx.strokeStyle = '#FF6B00';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.closePath();
+      
+      const area = (Math.PI * c.radius * c.radius) / 10000;
+      document.getElementById('info-area').textContent = `📐 Área: ${area.toFixed(2)} M2`;
+    }
+  }
+  
+  if (asPuntosPoligono.length > 0 && asHerramienta !== 'select') {
+    asPuntosPoligono.forEach((p, i) => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+      ctx.fillStyle = '#FF6B00';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.closePath();
+      
+      ctx.fillStyle = '#000';
+      ctx.font = '9px Arial';
+      ctx.fillText(i + 1, p.x + 6, p.y - 6);
+    });
+  }
+}
+
+function dibujarZona(ctx, zona, isSelected) {
+  if (!zona.poligono || zona.poligono.length < 2) return;
+  
+  const color = zona.ultimo_estatus?.color || null;
+  
+  let fillColor, strokeColor;
+  
+  if (color === '🔴') {
+    fillColor = 'rgba(220,53,69,0.3)';
+    strokeColor = '#dc3545';
+  } else if (color === '🟡') {
+    fillColor = 'rgba(255,193,7,0.3)';
+    strokeColor = '#ffc107';
+  } else if (color === '🟢') {
+    fillColor = 'rgba(40,167,69,0.3)';
+    strokeColor = '#28a745';
+  } else {
+    fillColor = 'rgba(255,140,0,0.25)';
+    strokeColor = '#FF8C00';
+  }
+  
+  const puntos = zona.poligono;
+  const isLine = (zona.tipo === 'linea' || puntos.length < 3);
+  
+  ctx.beginPath();
+  ctx.moveTo(puntos[0][0], puntos[0][1]);
+  for (let i = 1; i < puntos.length; i++) {
+    ctx.lineTo(puntos[i][0], puntos[i][1]);
+  }
+  
+  if (!isLine) {
+    ctx.closePath();
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+  }
+  
+  const lineWidth = isSelected ? 4 : 2;
+  ctx.strokeStyle = isSelected ? '#000' : strokeColor;
+  ctx.lineWidth = lineWidth;
+  ctx.stroke();
+  
+  const centroX = puntos.reduce((sum, p) => sum + p[0], 0) / puntos.length;
+  const centroY = puntos.reduce((sum, p) => sum + p[1], 0) / puntos.length;
+  
+  ctx.fillStyle = isSelected ? '#000' : '#1a2634';
+  ctx.font = isSelected ? 'bold 12px Arial' : 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(zona.nombre || 'Zona', centroX, centroY - 5);
+  
+  const pct = zona.ultimo_estatus?.porcentaje ?? 0;
+  const pctDisplay = color ? `${pct}%` : '⏳ Sin avance';
+  ctx.fillStyle = isSelected ? '#333' : '#555';
+  ctx.font = isSelected ? '11px Arial' : '10px Arial';
+  ctx.fillText(pctDisplay, centroX, centroY + 15);
+  
+  if (isSelected) {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([3, 3]);
+    ctx.strokeRect(centroX - 30, centroY - 20, 60, 40);
+    ctx.setLineDash([]);
+  }
+}
+
+function puntoEnRectangulo(px, py, rect) {
+  const x = rect.w > 0 ? rect.x : rect.x + rect.w;
+  const y = rect.h > 0 ? rect.y : rect.y + rect.h;
+  const w = Math.abs(rect.w);
+  const h = Math.abs(rect.h);
+  return px >= x && px <= x + w && py >= y && py <= y + h;
+}
+
+function puntoEnPoligono(px, py, poligono) {
+  let inside = false;
+  for (let i = 0, j = poligono.length - 1; i < poligono.length; j = i++) {
+    const xi = poligono[i][0], yi = poligono[i][1];
+    const xj = poligono[j][0], yj = poligono[j][1];
+    const intersect = ((yi > py) !== (yj > py)) &&
+      (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
+
+function puntoEnLinea(px, py, linea, umbral = 8) {
+  for (let i = 0; i < linea.length - 1; i++) {
+    const x1 = linea[i][0], y1 = linea[i][1];
+    const x2 = linea[i+1][0], y2 = linea[i+1][1];
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    if (len === 0) continue;
+    const t = Math.max(0, Math.min(1, ((px - x1)*dx + (py - y1)*dy) / (len*len)));
+    const projx = x1 + t * dx, projy = y1 + t * dy;
+    const dist = Math.sqrt((px - projx)**2 + (py - projy)**2);
+    if (dist <= umbral) return true;
+  }
+  return false;
+}
+
+function puntoEnCirculo(px, py, cx, cy, radio) {
+  const dx = px - cx, dy = py - cy;
+  return (dx*dx + dy*dy) <= (radio * radio);
+}
+
+function detectarZonaClickeada(px, py) {
+  for (let i = asZonas.length - 1; i >= 0; i--) {
+    const zona = asZonas[i];
+    if (!zona.poligono || zona.poligono.length < 2) continue;
+    
+    const tipo = zona.tipo || 'poligono';
+    const pts = zona.poligono;
+    
+    let dentro = false;
+    if (tipo === 'rectangulo' && pts.length >= 4) {
+      const minX = Math.min(pts[0][0], pts[1][0], pts[2][0], pts[3][0]);
+      const maxX = Math.max(pts[0][0], pts[1][0], pts[2][0], pts[3][0]);
+      const minY = Math.min(pts[0][1], pts[1][1], pts[2][1], pts[3][1]);
+      const maxY = Math.max(pts[0][1], pts[1][1], pts[2][1], pts[3][1]);
+      dentro = (px >= minX && px <= maxX && py >= minY && py <= maxY);
+    } else if (tipo === 'circulo' && pts.length >= 20) {
+      const cx = pts.reduce((s, p) => s + p[0], 0) / pts.length;
+      const cy = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+      const radio = Math.sqrt((pts[0][0] - cx)**2 + (pts[0][1] - cy)**2);
+      dentro = puntoEnCirculo(px, py, cx, cy, radio);
+    } else if (tipo === 'linea' || pts.length < 3) {
+      dentro = puntoEnLinea(px, py, pts, 10);
+    } else {
+      dentro = puntoEnPoligono(px, py, pts);
+    }
+    
+    if (dentro) return zona;
+  }
+  return null;
+}
+
+function configurarEventosDibujo(canvas) {
+  canvas.addEventListener('mousedown', function(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mouseX = (e.clientX - rect.left) * scaleX;
+    const mouseY = (e.clientY - rect.top) * scaleY;
+    
+    if (asHerramienta === 'select') {
+      const zonaClickeada = detectarZonaClickeada(mouseX, mouseY);
+      if (zonaClickeada) {
+        asZonaSeleccionada = zonaClickeada.id;
+        const select = document.getElementById('as-selector-zona');
+        if (select) {
+          select.value = zonaClickeada.id;
+          select.dispatchEvent(new Event('change'));
+        }
+        if (asCtx && asViewport) {
+          redibujarTodo(asCtx, asViewport);
+        }
+        return;
+      } else {
+        asZonaSeleccionada = null;
+        if (asCtx && asViewport) {
+          redibujarTodo(asCtx, asViewport);
+        }
+        return;
+      }
+    }
+    
+    if (!asCtx || !asViewport) return;
+    
+    isDrawing = true;
+    startX = mouseX;
+    startY = mouseY;
+    
+    if (asHerramienta === 'rectangulo') {
+      rectTemp = { x: startX, y: startY, w: 0, h: 0 };
+    } else if (asHerramienta === 'circulo') {
+      circleTemp = { cx: startX, cy: startY, radius: 0 };
+    } else if (asHerramienta === 'poligono' || asHerramienta === 'linea') {
+      asPuntosPoligono.push({ x: startX, y: startY });
+      document.getElementById('info-puntos').textContent = `📍 Puntos: ${asPuntosPoligono.length}`;
+      const minimo = asHerramienta === 'linea' ? 2 : 3;
+      const btnGuardar = document.getElementById('as-btn-guardar-zona');
+      if (btnGuardar) {
+        btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
+      }
+      const btnDeshacer = document.getElementById('as-btn-deshacer');
+      if (btnDeshacer) btnDeshacer.style.display = 'inline-block';
+      redibujarTodo(asCtx, asViewport);
+      asCtx.beginPath();
+      asCtx.arc(startX, startY, 4, 0, 2 * Math.PI);
+      asCtx.fillStyle = '#FF6B00';
+      asCtx.fill();
+      asCtx.strokeStyle = '#fff';
+      asCtx.lineWidth = 1;
+      asCtx.stroke();
+    }
+  });
+  
+  canvas.addEventListener('mousemove', function(e) {
+    if (!isDrawing || asHerramienta === 'select') return;
+    if (!asCtx || !asViewport) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const currentX = (e.clientX - rect.left) * scaleX;
+    const currentY = (e.clientY - rect.top) * scaleY;
+    
+    if (asHerramienta === 'rectangulo' && rectTemp) {
+      rectTemp.w = currentX - startX;
+      rectTemp.h = currentY - startY;
+      redibujarTodo(asCtx, asViewport, rectTemp);
+    } else if (asHerramienta === 'circulo' && circleTemp) {
+      const dx = currentX - startX, dy = currentY - startY;
+      circleTemp.radius = Math.sqrt(dx*dx + dy*dy);
+      redibujarTodo(asCtx, asViewport, null, circleTemp);
+    } else if ((asHerramienta === 'poligono' || asHerramienta === 'linea') && asPuntosPoligono.length > 0) {
+      redibujarTodo(asCtx, asViewport);
+      
+      asPuntosPoligono.forEach(p => {
+        asCtx.beginPath();
+        asCtx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+        asCtx.fillStyle = '#FF6B00';
+        asCtx.fill();
+        asCtx.strokeStyle = '#fff';
+        asCtx.lineWidth = 1;
+        asCtx.stroke();
+      });
+      
+      if (asPuntosPoligono.length > 0) {
+        asCtx.beginPath();
+        asCtx.moveTo(asPuntosPoligono[0].x, asPuntosPoligono[0].y);
+        for (let i = 1; i < asPuntosPoligono.length; i++) {
+          asCtx.lineTo(asPuntosPoligono[i].x, asPuntosPoligono[i].y);
+        }
+        asCtx.lineTo(currentX, currentY);
+        asCtx.strokeStyle = '#FF6B00';
+        asCtx.lineWidth = 2;
+        asCtx.setLineDash([4, 4]);
+        asCtx.stroke();
+        asCtx.setLineDash([]);
+      }
+    }
+  });
+  
+  canvas.addEventListener('mouseup', function(e) {
+    if (!isDrawing) return;
+    isDrawing = false;
+    
+    if (asHerramienta === 'rectangulo' && rectTemp) {
+      if (Math.abs(rectTemp.w) < 5 || Math.abs(rectTemp.h) < 5) {
+        rectTemp = null;
+        redibujarTodo(asCtx, asViewport);
+        return;
+      }
+      
+      const x = rectTemp.w > 0 ? rectTemp.x : rectTemp.x + rectTemp.w;
+      const y = rectTemp.h > 0 ? rectTemp.y : rectTemp.y + rectTemp.h;
+      const w = Math.abs(rectTemp.w);
+      const h = Math.abs(rectTemp.h);
+      
+      const poligono = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+      guardarZonaPoligono(poligono, 'rectangulo');
+    } else if (asHerramienta === 'circulo' && circleTemp) {
+      if (circleTemp.radius < 5) {
+        circleTemp = null;
+        redibujarTodo(asCtx, asViewport);
+        return;
+      }
+      
+      const cx = circleTemp.cx, cy = circleTemp.cy, r = circleTemp.radius;
+      const n = 28;
+      const poligono = [];
+      for (let i = 0; i < n; i++) {
+        const ang = (i / n) * 2 * Math.PI;
+        poligono.push([cx + r * Math.cos(ang), cy + r * Math.sin(ang)]);
+      }
+      guardarZonaPoligono(poligono, 'circulo');
+    }
+  });
+  
+  canvas.addEventListener('dblclick', function(e) {
+    if (asHerramienta === 'poligono' || asHerramienta === 'linea') {
+      const minimo = asHerramienta === 'linea' ? 2 : 3;
+      if (asPuntosPoligono.length >= minimo) {
+        guardarZonaPoligono();
+      }
+    }
+  });
+  
+  document.addEventListener('keydown', function(e) {
+    const visorAbierto = document.getElementById('visor-pdf-container').style.display !== 'none';
+    if (!visorAbierto) return;
+    
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      cancelarDibujoZona();
+      return;
+    }
+    
+    if ((e.key === 'Backspace' || e.key === 'Delete') && 
+        (asHerramienta === 'poligono' || asHerramienta === 'linea')) {
+      e.preventDefault();
+      deshacerUltimoPunto();
+      return;
+    }
+    
+    if (e.ctrlKey && e.key === 'z' && 
+        (asHerramienta === 'poligono' || asHerramienta === 'linea')) {
+      e.preventDefault();
+      deshacerUltimoPunto();
+      return;
+    }
+    
+    if (e.key === 'Delete' && asHerramienta === 'select' && asZonaSeleccionada) {
+      e.preventDefault();
+      eliminarZonaSeleccionada();
+      return;
+    }
+  });
+}
+
+function deshacerUltimoPunto() {
+  if (asPuntosPoligono.length > 0) {
+    asPuntosPoligono.pop();
+    document.getElementById('info-puntos').textContent = `📍 Puntos: ${asPuntosPoligono.length}`;
+    
+    const minimo = asHerramienta === 'linea' ? 2 : 3;
+    const btnGuardar = document.getElementById('as-btn-guardar-zona');
+    if (btnGuardar) {
+      btnGuardar.style.display = asPuntosPoligono.length >= minimo ? 'inline-block' : 'none';
+    }
+    
+    const btnDeshacer = document.getElementById('as-btn-deshacer');
+    if (btnDeshacer) {
+      btnDeshacer.style.display = asPuntosPoligono.length > 0 ? 'inline-block' : 'none';
+    }
+    
+    redibujarTodo(asCtx, asViewport);
+    
+    asPuntosPoligono.forEach(p => {
+      asCtx.beginPath();
+      asCtx.arc(p.x, p.y, 4, 0, 2 * Math.PI);
+      asCtx.fillStyle = '#FF6B00';
+      asCtx.fill();
+      asCtx.strokeStyle = '#fff';
+      asCtx.lineWidth = 1;
+      asCtx.stroke();
+    });
+  } else {
+    cancelarDibujoZona();
+  }
+}
+
+function cancelarDibujoZona() {
+  asPuntosPoligono = [];
+  rectTemp = null;
+  circleTemp = null;
+  isDrawing = false;
+  document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
+  document.getElementById('info-area').textContent = '📐 Área: 0.00 M2';
+  
+  const btnGuardar = document.getElementById('as-btn-guardar-zona');
+  if (btnGuardar) btnGuardar.style.display = 'none';
+  
+  const btnCancelar = document.getElementById('as-btn-cancelar-zona');
+  if (btnCancelar) btnCancelar.style.display = 'none';
+  
+  const btnDeshacer = document.getElementById('as-btn-deshacer');
+  if (btnDeshacer) btnDeshacer.style.display = 'none';
+  
+  cambiarHerramientaAvanceSemanal('select');
+  
+  if (asCtx && asViewport) {
+    redibujarTodo(asCtx, asViewport);
+  }
+}
+
+async function eliminarZonaSeleccionada() {
+  if (!asZonaSeleccionada) {
+    alert('⚠️ Primero selecciona una zona haciendo clic en ella.');
+    return;
+  }
+  
+  const zona = asZonas.find(z => String(z.id) === String(asZonaSeleccionada));
+  if (!zona) {
+    alert('⚠️ La zona seleccionada ya no existe.');
+    return;
+  }
+  
+  if (!confirm(`⚠️ ¿Seguro que quieres eliminar la zona "${zona.nombre}"?\n\nEsta acción NO se puede deshacer.`)) {
+    return;
+  }
+  
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem('obra360_token');
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/zonas_semanales/${asZonaSeleccionada}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (!resp.ok) {
+      const data = await resp.json();
+      throw new Error(data.detail || 'Error al eliminar la zona');
+    }
+    
+    alert(`✅ Zona "${zona.nombre}" eliminada correctamente.`);
+    asZonaSeleccionada = null;
+    await cargarZonasAvanceSemanal();
+    redibujarTodo(asCtx, asViewport);
+  } catch (error) {
+    console.error('Error eliminando zona:', error);
+    alert('❌ Error al eliminar la zona: ' + error.message);
+  }
+}
+
+function cambiarHerramientaAvanceSemanal(modo) {
+  if ((asHerramienta === 'poligono' || asHerramienta === 'linea') && modo !== asHerramienta) {
+    cancelarDibujoZona();
+  }
+  
+  asHerramienta = modo;
+  
+  const select = document.getElementById('as-selector-herramienta');
+  if (select) select.value = modo;
+  
+  const instruccion = document.getElementById('as-instruccion-dibujo');
+  const btnGuardar = document.getElementById('as-btn-guardar-zona');
+  const btnCancelar = document.getElementById('as-btn-cancelar-zona');
+  const btnDeshacer = document.getElementById('as-btn-deshacer');
+  const btnEliminar = document.getElementById('as-btn-eliminar-zona');
+  
+  const instrucciones = {
+    select: '🖱️ Haz clic en una zona para ver sus fotos',
+    rectangulo: '🟧 Haz clic y arrastra para dibujar un rectángulo. ESC cancela.',
+    poligono: '🔶 Haz clic para poner puntos (mín. 3). Doble clic o "Guardar" para terminar.',
+    circulo: '⭕ Haz clic en el centro y arrastra para dibujar un círculo. ESC cancela.',
+    linea: '📏 Haz clic para poner puntos (mín. 2). Doble clic o "Guardar" para terminar.'
+  };
+  
+  if (instruccion) {
+    instruccion.textContent = instrucciones[modo] || '';
+    instruccion.style.display = 'inline';
+  }
+  
+  if (modo === 'select') {
+    if (btnDeshacer) btnDeshacer.style.display = 'none';
+    if (btnCancelar) btnCancelar.style.display = 'none';
+    if (btnGuardar) btnGuardar.style.display = 'none';
+    if (btnEliminar) btnEliminar.style.display = 'inline-block';
+  } else {
+    if (btnDeshacer) btnDeshacer.style.display = 'none';
+    if (btnCancelar) btnCancelar.style.display = 'inline-block';
+    if (btnEliminar) btnEliminar.style.display = 'none';
+  }
+  
+  if (modo !== 'poligono' && modo !== 'linea') {
+    asPuntosPoligono = [];
+    document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
+  }
+  
+  rectTemp = null;
+  circleTemp = null;
+  if (asCtx && asViewport) {
+    redibujarTodo(asCtx, asViewport);
+  }
+}
+
+async function guardarZonaPoligono(poligono, tipo) {
+  let puntos = poligono;
+  if (!puntos) {
+    if (asHerramienta === 'poligono' && asPuntosPoligono.length < 3) {
+      alert('⚠️ Necesitas al menos 3 puntos para formar una zona.');
+      return;
+    }
+    if (asHerramienta === 'linea' && asPuntosPoligono.length < 2) {
+      alert('⚠️ Necesitas al menos 2 puntos para formar una línea.');
+      return;
+    }
+    puntos = asPuntosPoligono.map(p => [p.x, p.y]);
+  }
+  
+  const nombre = prompt('Nombre de la zona/etapa (ej. "Zona III-A", "Etapa 09"):');
+  if (!nombre || !nombre.trim()) {
+    return;
+  }
+  
+  const comentario = prompt('Comentario (opcional):') || '';
+  
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem('obra360_token');
+  
+  if (!asPlanoActualId) {
+    alert('⚠️ No hay un plano abierto.');
+    return;
+  }
+  
+  const tipoForma = tipo || asHerramienta;
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/zonas_semanales`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        plano_id: Number(asPlanoActualId),
+        nombre: nombre.trim(),
+        poligono: puntos,
+        tipo: tipoForma,
+        comentario: comentario.trim()
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'No se pudo guardar la zona');
+    
+    alert(`✅ "${nombre.trim()}" guardada correctamente.`);
+    
+    asPuntosPoligono = [];
+    rectTemp = null;
+    circleTemp = null;
+    document.getElementById('info-puntos').textContent = '📍 Puntos: 0';
+    document.getElementById('info-area').textContent = '📐 Área: 0.00 M2';
+    const btnGuardar = document.getElementById('as-btn-guardar-zona');
+    if (btnGuardar) btnGuardar.style.display = 'none';
+    const btnDeshacer = document.getElementById('as-btn-deshacer');
+    if (btnDeshacer) btnDeshacer.style.display = 'none';
+    
+    await cargarZonasAvanceSemanal();
+    cambiarHerramientaAvanceSemanal('select');
+  } catch (error) {
+    alert('❌ Error guardando la zona: ' + error.message);
+  }
+}
+
+async function cargarZonasAvanceSemanal() {
+  const select = document.getElementById('as-selector-zona');
+  if (!select) return;
+  
+  const proyectoId = getProyectoId();
+  const token = localStorage.getItem('obra360_token');
+  
+  if (!proyectoId || !token || !asPlanoActualId) {
+    select.innerHTML = '<option value="">No hay zonas disponibles</option>';
+    return;
+  }
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/proyectos/${proyectoId}/zonas_semanales?plano_id=${asPlanoActualId}&_t=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: "no-store"
+    });
+    if (!resp.ok) throw new Error('Error al cargar zonas');
+    const data = await resp.json();
+    asZonas = data.zonas || [];
+    
+    if (asCtx && asViewport) {
+      redibujarTodo(asCtx, asViewport);
+    }
+    
+    const zonaPrevia = asZonaSeleccionada;
+    
+    select.innerHTML = '<option value="">Seleccionar zona...</option>';
+    asZonas.forEach(z => {
+      const option = document.createElement('option');
+      option.value = z.id;
+      const color = z.ultimo_estatus?.color || '🟧';
+      const pct = z.ultimo_estatus?.porcentaje || 0;
+      const label = z.ultimo_estatus ? `${color} ${z.nombre} (${pct}%)` : `🟧 ${z.nombre} (⏳ Sin avance)`;
+      option.textContent = label;
+      select.appendChild(option);
+    });
+    
+    if (asZonas.length === 0) {
+      select.innerHTML = '<option value="">No hay zonas dibujadas</option>';
+    }
+    
+    if (zonaPrevia && asZonas.some(z => String(z.id) === String(zonaPrevia))) {
+      select.value = zonaPrevia;
+      asZonaSeleccionada = zonaPrevia;
+      mostrarFotosDeZona(zonaPrevia);
+      if (asCtx && asViewport) {
+        redibujarTodo(asCtx, asViewport);
+      }
+    } else {
+      asZonaSeleccionada = null;
+      mostrarFotosDeZona('');
+    }
+    
+    cargarUltimosReportesAvanceSemanal();
+  } catch (error) {
+    console.error('Error cargando zonas:', error);
+    select.innerHTML = '<option value="">Error al cargar zonas</option>';
+  }
+}
+
+function mostrarPanelAvanceSemanal() {
+  const existing = document.getElementById('as-panel-visor');
+  if (existing) existing.remove();
+  
+  const panel = document.createElement('div');
+  panel.id = 'as-panel-visor';
+  panel.className = 'as-panel-visor';
+  
+  panel.innerHTML = `
+    <div class="header">
+      <span class="titulo">📏 Avance Semanal</span>
+      <button class="btn-cerrar" onclick="cerrarPanelAvanceSemanal()">✕</button>
+    </div>
+    
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;color:var(--texto-secundario);"><i class="bi bi-geo-alt"></i> Selecciona una zona</label>
+      <select id="as-selector-zona" class="selector-zona">
+        <option value="">Cargando zonas...</option>
+      </select>
+    </div>
+    
+    <div class="medicion-box">
+      <div style="font-size:11px;color:var(--texto-secundario);"><i class="bi bi-bar-chart"></i> Porcentaje de avance</div>
+      <input type="range" id="as-porcentaje-slider" class="porcentaje-slider" min="0" max="100" value="0">
+      <div style="display:flex;justify-content:space-between;">
+        <span id="as-porcentaje-valor" class="porcentaje-valor">0%</span>
+        <span id="as-color-preview" class="color-preview">🔴</span>
+      </div>
+    </div>
+    
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;color:var(--texto-secundario);"><i class="bi bi-pencil"></i> Comentario (opcional)</label>
+      <input type="text" id="as-comentario" class="campo-comentario" placeholder="Ej: Avance en instalación">
+    </div>
+    
+    <div style="margin-bottom:12px;">
+      <label style="display:block;font-weight:600;font-size:12px;margin-bottom:4px;color:var(--texto-secundario);"><i class="bi bi-camera"></i> Foto (opcional)</label>
+      <input type="file" id="as-foto" class="campo-foto" accept=".jpg,.jpeg,.png" multiple>
+    </div>
+    
+    <button id="as-btn-reportar" class="btn-reportar" onclick="reportarAvanceSemanal()">
+      <i class="bi bi-check-lg"></i> Reportar Avance
+    </button>
+
+    <div class="fotos-zona-box" style="margin-top:14px;">
+      <div style="font-weight:700;font-size:12px;margin-bottom:6px;color:var(--texto-secundario);"><i class="bi bi-camera"></i> Fotos de la zona seleccionada</div>
+      <div id="as-fotos-zona" class="fotos-zona-grid">
+        <div class="sin-fotos" style="font-size:11.5px;color:#888;">Selecciona una zona para ver sus fotos.</div>
+      </div>
+    </div>
+
+    <div class="ultimos-reportes">
+      <div class="titulo" style="color:var(--texto-secundario);"><i class="bi bi-list-ul"></i> Últimos reportes</div>
+      <div id="as-ultimos-reportes" class="lista">
+        <div class="sin-reportes">Sin reportes</div>
+      </div>
+    </div>
+  `;
+  
+  document.querySelector('#visor-pdf-container > div:nth-child(2)').appendChild(panel);
+  
+  const slider = document.getElementById('as-porcentaje-slider');
+  slider.addEventListener('input', function() {
+    const val = parseInt(this.value);
+    document.getElementById('as-porcentaje-valor').textContent = val + '%';
+    const color = val === 0 ? '🔴' : val === 100 ? '🟢' : '🟡';
+    document.getElementById('as-color-preview').textContent = color;
+  });
+  
+  const selectorZona = document.getElementById('as-selector-zona');
+  selectorZona.addEventListener('change', function() {
+    asZonaSeleccionada = this.value;
+    if (asZonaSeleccionada) {
+      if (asCtx && asViewport) {
+        redibujarTodo(asCtx, asViewport);
+      }
+      mostrarFotosDeZona(this.value);
+    } else {
+      mostrarFotosDeZona('');
+    }
+  });
+}
+
+function cerrarPanelAvanceSemanal() {
+  const panel = document.getElementById('as-panel-visor');
+  if (panel) panel.remove();
+}
+
+async function mostrarFotosDeZona(zonaId) {
+  const cont = document.getElementById('as-fotos-zona');
+  if (!cont) return;
+  
+  if (!zonaId) {
+    cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#888;">Selecciona una zona para ver sus fotos.</div>';
+    return;
+  }
+  
+  cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#888;">Cargando fotos…</div>';
+  
+  const token = localStorage.getItem('obra360_token');
+  if (!token) return;
+  
+  try {
+    const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zonaId}/estatus?limit=30&_t=${Date.now()}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+      cache: "no-store"
+    });
+    if (!resp.ok) throw new Error('Error al cargar historial de la zona');
+    
+    const data = await resp.json();
+    const historial = data.historial || [];
+    
+    const todasLasFotos = [];
+    historial.forEach(h => {
+      const fotos = (h.fotos && h.fotos.length) ? h.fotos : (h.foto_url ? [h.foto_url] : []);
+      fotos.forEach(url => {
+        todasLasFotos.push({ url, porcentaje: h.porcentaje, usuario: h.usuario, fecha: h.fecha });
+      });
+    });
+    
+    if (todasLasFotos.length === 0) {
+      cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#888;">Esta zona no tiene fotos registradas todavía.</div>';
+      return;
+    }
+    
+    window.asFotosZonaActual = todasLasFotos;
+    
+    cont.innerHTML = todasLasFotos.map((f, i) => `
+      <img src="${f.url}" alt="Evidencia ${f.porcentaje}%"
+           title="${f.porcentaje}% · ${f.usuario} · ${new Date(f.fecha).toLocaleString()}"
+           onclick="abrirLightboxFoto(${i})">
+    `).join('');
+  } catch (error) {
+    console.error('Error cargando fotos de la zona:', error);
+    cont.innerHTML = '<div class="sin-fotos" style="font-size:11.5px;color:#a72e21;">Error al cargar las fotos.</div>';
+  }
+}
+
+let asLightboxIndex = 0;
+
+function abrirLightboxFoto(index) {
+  const fotos = window.asFotosZonaActual || [];
+  if (!fotos.length) return;
+  asLightboxIndex = index;
+  pintarLightboxFoto();
+  document.getElementById('as-lightbox').style.display = 'flex';
+}
+
+function pintarLightboxFoto() {
+  const fotos = window.asFotosZonaActual || [];
+  if (!fotos.length) return;
+  const f = fotos[asLightboxIndex];
+  document.getElementById('as-lightbox-img').src = f.url;
+  document.getElementById('as-lightbox-caption').textContent =
+    `${f.porcentaje}% · ${f.usuario} · ${new Date(f.fecha).toLocaleString()} · Foto ${asLightboxIndex + 1} de ${fotos.length}`;
+  document.getElementById('as-lightbox-prev').style.display = fotos.length > 1 ? 'block' : 'none';
+  document.getElementById('as-lightbox-next').style.display = fotos.length > 1 ? 'block' : 'none';
+}
+
+function cambiarFotoLightbox(delta, event) {
+  if (event) event.stopPropagation();
+  const fotos = window.asFotosZonaActual || [];
+  if (!fotos.length) return;
+  asLightboxIndex = (asLightboxIndex + delta + fotos.length) % fotos.length;
+  pintarLightboxFoto();
+}
+
+function cerrarLightboxFoto(event) {
+  if (event) event.stopPropagation();
+  document.getElementById('as-lightbox').style.display = 'none';
+}
+
+async function cargarUltimosReportesAvanceSemanal() {
+  const container = document.getElementById('as-ultimos-reportes');
+  if (!container) return;
+  
+  const token = localStorage.getItem('obra360_token');
+  if (!token) return;
+  
+  try {
+    let todosLosReportes = [];
+    for (const zona of asZonas) {
+      const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zona.id}/estatus?limit=1&_t=${Date.now()}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        cache: "no-store"
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.historial && data.historial.length > 0) {
+          todosLosReportes.push({
+            zona: zona.nombre,
+            reporte: data.historial[0]
+          });
+        }
+      }
+    }
+    
+    todosLosReportes.sort((a, b) => new Date(b.reporte.fecha) - new Date(a.reporte.fecha));
+    const ultimos = todosLosReportes.slice(0, 3);
+    
+    if (ultimos.length === 0) {
+      container.innerHTML = '<div class="sin-reportes">Sin reportes</div>';
+      return;
+    }
+    
+    container.innerHTML = ultimos.map(item => `
+      <div class="reporte-item">
+        <span><strong>${item.zona}</strong> ${item.reporte.color} ${item.reporte.porcentaje}%</span>
+        <span style="color:#999;font-size:10px;">${item.reporte.usuario}</span>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error cargando últimos reportes:', error);
+    container.innerHTML = '<div class="sin-reportes">Error al cargar reportes</div>';
+  }
+}
+
+async function reportarAvanceSemanal() {
+  const zonaId = document.getElementById('as-selector-zona').value;
+  if (!zonaId) {
+    alert('⚠️ Por favor, selecciona una zona');
+    return;
+  }
+  
+  const porcentaje = parseInt(document.getElementById('as-porcentaje-slider').value);
+  const comentario = document.getElementById('as-comentario').value.trim();
+  const fotoInput = document.getElementById('as-foto');
+  
+  const token = localStorage.getItem('obra360_token');
+  if (!token) {
+    alert('❌ No hay sesión activa');
+    return;
+  }
+  
+  try {
+    const fotosUrls = [];
+    if (fotoInput.files && fotoInput.files.length > 0) {
+      for (const file of fotoInput.files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const uploadResp = await fetch(`${GATE_API_URL}/zonas_semanales/${zonaId}/foto`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData,
+          cache: "no-store"
+        });
+        const uploadData = await uploadResp.json();
+        if (uploadData.success) {
+          fotosUrls.push(uploadData.foto_url);
+        }
+      }
+    }
+    
+    const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zonaId}/estatus`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        porcentaje: porcentaje,
+        comentario: comentario,
+        fotos: fotosUrls
+      })
+    });
+    
+    const data = await resp.json();
+    if (data.success) {
+      const textoFotos = fotosUrls.length > 0 ? ` (${fotosUrls.length} foto${fotosUrls.length > 1 ? 's' : ''})` : '';
+      alert(`✅ Reporte guardado: ${porcentaje}% ${data.color}${textoFotos}`);
+      document.getElementById('as-comentario').value = '';
+      document.getElementById('as-foto').value = '';
+      cargarZonasAvanceSemanal();
+      cargarReportesAvanceSemanal();
+    } else {
+      alert('❌ Error: ' + (data.detail || 'Error desconocido'));
+    }
+  } catch (error) {
+    console.error('Error reportando avance:', error);
+    alert('❌ Error de conexión');
+  }
+}
+
+async function cargarReportesAvanceSemanal() {
+  const tbody = document.getElementById('body-avance_semanal');
+  const visible = document.getElementById('visible-avance_semanal');
+  const count = document.getElementById('count-avance_semanal');
+  
+  const token = localStorage.getItem('obra360_token');
+  if (!token) {
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--texto-secundario);">No hay sesión activa</td></tr>';
+    return;
+  }
+  
+  try {
+    let todosLosReportes = [];
+    for (const zona of asZonas) {
+      const resp = await fetch(`${GATE_API_URL}/zonas_semanales/${zona.id}/estatus?limit=50&_t=${Date.now()}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        cache: "no-store"
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.historial) {
+          data.historial.forEach(h => {
+            todosLosReportes.push({
+              zona_id: zona.id,
+              nombre: zona.nombre,
+              ...h
+            });
+          });
+        }
+      }
+    }
+    
+    todosLosReportes.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+    
+    if (todosLosReportes.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:var(--texto-secundario);">No hay reportes de avance</td></tr>';
+      if (visible) visible.textContent = '0';
+      if (count) count.textContent = '0 registros';
+      return;
+    }
+    
+    tbody.innerHTML = todosLosReportes.map(r => `
+      <tr>
+        <td class="cell">${r.zona_id.substring(0, 8)}</td>
+        <td class="cell">${r.nombre}</td>
+        <td class="cell num">${r.porcentaje}%</td>
+        <td class="cell">${r.color}</td>
+        <td class="cell">${r.estatus}</td>
+        <td class="cell">${r.usuario}</td>
+        <td class="cell">${new Date(r.fecha).toLocaleString()}</td>
+        <td class="cell">${r.comentario || '—'}</td>
+        <td class="cell">${r.foto_url ? '📷' : '—'}</td>
+      </tr>
+    `).join('');
+    
+    if (visible) visible.textContent = todosLosReportes.length;
+    if (count) count.textContent = todosLosReportes.length + ' registros';
+  } catch (error) {
+    console.error('Error cargando reportes:', error);
+    tbody.innerHTML = '<tr><td colspan="9" style="padding:20px;text-align:center;color:#a72e21;">Error al cargar reportes</td></tr>';
+  }
+}
 </script>
+
+<div id="as-lightbox" style="display:none;position:fixed;inset:0;background:rgba(10,15,20,.92);z-index:5000;align-items:center;justify-content:center;padding:20px;" onclick="cerrarLightboxFoto(event)">
+  <button onclick="cerrarLightboxFoto(event)" style="position:absolute;top:16px;right:20px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;cursor:pointer;">✕</button>
+  <button id="as-lightbox-prev" onclick="cambiarFotoLightbox(-1, event)" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:26px;width:44px;height:44px;border-radius:50%;cursor:pointer;">‹</button>
+  <button id="as-lightbox-next" onclick="cambiarFotoLightbox(1, event)" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:26px;width:44px;height:44px;border-radius:50%;cursor:pointer;">›</button>
+  <div style="max-width:92vw;max-height:88vh;text-align:center;" onclick="event.stopPropagation()">
+    <img id="as-lightbox-img" src="" style="max-width:92vw;max-height:78vh;border-radius:6px;box-shadow:0 10px 40px rgba(0,0,0,.5);">
+    <div id="as-lightbox-caption" style="color:#fff;font-size:13px;margin-top:10px;"></div>
+  </div>
+</div>
+
+</body>
+</html>
