@@ -519,6 +519,9 @@
       <button class="btn btn-secondary btn-action" onclick="cargarClientes()">
         <i class="bi bi-arrow-clockwise"></i>Refrescar
       </button>
+      <button class="btn btn-outline-primary btn-action" onclick="prepararCarpetasStorage()" title="Crea en Supabase la carpeta de cada proyecto y sus módulos (si ya existen, no pasa nada)">
+        <i class="bi bi-folder-symlink"></i>Crear carpetas Storage
+      </button>
 
       <span class="text-muted mx-1">|</span>
 
@@ -1023,7 +1026,7 @@
               const urlValue = p.url || '';
               return `
                 <div style="margin-top:0.5rem; border-top:1px solid #e9edf4; padding-top:0.5rem;">
-                  <span class="badge-proyecto">${p.nombre_proyecto}${p.codigo ? ' ' + p.codigo : ''}</span>
+                  <span class="badge-proyecto">${p.nombre_proyecto}${p.codigo ? ' ' + p.codigo : ''} · ID ${p.id}</span>
                   <div class="proyecto-url-container">
                     <label>URL:</label>
                     <input type="text" class="url-input" data-proyecto-id="${p.id}" value="${urlValue}" placeholder="Pega la URL del reporte">
@@ -1234,7 +1237,7 @@
       proyectos.forEach(p => {
         const option = document.createElement('option');
         option.value = p.id;
-        option.textContent = p.nombre_proyecto + (p.codigo ? ' ' + p.codigo : '');
+        option.textContent = p.nombre_proyecto + (p.codigo ? ' ' + p.codigo : '') + ' (ID ' + p.id + ')';
         selectProyecto.appendChild(option);
       });
     }
@@ -1408,6 +1411,15 @@
               `Creación: ${cliente.fecha_creacion || '—'}`);
       } catch (error) {
         mostrarToast('❌ Error obteniendo detalles: ' + error.message, 'error');
+      }
+    }
+
+    async function prepararCarpetasStorage() {
+      try {
+        const r = await apiFetch('/admin/storage/preparar_carpetas', { method: 'POST' });
+        mostrarToast('✅ ' + (r.mensaje || 'Carpetas listas'));
+      } catch (error) {
+        mostrarToast('❌ No se pudieron crear las carpetas: ' + error.message, 'error');
       }
     }
 
