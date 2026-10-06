@@ -672,7 +672,7 @@
         'Content-Type': 'application/json',
         ...options.headers
       };
-      
+
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -682,15 +682,24 @@
         headers
       });
 
-      if (response.status === 401 || response.status === 403) {
+      // Solo un 401 (token inválido o vencido) cierra la sesión.
+      if (response.status === 401) {
         eliminarToken();
         window.location.href = 'index.html';
         throw new Error('Sesión expirada');
       }
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Error ${response.status}`);
+        let msg = `Error ${response.status}`;
+        try {
+          const err = await response.json();
+          if (typeof err.detail === 'string') {
+            msg = err.detail;
+          } else if (Array.isArray(err.detail)) {
+            msg = err.detail.map(d => d.msg).join('; ');
+          }
+        } catch (e) {}
+        throw new Error(msg);
       }
 
       return response.json();
@@ -1138,11 +1147,21 @@
               return;
             }
 
+            if (!/^https:\/\//i.test(url)) {
+              mostrarToast('⚠️ La URL debe empezar con https://', 'error');
+              return;
+            }
+
             this.disabled = true;
             this.textContent = 'Guardando...';
 
             try {
               await actualizarUrlProyecto(proyectoId, url);
+              // Conservar el valor guardado en memoria para que no se pierda al cambiar de selector
+              Object.values(proyectosGlobal).forEach(lista => {
+                const p = (lista || []).find(x => String(x.id) === String(proyectoId));
+                if (p) p.url = url;
+              });
               mostrarToast('✅ URL guardada correctamente.');
             } catch (error) {
               mostrarToast('❌ Error al guardar la URL: ' + error.message, 'error');
@@ -1272,6 +1291,7 @@
       localStorage.setItem('obra360_proyecto_id', proyecto.id);
       localStorage.setItem('obra360_proyecto_nombre', proyecto.nombre_proyecto);
       localStorage.setItem('obra360_proyecto_codigo', proyecto.codigo || '');
+      localStorage.setItem('obra360_proyecto_url', proyecto.url || '');
       localStorage.setItem('obra360_cliente_id', cliente.id);
       localStorage.setItem('obra360_cliente_nombre', cliente.nombre);
       localStorage.setItem('obra360_token', obtenerToken());
