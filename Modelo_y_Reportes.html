@@ -127,9 +127,9 @@ if (window.pdfjsLib) {
       <div class="modulo-desc">
         Tabla de estatus por zona, porcentaje de avance y gráficas, conectado en vivo a la base de datos del proyecto.
       </div>
-      <a href="#" id="btnReporte" class="modulo-btn btn-reporte" target="_blank" rel="noopener">
+      <button type="button" id="btnReporte" class="modulo-btn btn-reporte">
         <i class="bi bi-bar-chart-fill me-1"></i>Ver Reporte
-      </a>
+      </button>
     </div>
 
     <div class="modulo-card" id="card-modelo-3d">
@@ -235,12 +235,18 @@ if (window.pdfjsLib) {
 
       const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
 
-      if (response.status === 401 || response.status === 403) {
+      // Solo un 401 (token inválido o vencido) significa sesión expirada.
+      if (response.status === 401) {
+        window.location.href = 'index.html';
         throw new Error('Sesión expirada');
       }
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Error ${response.status}`);
+        let msg = `Error ${response.status}`;
+        try {
+          const err = await response.json();
+          if (typeof err.detail === 'string') msg = err.detail;
+        } catch (e) {}
+        throw new Error(msg);
       }
       return response.json();
     }
@@ -253,6 +259,11 @@ if (window.pdfjsLib) {
       ver_reporte: false,
       modelo_3d: false
     };
+
+    // Datos de la sesión (se llenan en cargarPermisos para usuarios que no son admin)
+    let proyectoIdSesion = null;
+    let clienteIdSesion = null;
+    let reporteUrl = '';
 
     async function cargarPermisos() {
       try {
@@ -267,10 +278,12 @@ if (window.pdfjsLib) {
           permisos.avance_semanal = !!(data.cliente && data.cliente.acceso_avance_semanal);
           permisos.ver_reporte = !!(data.cliente && data.cliente.acceso_ver_reporte);
           permisos.modelo_3d = !!(data.cliente && data.cliente.acceso_modelo_3d);
+          clienteIdSesion = data.cliente ? data.cliente.id : null;
+          proyectoIdSesion = data.proyecto_id || null;
         }
 
         document.getElementById('mr-proyecto-label').textContent =
-          localStorage.getItem('obra360_proyecto_nombre') || 'Proyecto';
+          localStorage.getItem('obra360_proyecto_nombre') || data.nombre_proyecto || 'Proyecto';
 
       } catch (error) {
         console.error('Error obteniendo permisos:', error);
@@ -730,28 +743,51 @@ if (window.pdfjsLib) {
 
     // ============================================================
     // 📊 VER REPORTE (Power BI)
+    // Lee la URL guardada del proyecto y la abre en una pestaña nueva al hacer clic.
     // ============================================================
     async function configurarBotonReporte() {
-      const btnReporte = document.getElementById('btnReporte');
+      const proyectoId = proyectoIdSesion || localStorage.getItem('obra360_proyecto_id');
+      const clienteId = clienteIdSesion || localStorage.getItem('obra360_cliente_id');
+
+      // Respaldo: URL guardada en localStorage al entrar desde el Portal Admin
+      reporteUrl = (localStorage.getItem('obra360_proyecto_url') || '').trim();
+
+      if (!proyectoId || !clienteId) return;
+
       try {
-        const proyectoId = localStorage.getItem('obra360_proyecto_id');
-        const clienteId = localStorage.getItem('obra360_cliente_id');
-        if (proyectoId && clienteId) {
-          const proyectos = await apiFetch(`/clientes/${clienteId}/proyectos`);
-          const proyecto = (proyectos || []).find(p => String(p.id) === String(proyectoId));
-          if (proyecto && proyecto.url) {
-            btnReporte.href = proyecto.url;
-          }
+        const proyectos = await apiFetch(`/clientes/${clienteId}/proyectos`);
+        const proyecto = (proyectos || []).find(p => String(p.id) === String(proyectoId));
+        if (proyecto) {
+          reporteUrl = (proyecto.url || '').trim();
         }
       } catch (error) {
         console.error('Error configurando botón de reporte:', error);
       }
     }
 
-    document.getElementById('btnReporte').addEventListener('click', function(e) {
+    document.getElementById('btnReporte').addEventListener('click', function() {
       if (!permisos.ver_reporte) {
-        e.preventDefault();
+        alert('⚠️ Tu cuenta no tiene activado el acceso a "Ver Reporte".');
+        return;
       }
+
+      const proyectoId = proyectoIdSesion || localStorage.getItem('obra360_proyecto_id');
+      if (!proyectoId) {
+        alert('⚠️ Primero elige un proyecto desde Captura.');
+        return;
+      }
+
+      if (!reporteUrl) {
+        alert('Este proyecto aún no tiene URL de reporte.');
+        return;
+      }
+
+      if (!/^https:\/\//i.test(reporteUrl)) {
+        alert('⚠️ La URL del reporte no es válida (debe empezar con https://).');
+        return;
+      }
+
+      window.open(reporteUrl, '_blank', 'noopener');
     });
 
     // ============================================================
